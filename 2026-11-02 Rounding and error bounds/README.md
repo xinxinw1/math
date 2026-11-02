@@ -461,6 +461,7 @@ of can take a smaller share of the error.
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
 | $\sin x$, $\cos x$ | $d + k + 1$, and $\pi$ to $d + k + 1 + \mathrm{siz}(j)$ places when reducing by $j$ quarter turns |
 | Series term $n$ | $p_n = d + k + 2\mathrm{siz}(n)$ places |
+| $\ln x$ by series | terms to $d + k + 1 + 2\mathrm{siz}(n)$ places, $z$ to $d + k + 2$, and $\ln 2$ to $d + k + 1 + \mathrm{siz}(j)$ |
 
 ### Sums
 
@@ -1028,6 +1029,101 @@ $[-\pi/4, \pi/4]$, as in [Sine and cosine](#sine-and-cosine). Its ratios are
 $|r_n| = x^2/((2n)(2n+1))$, which is at most $1/n$ whenever $|x| \le 2.4$, so
 the rule has room to spare.
 
+### Logarithms by series
+
+The usual series $\ln(1 + u) = u - u^2/2 + u^3/3 - \cdots$ doesn't fit the
+series rule. The ratio between its terms is $-u(n-1)/n$, which tends to $u$
+instead of shrinking like $1/n$, so errors don't die out quickly, and for
+$|u|$ near 1 it converges very slowly. Instead, use
+
+$$\ln x = 2\left(z + \frac{z^3}{3} + \frac{z^5}{5} + \cdots\right), \qquad z = \frac{x - 1}{x + 1},$$
+
+after reducing $x$ so that $z$ is small.
+
+**Rule.** To get $\ln x$ good to $d$ places:
+
+- **Input.** Use the [logarithm rule](#logarithms) for the places of $x$.
+  That spends $T/2$ of the budget, and the steps below share the rest.
+- **Reduce.** Write $\tilde{x} = 2^j m$ with $m$ between $0.7$ and $1.4$, so
+  that $\ln x = j \ln 2 + \ln m$. Dividing by 2 is exact in decimal: each
+  halving adds one place.
+- **ln 2.** Use $\ln 2$ to $d + k + 1 + \mathrm{siz}(j)$ places, like $\pi$ in
+  the [sine reduction](#sine-and-cosine).
+- **z.** Compute $z = (m - 1)/(m + 1)$ to $d + k + 2$ places, rounded or
+  truncated. Then $|z| \le 0.18$, and $z^2 \le 0.032$. Compute $z^2$ exactly.
+- **Terms.** Keep a running power, starting from $P_0 = z$, and for each
+  $n \ge 1$ compute the power $P_n$ and the term $t_n$ as below, both rounded
+  or truncated to $p_n$ places. Add the terms as you go, starting from
+  $t_0 = z$.
+- **Stop** after the first term with $|\tilde{t}_N| \le T/10$, including that
+  term.
+- **Combine.** $j \cdot \ln 2 + 2 \cdot (\text{sum})$, then round to $d$
+  places.
+
+The power and the term are
+
+$$P_n = P_{n-1} \cdot z^2, \qquad t_n = \frac{P_n}{2n + 1},$$
+
+each to
+
+$$p_n = d + k + 1 + 2\mathrm{siz}(n)$$
+
+places. That is one place more than the [series](#series) rule, because the
+sum is doubled at the end, which doubles its rounding errors.
+
+**Example.** To get $\ln 3$ good to $d = 6$ places, with $k = 2$, the budget is
+$T = 10^{-8}$.
+
+**Reduce.** $3 = 2^2 \cdot 0.75$, so $j = 2$ and $m = 0.75$.
+
+**ln 2.** $\ln 2$ to $6 + 2 + 1 + 1 = 10$ places is $0.6931471806$.
+
+**z.** $z = -0.25/1.75$, which to 10 places is $-0.1428571429$, and
+$z^2 = 0.02040816327755102041$ exactly.
+
+**Terms.** With $p_n = 11$:
+
+| $n$ | $p_n$ | $\tilde{P}_n$ | $\tilde{t}_n$ |
+|---|---|---|---|
+| 0 | | $-0.1428571429$ | $-0.1428571429$ |
+| 1 | 11 | $-0.00291545190$ | $-0.00097181730$ |
+| 2 | 11 | $-0.00005949902$ | $-0.00001189980$ |
+| 3 | 11 | $-0.00000121427$ | $-0.00000017347$ |
+| 4 | 11 | $-0.00000002478$ | $-0.00000000275$ |
+| 5 | 11 | $-0.00000000051$ | $-0.00000000005$ |
+
+$|\tilde{t}_5| \le T/10 = 10^{-9}$, so stop after it. The sum is
+$-0.14384103627$.
+
+**Combine.** $2 \cdot 0.6931471806 + 2 \cdot (-0.14384103627) = 1.09861228866$,
+which rounds to $1.098612$.
+
+The true value is $\ln 3 = 1.0986122887\ldots$, so the result is off by about
+$8 \times 10^{-12}$. The nearest rounding boundary, $1.0986125$, is about
+$2.1 \times 10^{-7}$ away, more than $T$, so by Lemma 3, $1.098612$ is
+correctly rounded.
+
+**Why.** The evaluation half of the budget, $T/2$, is split four ways, about
+$T/8$ each:
+
+- **ln 2.** Its error is multiplied by $|j|$, and $|j| < 10^{\mathrm{siz}(j)}$,
+  so the error in $j \ln 2$ is under $10^{-(d+k+1)} = T/10$.
+- **z.** The derivative of $2(z + z^3/3 + \cdots)$ is $2/(1 - z^2)$, at most
+  $2.07$ for $z^2 \le 0.032$. So an error below $10^{-(d+k+2)}$ in $z$ gives an
+  error below $0.021T$.
+- **Rounding.** An error in $P_m$ is multiplied by $z^2$ at each later step, so
+  it reaches the later powers with total weight at most
+  $1/(1 - z^2) \le 1.04$, and each of those enters the sum divided by
+  $2n + 1 \ge 3$. With the term's own rounding, each rounding error of size
+  $u_n = 10^{-p_n}$ adds at most $(1.04/3 + 1)u_n < 1.35u_n$ to the sum. As in
+  the [series](#series) section, grouping by size gives
+  $\sum u_n = 0.01T$ with the extra place. Doubled, the total is at most
+  $2 \cdot 1.35 \cdot 0.01T = 0.027T$. Without the extra place it would be
+  $0.27T$, more than $T/8$.
+- **Tail.** The terms after $t_N$ shrink by at least $z^2$ each, so the tail is
+  at most $|t_N| z^2/(1 - z^2) < 0.04|t_N|$. Doubled and with
+  $|\tilde{t}_N| \le T/10$, it is well under $T/8$.
+
 ## Relative error and significant figures
 
 The *relative error* of an approximation is $\rho_x = \varepsilon_x / |\tilde{x}|$.
@@ -1156,6 +1252,6 @@ needed here.
 - **Correct rounding** has a test (Lemma 3) instead of only a counterexample.
 - **Series.** Taylor series are evaluated term by term at a slowly growing
   precision, without recomputing earlier terms or knowing how many there will
-  be, with $e^x$ and $\sin x$ worked through.
+  be, with $e^x$, $\sin x$ and $\ln x$ worked through.
 - **Division by truncation.** Lemma 4 shows that for exact inputs, truncating
   the quotient to one extra place and then rounding is correctly rounded.
