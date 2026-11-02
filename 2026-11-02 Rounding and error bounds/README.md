@@ -905,8 +905,12 @@ $t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
   multiplications and one rounded or truncated division, to the number of
   places $p_n$ given below.
 - **Sum.** Add the terms as you go. Sums of terminating decimals are exact.
-- **Stop** after the first term with $|\tilde{t}_N| \le T/10$, including that
-  term. Then round the sum to $d$ places.
+- **Stop** after the first term whose first $d + k + 1$ decimal places are
+  all zero, including that term. Then round the sum to $d$ places.
+
+The stopping test is $\mathrm{siz}(\tilde{t}_N) \le -(d + k + 1)$, with a term
+that rounds to 0 also counting. Since $|t| < 10^{\mathrm{siz}(t)}$, it means
+$|\tilde{t}_N| < 10^{-(d+k+1)} = T/10$.
 
 Compute term $n$ to
 
@@ -945,7 +949,8 @@ with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
 | 11 | 12 | $0.000000001757$ |
 | 12 | 12 | $0.000000000115$ |
 
-$\tilde{t}_{12} \le T/10 = 10^{-9}$, so stop after it.
+$\tilde{t}_{12}$ is the first term whose first $6 + 2 + 1 = 9$ decimal places
+are all zero, so stop after it.
 
 **Sum.** $2.193280050786$, which rounds to $2.193280$.
 
@@ -977,7 +982,8 @@ with $p_n = 10$:
 | 5 | 10 | $-0.0000000018$ |
 | 6 | 10 | $0.0000000000$ |
 
-$\tilde{t}_6$ rounds to 0, so stop after it.
+$\tilde{t}_5$ still has a nonzero digit in the 9th place, and $\tilde{t}_6$
+rounds to 0, so stop after it.
 
 **Sum.** $0.7071067809$, which rounds to $0.707107$.
 
@@ -1016,8 +1022,8 @@ For the tail:
   the first term left off, which is at most
   $|t_N| x^2 / ((2N+2)(2N+3)) \le 0.3|t_N|$ for $|x| \le 2.4$.
 
-Either way, stopping at $|\tilde{t}_N| \le T/10$ leaves a tail well under
-$T/4$, even allowing for the error in $\tilde{t}_N$.
+Either way, the stopping test gives $|\tilde{t}_N| < T/10$, which leaves a
+tail well under $T/4$, even allowing for the error in $\tilde{t}_N$.
 
 **Large arguments.** The rule needs $|r_n| \le 1/n$. For $e^x$ that means
 $|x| \le 1$. For larger $|x|$, the terms grow until $n \approx |x|$, errors grow
@@ -1055,8 +1061,8 @@ after reducing $x$ so that $z$ is small.
   $n \ge 1$ compute the power $P_n$ and the term $t_n$ as below, both rounded
   or truncated to $p_n$ places. Add the terms as you go, starting from
   $t_0 = z$.
-- **Stop** after the first term with $|\tilde{t}_N| \le T/10$, including that
-  term.
+- **Stop** after the first term whose first $d + k + 1$ decimal places are
+  all zero, as in the [series](#series) rule, including that term.
 - **Combine.** $j \cdot \ln 2 + 2 \cdot (\text{sum})$, then round to $d$
   places.
 
@@ -1092,7 +1098,8 @@ $z^2 = 0.02040816327755102041$ exactly.
 | 4 | 11 | $-0.00000002478$ | $-0.00000000275$ |
 | 5 | 11 | $-0.00000000051$ | $-0.00000000005$ |
 
-$|\tilde{t}_5| \le T/10 = 10^{-9}$, so stop after it. The sum is
+$\tilde{t}_5$ is the first term whose first 9 decimal places are all zero, so
+stop after it. The sum is
 $-0.14384103627$.
 
 **Combine.** $2 \cdot 0.6931471806 + 2 \cdot (-0.14384103627) = 1.09861228866$,
@@ -1122,7 +1129,7 @@ $T/8$ each:
   $0.27T$, more than $T/8$.
 - **Tail.** The terms after $t_N$ shrink by at least $z^2$ each, so the tail is
   at most $|t_N| z^2/(1 - z^2) < 0.04|t_N|$. Doubled and with
-  $|\tilde{t}_N| \le T/10$, it is well under $T/8$.
+  $|\tilde{t}_N| < T/10$, it is well under $T/8$.
 
 ## Relative error and significant figures
 
