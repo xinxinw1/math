@@ -457,7 +457,7 @@ of can take a smaller share of the error.
 | $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
-| $e^x$ | $\max(1, d + k + 1 + \mathrm{siz}(E))$, for an upper bound $E \ge e^x$ |
+| $e^x$ | $d + k + 2 + \lfloor 0.44 U_x \rfloor$ for $x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 L_x \rceil)$ for $x < 0$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
 | $\sin x$, $\cos x$ | $d + k + 1$, and $\pi$ to $d + k + 1 + \mathrm{siz}(j)$ places when reducing by $j$ quarter turns |
 | Series term $n$ | $p_n = d + k + 2\mathrm{siz}(n)$ places |
@@ -731,15 +731,20 @@ $0$, where Theorem 4's $A$ blows up but $\delta = \eta^2$ still works.
 
 ### Exponentials
 
-**Rule.** With an upper bound $E \ge e^x$ on the true value,
+**Rule.** For $x \ge 0$, with an upper bound $U_x \ge x$ on the true value,
 
-$$d_x = \max(1, d + k + 1 + \mathrm{siz}(E)).$$
+$$d_x = d + k + 2 + \lfloor 0.44 U_x \rfloor.$$
 
-$E$ only has to be rough: one significant figure, rounded up, is enough.
+For $x < 0$, with a lower bound $L_x \le |x|$ on the true value,
 
-**Example.** To get $e^{3\pi}$ good to $d = 3$ places, with $k = 2$: a quick
-low-accuracy calculation gives $e^{3\pi} \approx 12000$, so $E = 20000$ is a
-safe upper bound, of size 5. So $3\pi$ needs $3 + 2 + 1 + 5 = 11$ places.
+$$d_x = \max(1, d + k + 2 - \lceil 0.43 L_x \rceil).$$
+
+If you don't know the sign of $x$, use the first rule with $U_x \ge |x|$. The
+factors $0.44$ and $0.43$ are $\log e \approx 0.4343$ rounded up and down.
+
+**Example.** To get $e^{3\pi}$ good to $d = 3$ places, with $k = 2$: $3\pi < 9.5$,
+so take $U_x = 9.5$. Then $\lfloor 0.44 \cdot 9.5 \rfloor = \lfloor 4.18 \rfloor = 4$,
+so $3\pi$ needs $3 + 2 + 2 + 4 = 11$ places.
 
 So $\tilde{x} = \mathrm{rnd}(3\pi, 11) = 9.42477796077$. Its exponential to
 $d + k + 1 = 6$ places is $12391.647808$. The budget is $T = 10^{-5}$ and
@@ -760,12 +765,13 @@ $\delta^{+}$, so the largest $\delta$ is
 
 $$\delta(x) = \ln(1 + \eta e^{-x}).$$
 
-It shrinks as $x$ grows, so the worst case is where $e^x$ is largest, which
-is at most $E$. Let $u = \eta / E$. The exact count is
+It shrinks as $x$ grows, so the worst case is where $e^x$ is largest. Let $E$
+be an upper bound on $e^x$, and $u = \eta / E$. The exact count is
 
 $$d_x = \lceil \log c - \log\ln(1 + u) \rceil.$$
 
-For $e^{3\pi}$ with $E = 20000$, that is 10, one less than the rule.
+For $e^{3\pi}$ with $E = e^{9.5} \approx 13360$, that is 10, one less than the
+rule.
 
 Since $\ln(1 + u) \ge \frac{u}{1 + u}$, it is enough that
 
@@ -777,6 +783,20 @@ using $\eta = T/2$, so that $2\eta = 10^{-(d+k)}$.
   so $d + k + 1 + \mathrm{siz}(E)$ is enough.
 - **If E is below η,** then $d + k + \log(2c(E + \eta)) = \log(c(E + \eta)/\eta)$,
   which is less than $\log(2c) < 1$, so 1 place is enough.
+
+So $d_x = \max(1, d + k + 1 + \mathrm{siz}(E))$ is enough for any upper bound
+$E \ge e^x$. To turn this into a rule on $x$, use $\mathrm{siz}(e^a) = \lfloor a \log e \rfloor + 1$:
+
+- **For x at least 0,** take $E = e^{U_x}$. Since $\log e < 0.44$,
+  $\lfloor U_x \log e \rfloor \le \lfloor 0.44 U_x \rfloor$, which gives the
+  first rule.
+- **For x below 0,** $x \le -L_x$, so take $E = e^{-L_x}$. Since
+  $\log e > 0.43$, $\lfloor -L_x \log e \rfloor \le \lfloor -0.43 L_x \rfloor = -\lceil 0.43 L_x \rceil$,
+  which gives the second rule.
+
+For example, $e^{-5}$ to 6 places, with $k = 2$, takes $L_x = 5$, and
+$\lceil 0.43 \cdot 5 \rceil = \lceil 2.15 \rceil = 3$, so $x$ needs
+$6 + 2 + 2 - 3 = 7$ places. The exact count is 6.
 
 With $k = 2$, the 2015 rule
 $d_1 \ge (d + 3 + x/\ln 10) H(d + 3 + x/\ln 10)$, where $H$ is the step
@@ -923,8 +943,8 @@ computed.
 **Example: e to the power π/4.** To get $e^{\pi/4}$ good to $d = 6$ places,
 with $k = 2$, the budget is $T = 10^{-8}$.
 
-**Input.** $\pi/4 < 1$, so $e^{\pi/4} < e < 3$. The exponential rule with
-$E = 3$ gives $d_x = 6 + 2 + 1 + 1 = 10$, so
+**Input.** $\pi/4 < 1$, so the exponential rule with $U_x = 1$ gives
+$d_x = 6 + 2 + 2 + \lfloor 0.44 \rfloor = 10$, so
 $\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
 
 **Terms.** Start with $t_0 = 1$, and compute
