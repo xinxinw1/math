@@ -21,74 +21,14 @@ The key lemma is proved by induction on k: `Nat.pow_succ` rewrites 3^(k+1) as
 3^k · 3, and `omega` (Lean's linear-arithmetic decision procedure) treats 3^k as
 an opaque variable and finishes the argument mod 8.
 
-The file has been checked with Lean 4.15.0.
-
-## Installing Lean
-
-Lean is installed through **elan**, its version manager (similar to `rustup`).
-
-### macOS / Linux
-
-```bash
-curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
-```
-
-Then restart your shell, or run:
-
-```bash
-source ~/.elan/env
-```
-
-### Windows (PowerShell)
-
-```powershell
-curl -O --location https://raw.githubusercontent.com/leanprover/elan/master/elan-init.ps1
-powershell -ExecutionPolicy Bypass -f elan-init.ps1
-del elan-init.ps1
-```
-
-### Editor support (optional)
-
-Install [VS Code](https://code.visualstudio.com/) and the **lean4** extension.
-Opening a `.lean` file then shows proof goals and errors as you type.
-
-### No install
-
-Paste the contents of `ThreePowPlusOne.lean` into the web editor at
-<https://live.lean-lang.org>.
-
 ## Checking the proof
 
-From this directory:
+See the [root README](../README.md) for installing Lean. Then, from this
+directory:
 
 ```bash
 lean ThreePowPlusOne.lean
 ```
 
-The `lean-toolchain` file pins Lean 4.15.0, so elan downloads and uses that
-version automatically the first time. No output means every theorem checked.
-A failing proof prints an error with its line number.
-
-### If elan can't download Lean
-
-elan fetches toolchains from `release.lean-lang.org`. If a firewall blocks that
-host but GitHub is reachable, install the release by hand and register it with
-elan:
-
-```bash
-curl -L -o lean.zip https://github.com/leanprover/lean4/releases/download/v4.15.0/lean-4.15.0-linux.zip
-```
-
-```bash
-unzip lean.zip
-```
-
-```bash
-elan toolchain link lean415 "$PWD/lean-4.15.0-linux"
-```
-
-```bash
-elan override set lean415
-```
-
-Use the `-darwin` or `-windows` archive instead of `-linux` on other systems.
+The `lean-toolchain` file pins Lean 4.15.0, the version this proof has been
+checked with. No output means every theorem checked.
