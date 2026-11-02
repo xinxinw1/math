@@ -23,7 +23,7 @@ Expanding:
 
 $$t^3 + xt^2 + yt - xt^2 - x^2t - xy = 0$$
 
-$$t^3 + (y - x^2)\,t - xy = 0.$$
+$$t^3 + (y - x^2)t - xy = 0.$$
 
 This is a depressed cubic $t^3 + pt + q = 0$ with
 
@@ -189,8 +189,8 @@ reach them through complex numbers. This is the *casus irreducibilis*.
 The integer formula still works. Writing $\sqrt{x^2 - 4m} = i\sqrt{4m - x^2}$,
 
 $$
-\sqrt[3]{\frac{x(x^2 - 3m)}{2} + \frac{x^2 - m}{2}\,i\sqrt{4m - x^2}} +
-\sqrt[3]{\frac{x(x^2 - 3m)}{2} - \frac{x^2 - m}{2}\,i\sqrt{4m - x^2}} = x,
+\sqrt[3]{\frac{x(x^2 - 3m)}{2} + \frac{x^2 - m}{2} i\sqrt{4m - x^2}} +
+\sqrt[3]{\frac{x(x^2 - 3m)}{2} - \frac{x^2 - m}{2} i\sqrt{4m - x^2}} = x,
 $$
 
 and the cube roots are the complex conjugates
@@ -215,7 +215,7 @@ $\bar\omega u + \omega v$ are the remaining roots.
 The nicest examples come from a Gaussian integer $u = p + qi$, which gives
 $x = 2p$ and $m = p^2 + q^2$. The identity is then just
 $(p + qi)^3 + (p - qi)^3$ written with cube roots. The condition above becomes
-$q < \sqrt{3}\,p$.
+$q < p\sqrt{3}$.
 
 | $u$ | Identity |
 |---|---|
@@ -237,5 +237,5 @@ $$\omega(2 + i) + \bar\omega(2 - i) = -2 - \sqrt{3}, \qquad
 
 | $x$ | $m$ | $u$ | Identity |
 |---|---|---|---|
-| 3 | 3 | $\tfrac{3 + i\sqrt{3}}{2}$ | $\sqrt[3]{3\sqrt{3}\,i} + \sqrt[3]{-3\sqrt{3}\,i} = 3$ |
+| 3 | 3 | $\tfrac{3 + i\sqrt{3}}{2}$ | $\sqrt[3]{3i\sqrt{3}} + \sqrt[3]{-3i\sqrt{3}} = 3$ |
 | 2 | 3 | $1 + i\sqrt{2}$ | $\sqrt[3]{-5 + i\sqrt{2}} + \sqrt[3]{-5 - i\sqrt{2}} = 2$ |
