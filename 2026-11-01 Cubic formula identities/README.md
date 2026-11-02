@@ -110,11 +110,72 @@ irreducibilis*), and the formula needs complex cube roots.
 | $x$ | $y$ | Identity |
 |---|---|---|
 | 1 | 4 | $\sqrt[3]{2 + \sqrt{5}} + \sqrt[3]{2 - \sqrt{5}} = 1$ |
-| 1 | 2 | $\sqrt[3]{1 + \tfrac{2}{9}\sqrt{21}} + \sqrt[3]{1 - \tfrac{2}{9}\sqrt{21}} = 1$ |
-| 2 | 2 | $\sqrt[3]{2 + \tfrac{10}{9}\sqrt{3}} + \sqrt[3]{2 - \tfrac{10}{9}\sqrt{3}} = 2$ |
+| 1 | 10 | $\sqrt[3]{5 + 2\sqrt{13}} + \sqrt[3]{5 - 2\sqrt{13}} = 1$ |
+| 1 | 34 | $\sqrt[3]{17 + 18\sqrt{5}} + \sqrt[3]{17 - 18\sqrt{5}} = 1$ |
+| 2 | 7 | $\sqrt[3]{7 + 5\sqrt{2}} + \sqrt[3]{7 - 5\sqrt{2}} = 2$ |
+| 2 | 10 | $\sqrt[3]{10 + 6\sqrt{3}} + \sqrt[3]{10 - 6\sqrt{3}} = 2$ |
+| 3 | 6 | $\sqrt[3]{9 + 4\sqrt{5}} + \sqrt[3]{9 - 4\sqrt{5}} = 3$ |
+| 4 | 10 | $\sqrt[3]{20 + 14\sqrt{2}} + \sqrt[3]{20 - 14\sqrt{2}} = 4$ |
 
-In the first example the formula gives $b = \tfrac{1}{3}$ and $c = 45$, which
-simplify because $\tfrac{1}{3}\sqrt{45} = \sqrt{5}$.
+The formula's $b$ and $c$ often simplify. In the first example it gives
+$b = \tfrac{1}{3}$ and $c = 45$, and $\tfrac{1}{3}\sqrt{45} = \sqrt{5}$.
 
 When $3(4y - x^2)$ is a perfect square, the identity is trivial. For example,
 $x = 1,\ y = 1$ gives $\sqrt[3]{1} + \sqrt[3]{0} = 1$.
+
+Replacing $x$ with $kx$ and $y$ with $k^2y$ multiplies $a$ and $b\sqrt{c}$ by
+$k^3$, so for example $x = 2,\ y = 16$ gives $8$ times the first identity.
+
+## Integer identities
+
+A cleaner way to get identities with integer coefficients is to parametrize by
+the product of the two cube roots instead of by $y$.
+
+Let $u$ and $v$ be the two cube roots, so $u + v = x$. In Cardano's formula,
+$uv = -\dfrac{p}{3} = \dfrac{x^2 - y}{3}$. Call this $m$, so
+
+$$y = x^2 - 3m.$$
+
+Substituting into the generator, $y + 2x^2 = 3(x^2 - m)$ and
+$4y - x^2 = 3(x^2 - 4m)$, so
+
+$$a = \frac{xy}{2} = \frac{x(x^2 - 3m)}{2}, \qquad
+b\sqrt{c} = \sqrt{\frac{(y + 2x^2)^2(4y - x^2)}{108}}
+= \frac{x^2 - m}{2}\sqrt{x^2 - 4m}.$$
+
+This gives
+
+$$
+\sqrt[3]{\frac{x(x^2 - 3m)}{2} + \frac{x^2 - m}{2}\sqrt{x^2 - 4m}} +
+\sqrt[3]{\frac{x(x^2 - 3m)}{2} - \frac{x^2 - m}{2}\sqrt{x^2 - 4m}} = x
+$$
+
+for any $x$ and $m$ with $x^2 > 4m$ (equivalent to $4y > x^2$).
+
+The coefficients are integers when $x$ and $m$ are integers and either
+
+- $x$ and $m$ are both odd, so $x^2 - 3m$ and $x^2 - m$ are even, or
+- $x$ is even, so $x^2 - 3m$ is even and $x^2 - 4m$ is divisible by $4$, which
+  lets $\tfrac{1}{2}\sqrt{x^2 - 4m} = \sqrt{\tfrac{x^2 - 4m}{4}}$.
+
+The identity is nontrivial when $x^2 - 4m$ is not a perfect square.
+
+| $x$ | $m$ | Identity |
+|---|---|---|
+| 1 | $-1$ | $\sqrt[3]{2 + \sqrt{5}} + \sqrt[3]{2 - \sqrt{5}} = 1$ |
+| 1 | $-3$ | $\sqrt[3]{5 + 2\sqrt{13}} + \sqrt[3]{5 - 2\sqrt{13}} = 1$ |
+| 2 | $-1$ | $\sqrt[3]{7 + 5\sqrt{2}} + \sqrt[3]{7 - 5\sqrt{2}} = 2$ |
+| 3 | $1$ | $\sqrt[3]{9 + 4\sqrt{5}} + \sqrt[3]{9 - 4\sqrt{5}} = 3$ |
+
+### Why these cube roots simplify
+
+Since $u + v = x$ and $uv = m$, the cube roots are the roots of
+$s^2 - xs + m = 0$:
+
+$$u = \frac{x + \sqrt{x^2 - 4m}}{2}, \qquad v = \frac{x - \sqrt{x^2 - 4m}}{2}.$$
+
+So every identity from the generator is a perfect cube in disguise. For example,
+with $\varphi = \tfrac{1 + \sqrt{5}}{2}$ the golden ratio:
+
+$$\varphi^3 = 2 + \sqrt{5}, \qquad (1 + \sqrt{2})^3 = 7 + 5\sqrt{2}, \qquad
+\varphi^6 = 9 + 4\sqrt{5}.$$
