@@ -5,6 +5,11 @@ rounded to $d$ decimal places, is accurate.
 
 *Xin-Xin* — handwritten notes from March 17–18, 2015, typed up.
 
+The original pages:
+[page 1](handwritten-notes-page-1.jpg) (precision functions),
+[page 2](handwritten-notes-page-2.jpg) (accuracy and sums) and
+[page 3](handwritten-notes-page-3.jpg) (products and quotients).
+
 Throughout, $\log$ means $\log_{10}$, and $\mathrm{rnd}(x, p)$ means $x$ rounded
 to $p$ decimal places.
 
