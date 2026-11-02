@@ -1,0 +1,70 @@
+# Notes for Claude
+
+## Writing math in GitHub Markdown
+
+The notes in this repo are Markdown files rendered by GitHub, which displays
+`$...$` and `$$...$$` with MathJax. GitHub runs its Markdown parser *before*
+the math renderer, which causes several problems. Each rule below came from
+something that rendered wrong in this repo.
+
+### Rules
+
+- **No line inside a `$$` block may start with `+ `, `- ` or `* `.** GitHub
+  reads it as a bullet-list item and the equation breaks into raw LaTeX plus a
+  bullet. Put the operator at the end of the previous line instead:
+
+  ```latex
+  $$
+  \sqrt[3]{a + b} +
+  \sqrt[3]{a - b} = x
+  $$
+  ```
+
+- **Don't use `\,` (thin space).** Markdown treats it as an escaped comma, so
+  `3\sqrt{3}\,i` renders as "3√3,i". Reorder the terms instead, for example
+  `3i\sqrt{3}` or `p\sqrt{3}`. Other backslash-punctuation commands such as `\;`
+  or `\!` are likely to have the same problem.
+
+- **Don't use `\operatorname`.** GitHub's renderer rejects it with "The
+  following macros are not allowed: operatorname". Use `\mathrm{Im}(z)`
+  instead.
+
+- **Don't use `\mathbb`.** `\mathbb{Q}` renders as a plain italic Q. Write the
+  Unicode characters ℚ, ℤ, ℝ and ℂ in ordinary text instead, for example
+  `$u$ lies in ℚ(*i*)`.
+
+- **Keep math out of `*italic*` and `**bold**` text.** Math inside emphasis
+  shows up as raw `$x$`. Put the label in bold and the math after it:
+  `**Step 1.** $x$ and $m$ are integers.`
+
+- **Long display equations scroll sideways on phones.** Split very wide
+  equations across lines, or accept the horizontal scroll.
+
+### Used without problems so far
+
+`$...$`, `$$...$$`, `aligned` with `\\` line breaks, `\frac`, `\tfrac`,
+`\dfrac`, `\sqrt[3]{}`, `\boxed`, `\qquad`, `\mathrm`, `\varphi`, `\omega`,
+`\bar`, `\ne`, `\pm`, and inline math inside table cells.
+
+### Checking a file
+
+Find lines that start with a list marker inside `$$` blocks:
+
+```bash
+awk '/^\$\$$/{m=!m;next} m && /^[-+*] /{print FILENAME": "NR": "$0}' path/to/README.md
+```
+
+Find the commands that are known to break:
+
+```bash
+grep -n '\\,\|\\operatorname\|\\mathbb' path/to/README.md
+```
+
+Find math inside italic or bold text:
+
+```bash
+grep -n '^\*[^*][^*]*\$[^*]*\*\|\*\*[^*]*\$[^*]*\*\*' path/to/README.md
+```
+
+The `awk` check assumes `$$` sits on a line by itself to open and close a
+block.
