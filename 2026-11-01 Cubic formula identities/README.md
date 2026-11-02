@@ -227,7 +227,7 @@ Since $\sqrt{3}$ is irrational, $p^2 \ne 3q^2$, so $a$ is never $0$.
 
 These are all such identities with integers $a$, $b$ and $x$ (with $b \ne 0$).
 The cube root $u = \tfrac{x + ik}{2}$, where $k = \sqrt{4m - x^2}$, has
-$\operatorname{Im} u^3 = \tfrac{k(3x^2 - k^2)}{8}$. From $x^3 = 2a + 3mx$,
+$\mathrm{Im}(u^3) = \tfrac{k(3x^2 - k^2)}{8}$. From $x^3 = 2a + 3mx$,
 $m = \tfrac{x^3 - 2a}{3x}$ is rational, so $k^2$ is rational and $b \ne 0$ forces $k$ to be rational and $u$ to lie in $\mathbb{Q}(i)$. Being
 a cube root of the Gaussian integer $a + bi$, $u$ is an algebraic integer, so
 $u \in \mathbb{Z}[i]$. In particular $x$ is always even.
