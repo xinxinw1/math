@@ -44,7 +44,9 @@ theorem exists_int_of_cubic {q : ℚ} {c d : ℤ} (h : q ^ 3 + c * q + d = 0) :
     have := Int.natAbs_dvd_natAbs.mpr hdvd
     simpa [Int.natAbs_pow] using this
   have hden : q.den = 1 := (Nat.Coprime.pow_left 3 q.reduced).symm.eq_one_of_dvd hdvd'
-  exact ⟨q.num, (Rat.coe_int_num_of_den_eq_one hden).symm⟩
+  have hq := Rat.num_div_den q
+  rw [hden] at hq
+  exact ⟨q.num, by simpa using hq.symm⟩
 
 /-- The integer part of the argument (Steps 3 and 4 in the README). -/
 theorem int_classification {a b k n : ℤ} (ha : a ≠ 0) (hb : 0 < b) (hsq : Squarefree b)
