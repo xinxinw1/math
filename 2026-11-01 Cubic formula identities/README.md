@@ -331,7 +331,8 @@ $$\omega(2 + i) + \bar\omega(2 - i) = -2 - \sqrt{3}, \qquad
 
 `CubicIdentities.lean` formalizes the squarefree theorem using Mathlib.
 
-> **Status:** written but not yet compiled, so it may need small fixes.
+> **Status:** checked with no errors or warnings on <https://live.lean-lang.org>
+> using its stable release (Lean v4.35.0 with Mathlib).
 
 | Theorem | Statement |
 |---|---|
