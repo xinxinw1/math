@@ -45,6 +45,33 @@ the integer $m$ with
 
 $$10^m \le |x| < 10^{m + 1}.$$
 
+For example:
+
+| $x$ | Scientific notation | $\mathrm{mag}(x)$ |
+|---|---|---|
+| $1234$ | $1.234 \times 10^3$ | $3$ |
+| $1000$ | $1 \times 10^3$ | $3$ |
+| $999.9$ | $9.999 \times 10^2$ | $2$ |
+| $10$ | $1 \times 10^1$ | $1$ |
+| $7$ | $7 \times 10^0$ | $0$ |
+| $1$ | $1 \times 10^0$ | $0$ |
+| $0.5$ | $5 \times 10^{-1}$ | $-1$ |
+| $0.05$ | $5 \times 10^{-2}$ | $-2$ |
+| $0.00123$ | $1.23 \times 10^{-3}$ | $-3$ |
+| $-250$ | $-2.5 \times 10^2$ | $2$ |
+
+A few things the table shows:
+
+- **Whole-number part.** For $\lvert x \rvert \ge 1$, $\mathrm{mag}(x)$ is one
+  less than the number of digits before the decimal point: $1234$ has 4 and
+  $\mathrm{mag}$ 3.
+- **Small numbers.** For $\lvert x \rvert < 1$, $-\mathrm{mag}(x)$ is the place
+  of the first nonzero digit after the decimal point: in $0.00123$ it is the
+  3rd place.
+- **Powers of 10.** $\mathrm{mag}$ steps up exactly at each power of 10:
+  $\mathrm{mag}(999.9) = 2$ but $\mathrm{mag}(1000) = 3$.
+- **Sign.** The sign doesn't matter: $\mathrm{mag}(-250) = \mathrm{mag}(250)$.
+
 The 2015 notes had $\mathrm{nsig}(x) = \mathrm{mag}(x)$ and
 $\mathrm{sig}(x) = \mathrm{mag}(x) + 1$. $\mathrm{mag}(0)$ is undefined.
 
