@@ -210,12 +210,30 @@ The other choices of cube roots give the cubic's other two real roots. Let
 $\omega = e^{2\pi i/3}$. Then $u + v = x$, while $\omega u + \bar\omega v$ and
 $\bar\omega u + \omega v$ are the remaining roots.
 
-### Gaussian integer examples
+### Generating $\sqrt[3]{a + bi} + \sqrt[3]{a - bi} = x$
 
-The nicest examples come from a Gaussian integer $u = p + qi$, which gives
-$x = 2p$ and $m = p^2 + q^2$. The identity is then just
-$(p + qi)^3 + (p - qi)^3$ written with cube roots. The condition above becomes
-$q < p\sqrt{3}$.
+To get identities with integers $a$ and $b$ and no other radicals, take a
+Gaussian integer $u = p + qi$ with $p > 0$ and $0 < q < p\sqrt{3}$. Then
+
+$$a + bi = (p + qi)^3, \qquad a = p(p^2 - 3q^2), \qquad b = q(3p^2 - q^2),$$
+
+and
+
+$$\sqrt[3]{a + bi} + \sqrt[3]{a - bi} = 2p.$$
+
+In terms of the integer formula, $x = 2p$ and $m = p^2 + q^2$, and the
+condition $q < p\sqrt{3}$ is the principal-root condition $m < x^2$ from above.
+Since $\sqrt{3}$ is irrational, $p^2 \ne 3q^2$, so $a$ is never $0$.
+
+These are all such identities with integers $a$, $b$ and $x$ (with $b \ne 0$).
+The cube root $u = \tfrac{x + ik}{2}$, where $k = \sqrt{4m - x^2}$, has
+$\operatorname{Im} u^3 = \tfrac{k(3x^2 - k^2)}{8}$. From $x^3 = 2a + 3mx$,
+$m = \tfrac{x^3 - 2a}{3x}$ is rational, so $k^2$ is rational and $b \ne 0$ forces $k$ to be rational and $u$ to lie in $\mathbb{Q}(i)$. Being
+a cube root of the Gaussian integer $a + bi$, $u$ is an algebraic integer, so
+$u \in \mathbb{Z}[i]$. In particular $x$ is always even.
+
+Taking $\gcd(p, q) = 1$ skips scaled copies, since $u \to ku$ multiplies $a$
+and $b$ by $k^3$ and $x$ by $k$.
 
 | $u$ | Identity |
 |---|---|
@@ -225,6 +243,10 @@ $q < p\sqrt{3}$.
 | $3 + i$ | $\sqrt[3]{18 + 26i} + \sqrt[3]{18 - 26i} = 6$ |
 | $3 + 2i$ | $\sqrt[3]{-9 + 46i} + \sqrt[3]{-9 - 46i} = 6$ |
 | $3 + 4i$ | $\sqrt[3]{-117 + 44i} + \sqrt[3]{-117 - 44i} = 6$ |
+| $3 + 5i$ | $\sqrt[3]{-198 + 10i} + \sqrt[3]{-198 - 10i} = 6$ |
+| $4 + i$ | $\sqrt[3]{52 + 47i} + \sqrt[3]{52 - 47i} = 8$ |
+| $4 + 3i$ | $\sqrt[3]{-44 + 117i} + \sqrt[3]{-44 - 117i} = 8$ |
+| $4 + 5i$ | $\sqrt[3]{-236 + 115i} + \sqrt[3]{-236 - 115i} = 8$ |
 
 The $u = 2 + i$ row is Bombelli's example from 1572, one of the first
 calculations to use complex numbers. It solves $t^3 = 15t + 4$, whose roots are
@@ -232,10 +254,3 @@ $4$ and $-2 \pm \sqrt{3}$. With $\omega$ as above,
 
 $$\omega(2 + i) + \bar\omega(2 - i) = -2 - \sqrt{3}, \qquad
 \bar\omega(2 + i) + \omega(2 - i) = -2 + \sqrt{3}.$$
-
-### Other examples
-
-| $x$ | $m$ | $u$ | Identity |
-|---|---|---|---|
-| 3 | 3 | $\tfrac{3 + i\sqrt{3}}{2}$ | $\sqrt[3]{3i\sqrt{3}} + \sqrt[3]{-3i\sqrt{3}} = 3$ |
-| 2 | 3 | $1 + i\sqrt{2}$ | $\sqrt[3]{-5 + i\sqrt{2}} + \sqrt[3]{-5 - i\sqrt{2}} = 2$ |
