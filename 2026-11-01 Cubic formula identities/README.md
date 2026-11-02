@@ -179,3 +179,63 @@ with $\varphi = \tfrac{1 + \sqrt{5}}{2}$ the golden ratio:
 
 $$\varphi^3 = 2 + \sqrt{5}, \qquad (1 + \sqrt{2})^3 = 7 + 5\sqrt{2}, \qquad
 \varphi^6 = 9 + 4\sqrt{5}.$$
+
+## Complex cube roots
+
+When $x^2 < 4m$ (equivalently $4y < x^2$), the square root $\sqrt{x^2 - 4m}$ is
+imaginary. The cubic then has three real roots, but Cardano's formula can only
+reach them through complex numbers. This is the *casus irreducibilis*.
+
+The integer formula still works. Writing $\sqrt{x^2 - 4m} = i\sqrt{4m - x^2}$,
+
+$$
+\sqrt[3]{\frac{x(x^2 - 3m)}{2} + \frac{x^2 - m}{2}\,i\sqrt{4m - x^2}} +
+\sqrt[3]{\frac{x(x^2 - 3m)}{2} - \frac{x^2 - m}{2}\,i\sqrt{4m - x^2}} = x,
+$$
+
+and the cube roots are the complex conjugates
+
+$$u = \frac{x + i\sqrt{4m - x^2}}{2}, \qquad v = \frac{x - i\sqrt{4m - x^2}}{2}.$$
+
+### Choosing the cube root
+
+A complex number has three cube roots. Using the *principal* cube root (the one
+with argument in $(-\tfrac{\pi}{3}, \tfrac{\pi}{3}]$, which is what calculators
+and most programming languages return), the identity holds exactly when $u$
+itself is principal, that is $|\arg u| < \tfrac{\pi}{3}$. For $x > 0$ this means
+
+$$\frac{x^2}{4} < m < x^2.$$
+
+The other choices of cube roots give the cubic's other two real roots. Let
+$\omega = e^{2\pi i/3}$. Then $u + v = x$, while $\omega u + \bar\omega v$ and
+$\bar\omega u + \omega v$ are the remaining roots.
+
+### Gaussian integer examples
+
+The nicest examples come from a Gaussian integer $u = p + qi$, which gives
+$x = 2p$ and $m = p^2 + q^2$. The identity is then just
+$(p + qi)^3 + (p - qi)^3$ written with cube roots. The condition above becomes
+$q < \sqrt{3}\,p$.
+
+| $u$ | Identity |
+|---|---|
+| $1 + i$ | $\sqrt[3]{-2 + 2i} + \sqrt[3]{-2 - 2i} = 2$ |
+| $2 + i$ | $\sqrt[3]{2 + 11i} + \sqrt[3]{2 - 11i} = 4$ |
+| $2 + 3i$ | $\sqrt[3]{-46 + 9i} + \sqrt[3]{-46 - 9i} = 4$ |
+| $3 + i$ | $\sqrt[3]{18 + 26i} + \sqrt[3]{18 - 26i} = 6$ |
+| $3 + 2i$ | $\sqrt[3]{-9 + 46i} + \sqrt[3]{-9 - 46i} = 6$ |
+| $3 + 4i$ | $\sqrt[3]{-117 + 44i} + \sqrt[3]{-117 - 44i} = 6$ |
+
+The $u = 2 + i$ row is Bombelli's example from 1572, one of the first
+calculations to use complex numbers. It solves $t^3 = 15t + 4$, whose roots are
+$4$ and $-2 \pm \sqrt{3}$. With $\omega$ as above,
+
+$$\omega(2 + i) + \bar\omega(2 - i) = -2 - \sqrt{3}, \qquad
+\bar\omega(2 + i) + \omega(2 - i) = -2 + \sqrt{3}.$$
+
+### Other examples
+
+| $x$ | $m$ | $u$ | Identity |
+|---|---|---|---|
+| 3 | 3 | $\tfrac{3 + i\sqrt{3}}{2}$ | $\sqrt[3]{3\sqrt{3}\,i} + \sqrt[3]{-3\sqrt{3}\,i} = 3$ |
+| 2 | 3 | $1 + i\sqrt{2}$ | $\sqrt[3]{-5 + i\sqrt{2}} + \sqrt[3]{-5 - i\sqrt{2}} = 2$ |
