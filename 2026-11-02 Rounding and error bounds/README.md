@@ -905,11 +905,11 @@ $t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
   multiplications and one rounded or truncated division, to the number of
   places $p_n$ given below.
 - **Sum.** Add the terms as you go. Sums of terminating decimals are exact.
-- **Stop** after the first term whose first $d + k + 1$ decimal places are
-  all zero, including that term. Then round the sum to $d$ places.
+- **Stop** after the first term with
+  $\mathrm{siz}(\tilde{t}_N) \le -(d + k + 1)$, including that term. A term
+  that rounds to 0 also counts. Then round the sum to $d$ places.
 
-The stopping test is $\mathrm{siz}(\tilde{t}_N) \le -(d + k + 1)$, with a term
-that rounds to 0 also counting. Since $|t| < 10^{\mathrm{siz}(t)}$, it means
+Since $|t| < 10^{\mathrm{siz}(t)}$, the stopping test means
 $|\tilde{t}_N| < 10^{-(d+k+1)} = T/10$.
 
 Compute term $n$ to
@@ -933,24 +933,24 @@ $$\tilde t_n = \mathrm{rnd}(\tilde t_{n-1} \cdot \tilde{x} / n, p_n),$$
 
 with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
 
-| $n$ | $p_n$ | $\tilde{t}_n$ |
-|---|---|---|
-| 0 | | $1$ |
-| 1 | 10 | $0.7853981634$ |
-| 2 | 10 | $0.3084251375$ |
-| 3 | 10 | $0.0807455122$ |
-| 4 | 10 | $0.0158543442$ |
-| 5 | 10 | $0.0024903946$ |
-| 6 | 10 | $0.0003259919$ |
-| 7 | 10 | $0.0000365762$ |
-| 8 | 10 | $0.0000035909$ |
-| 9 | 10 | $0.0000003134$ |
-| 10 | 12 | $0.000000024614$ |
-| 11 | 12 | $0.000000001757$ |
-| 12 | 12 | $0.000000000115$ |
+| $n$ | $p_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
+|---|---|---|---|
+| 0 | | $1$ | $1$ |
+| 1 | 10 | $0.7853981634$ | $0$ |
+| 2 | 10 | $0.3084251375$ | $0$ |
+| 3 | 10 | $0.0807455122$ | $-1$ |
+| 4 | 10 | $0.0158543442$ | $-1$ |
+| 5 | 10 | $0.0024903946$ | $-2$ |
+| 6 | 10 | $0.0003259919$ | $-3$ |
+| 7 | 10 | $0.0000365762$ | $-4$ |
+| 8 | 10 | $0.0000035909$ | $-5$ |
+| 9 | 10 | $0.0000003134$ | $-6$ |
+| 10 | 12 | $0.000000024614$ | $-7$ |
+| 11 | 12 | $0.000000001757$ | $-8$ |
+| 12 | 12 | $0.000000000115$ | $-9$ |
 
-$\tilde{t}_{12}$ is the first term whose first $6 + 2 + 1 = 9$ decimal places
-are all zero, so stop after it.
+$\tilde{t}_{12}$ is the first term with
+$\mathrm{siz} \le -(6 + 2 + 1) = -9$, so stop after it.
 
 **Sum.** $2.193280050786$, which rounds to $2.193280$.
 
@@ -972,18 +972,18 @@ $$\tilde t_n = \mathrm{rnd}(-\tilde t_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((
 
 with $p_n = 10$:
 
-| $n$ | $p_n$ | $\tilde{t}_n$ |
-|---|---|---|
-| 0 | | $0.785398163$ |
-| 1 | 10 | $-0.0807455121$ |
-| 2 | 10 | $0.0024903946$ |
-| 3 | 10 | $-0.0000365762$ |
-| 4 | 10 | $0.0000003134$ |
-| 5 | 10 | $-0.0000000018$ |
-| 6 | 10 | $0.0000000000$ |
+| $n$ | $p_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
+|---|---|---|---|
+| 0 | | $0.785398163$ | $0$ |
+| 1 | 10 | $-0.0807455121$ | $-1$ |
+| 2 | 10 | $0.0024903946$ | $-2$ |
+| 3 | 10 | $-0.0000365762$ | $-4$ |
+| 4 | 10 | $0.0000003134$ | $-6$ |
+| 5 | 10 | $-0.0000000018$ | $-8$ |
+| 6 | 10 | $0.0000000000$ | — |
 
-$\tilde{t}_5$ still has a nonzero digit in the 9th place, and $\tilde{t}_6$
-rounds to 0, so stop after it.
+$\tilde{t}_5$ has $\mathrm{siz} = -8$, more than $-9$, and $\tilde{t}_6$ rounds
+to 0, so stop after it.
 
 **Sum.** $0.7071067809$, which rounds to $0.707107$.
 
@@ -1061,8 +1061,9 @@ after reducing $x$ so that $z$ is small.
   $n \ge 1$ compute the power $P_n$ and the term $t_n$ as below, both rounded
   or truncated to $p_n$ places. Add the terms as you go, starting from
   $t_0 = z$.
-- **Stop** after the first term whose first $d + k + 1$ decimal places are
-  all zero, as in the [series](#series) rule, including that term.
+- **Stop** after the first term with
+  $\mathrm{siz}(\tilde{t}_N) \le -(d + k + 1)$, as in the [series](#series)
+  rule, including that term.
 - **Combine.** $j \cdot \ln 2 + 2 \cdot (\text{sum})$, then round to $d$
   places.
 
@@ -1089,17 +1090,16 @@ $z^2 = 0.02040816327755102041$ exactly.
 
 **Terms.** With $p_n = 11$:
 
-| $n$ | $p_n$ | $\tilde{P}_n$ | $\tilde{t}_n$ |
-|---|---|---|---|
-| 0 | | $-0.1428571429$ | $-0.1428571429$ |
-| 1 | 11 | $-0.00291545190$ | $-0.00097181730$ |
-| 2 | 11 | $-0.00005949902$ | $-0.00001189980$ |
-| 3 | 11 | $-0.00000121427$ | $-0.00000017347$ |
-| 4 | 11 | $-0.00000002478$ | $-0.00000000275$ |
-| 5 | 11 | $-0.00000000051$ | $-0.00000000005$ |
+| $n$ | $p_n$ | $\tilde{P}_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
+|---|---|---|---|---|
+| 0 | | $-0.1428571429$ | $-0.1428571429$ | $0$ |
+| 1 | 11 | $-0.00291545190$ | $-0.00097181730$ | $-3$ |
+| 2 | 11 | $-0.00005949902$ | $-0.00001189980$ | $-4$ |
+| 3 | 11 | $-0.00000121427$ | $-0.00000017347$ | $-6$ |
+| 4 | 11 | $-0.00000002478$ | $-0.00000000275$ | $-8$ |
+| 5 | 11 | $-0.00000000051$ | $-0.00000000005$ | $-10$ |
 
-$\tilde{t}_5$ is the first term whose first 9 decimal places are all zero, so
-stop after it. The sum is
+$\tilde{t}_5$ is the first term with $\mathrm{siz} \le -9$, so stop after it. The sum is
 $-0.14384103627$.
 
 **Combine.** $2 \cdot 0.6931471806 + 2 \cdot (-0.14384103627) = 1.09861228866$,
