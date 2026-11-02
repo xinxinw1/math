@@ -252,8 +252,9 @@ error in $f(\tilde{x}, \tilde{y})$ has two parts:
 
 Sums, differences and products of terminating decimals can be computed exactly,
 so their evaluation error is 0. For division, square roots and other functions,
-evaluate to some number of places and add that error to the total. The rest of
-this section is about the propagated error.
+evaluate to some number of places and add that error to the total.
+[Choosing input places](#choosing-input-places) sets aside half of the error
+budget for this. The rest of this section is about the propagated error.
 
 ### Exact rules
 
@@ -364,12 +365,29 @@ range.
 The question from the 2015 notes is the reverse: given the output places $d$,
 how many places do the inputs need?
 
-The target is a propagated error of at most $T = 10^{-(d+k)}$, which Lemma 1
-then turns into an output good to $d$ places. With $n$ inputs, split $T$
-evenly, so each input needs $A_i \varepsilon_i \le T/n$. If input $i$ is good
-to $d_i$ places, then $\varepsilon_i = c \cdot 10^{-d_i}$, and Lemma 2 gives
+The target is a computed value within $T = 10^{-(d+k)}$ of the true value,
+which Lemma 1 then turns into an output good to $d$ places. That error has two
+parts, so split $T$ between them:
 
-$$d_i = \left\lceil d + k + \log(n c A_i) \right\rceil.$$
+$$\eta + (\text{evaluation error}) \le T,$$
+
+where $\eta$ is the budget for the propagated error.
+
+- **Exact evaluation.** Sums, differences, products and powers of terminating
+  decimals have no evaluation error, so $\eta = T$.
+- **Everything else.** For division, square roots, exponentials and
+  logarithms, take $\eta = T/2$, and compute $f(\tilde{x})$ to $d + k + 1$
+  places, rounded or cut off. That has an error of at most
+  $10^{-(d+k+1)} = T/10$, well within the other half.
+
+With $n$ inputs, split $\eta$ evenly, so each input needs
+$A_i \varepsilon_i \le \eta/n$. If input $i$ is good to $d_i$ places, then
+$\varepsilon_i = c \cdot 10^{-d_i}$, and Lemma 2 gives
+
+$$d_i = \left\lceil -\log\eta + \log(n c A_i) \right\rceil,$$
+
+where $-\log\eta$ is $d + k$ when $\eta = T$, and $d + k + \log 2$ when
+$\eta = T/2$.
 
 Here $c = c_k$ if the input is itself the output of an earlier step, and
 $c = \frac{1}{2}$ if it is exactly rounded.
@@ -379,13 +397,14 @@ $\varepsilon_i$ being chosen. In practice, pick the bounds from a rough first
 estimate, with room to spare. For example, if $3 < x < 4$, then $A_y = 4$ works
 for $xy$ whatever accuracy $x$ ends up with. A looser bound only costs digits.
 
-**Uneven splits.** Splitting $T$ evenly is a choice, not a requirement. Any
-$\varepsilon_i$ with $\sum A_i \varepsilon_i \le T$ works. An input that is
+**Uneven splits.** Splitting evenly is a choice, not a requirement. Any
+$\varepsilon_i$ with $\sum A_i \varepsilon_i \le \eta$ works, and $T$ can be
+split unevenly between $\eta$ and the evaluation error too. An input that is
 cheap to get more digits of can take a smaller share of the error.
 
 ### Sums
 
-$A_i = 1$, so
+$A_i = 1$ and $\eta = T$, so
 
 $$d_i = \lceil d + k + \log(n c) \rceil.$$
 
@@ -405,7 +424,8 @@ $n \le 2, 20, 200, 2000$.
 ### Products
 
 For $xy$, take magnitude bounds $M_x \ge |\tilde{x}| + \varepsilon_x$ and
-$M_y \ge |\tilde{y}| + \varepsilon_y$. Then $A_x = M_y$ and $A_y = M_x$, so
+$M_y \ge |\tilde{y}| + \varepsilon_y$. Then $A_x = M_y$ and $A_y = M_x$, and
+$\eta = T$, so
 
 $$d_x = \lceil d + k + \log(2c M_y) \rceil, \qquad d_y = \lceil d + k + \log(2c M_x) \rceil.$$
 
@@ -421,12 +441,14 @@ might round up to $10.000$.
 
 For $x / y$, take $M_x \ge |\tilde{x}| + \varepsilon_x$ and a lower bound
 $0 < L_y \le |\tilde{y}| - \varepsilon_y$. Then $A_x = 1/L_y$ and
-$A_y = M_x / L_y^2$, so
+$A_y = M_x / L_y^2$. The quotient can't be computed exactly, so $\eta = T/2$,
+and
 
-$$d_x = \lceil d + k + \log(2c) - \log L_y \rceil, \qquad d_y = \lceil d + k + \log(2c) + \log M_x - 2\log L_y \rceil.$$
+$$d_x = \lceil d + k + \log(4c) - \log L_y \rceil, \qquad d_y = \lceil d + k + \log(4c) + \log M_x - 2\log L_y \rceil.$$
 
 With $k = 2$, $M_x = 10^{\mathrm{siz}(x)}$ and $L_y = 10^{\mathrm{siz}(y) - 1}$,
-these become
+$\log(4c_2) = \log 2.04 \approx 0.31$ rounds up into the same whole numbers as
+$\log(2c_2)$ would, and these become
 
 $$d_x = d + 4 - \mathrm{siz}(y), \qquad d_y = d + 5 + \mathrm{siz}(x) - 2\mathrm{siz}(y).$$
 
@@ -443,8 +465,8 @@ through unchanged. If $\tilde{x}$ is good to $d$ places and $a$ has at most
 $d$ places, then $\tilde{x} + a$ is good to $d$ places, with no rounding step.
 
 For $f(x) = ax$, with $a \ne 0$ exact, Theorem 5 gives
-$\delta^{+} = \delta^{-} = \eta / |a|$. With $\eta = T = 10^{-(d+k)}$, Lemma 2
-gives
+$\delta^{+} = \delta^{-} = \eta / |a|$. The product $a\tilde{x}$ is exact, so
+$\eta = T = 10^{-(d+k)}$, and Lemma 2 gives
 
 $$d_x = \lceil d + k + \log(c|a|) \rceil.$$
 
@@ -456,36 +478,112 @@ The 2015 notes also give $d_1 \ge d + \log|a|$ for the case where the result is
 But $a\tilde{x}$ usually has more than $d$ places, and rounding it adds more
 error, so that version only applies when no rounding is needed.
 
+### Powers
+
+For $f(x) = x^n$ with $n \ge 2$ a whole number, $\tilde{x}^n$ can be computed
+exactly, so $\eta = T$. By Theorem 4, with $A = nM^{n-1}$ for a bound
+$M \ge |\tilde{x}| + \varepsilon_x$,
+
+$$d_x = \left\lceil d + k + \log(cnM^{n-1}) \right\rceil.$$
+
+With $M = 10^{\mathrm{siz}(x)}$, and the same caveat as for products, this is
+$\lceil d + k + \log(cn) \rceil + (n - 1)\mathrm{siz}(x)$.
+
+In significant figures, raising to the $n$th power multiplies the relative
+error by about $n$. So $x$ needs about $\log n$ more significant figures than
+$x^n$, plus $k$. Theorem 5 gives essentially the same $\delta$ when $\eta$ is
+small.
+
 ### Square roots
 
-For $f(x) = \sqrt{x}$, which is increasing on $[0, \infty)$, Theorem 5 gives
+**Exact δ.** For $f(x) = \sqrt{x}$, which is increasing on $[0, \infty)$,
+Theorem 5 gives
 
 $$\delta^{+} = (\sqrt{x} + \eta)^2 - x = 2\eta\sqrt{x} + \eta^2, \qquad \delta^{-} = x - (\sqrt{x} - \eta)^2 = 2\eta\sqrt{x} - \eta^2,$$
 
 where $\delta^{-}$ is for $\sqrt{x} \ge \eta$. If $\sqrt{x} < \eta$, then
-$\sqrt{x} - \eta < 0$ is below every value of $\sqrt{x}$, so
-$\delta^{-} = \infty$.
+$\sqrt{x} - \eta$ is below every value of $\sqrt{x}$, so $\delta^{-} = \infty$.
+So a $\delta$ that works for every $x \ge 0$ is
 
-So when $\sqrt{x} \ge \eta$, the largest $\delta$ is $2\eta\sqrt{x} - \eta^2$.
-It grows with $x$, so take a lower bound $L \le x$ with $\sqrt{L} \ge \eta$.
-Then $\delta = 2\eta\sqrt{L} - \eta^2 \ge \eta\sqrt{L}$, so it is enough that
+$$\delta(x) = 2\eta\sqrt{x} - \eta^2 \quad \text{when } \sqrt{x} \ge \eta, \qquad \delta(x) = \eta^2 \quad \text{when } \sqrt{x} < \eta.$$
 
-$$d_x = \left\lceil d + k + \log c - \tfrac{1}{2}\log L \right\rceil.$$
+When $\sqrt{x} \ge \eta$ this is the largest $\delta$. Below that it gives up a
+little, since the largest is $2\eta\sqrt{x} + \eta^2$, to keep the formula
+simple. The two cases agree at $\sqrt{x} = \eta$.
 
-With $L = 10^{\mathrm{siz}(x) - 1}$, this is
+**Worst case.** $\delta(x)$ grows with $x$, so the worst case is the smallest
+value $x$ might have. Take a lower bound $L \le x$ on the true $x$ and use
+$\delta(L)$. $L = 10^{\mathrm{siz}(\tilde{x}) - 1}$ only works if $x$ can't be
+below that power of 10: for $\tilde{x} = 1.000$, $x$ might be $0.9999$. When in
+doubt, use $\tilde{x} - \varepsilon_x$, or go one power of 10 lower.
 
-$$d_x = \left\lceil d + k + \log c - \frac{\mathrm{siz}(x) - 1}{2} \right\rceil.$$
+**Domain.** Near $0$, $\tilde{x}$ might come out negative. Replace it with
+$0$. Since $x \ge 0$, that only moves $\tilde{x}$ closer to $x$.
 
-The 2015 rule $d_1 \ge d + 2 - \frac{1}{2}\mathrm{nsiz}(x)$ is this with
-$k = 2$ and $\log c$ rounded up to 0, without the ceiling.
+**Places.** Lemma 2 gives the exact count:
 
-Near $0$ this asks for far more places than needed. Since
-$|\sqrt{a} - \sqrt{b}| \le \sqrt{|a - b|}$, $\delta = \eta^2$ always works,
-which needs $d_x = \lceil 2(d + k) + \log c \rceil$ places whatever $x$ is.
+$$d_x = \lceil \log c - \log \delta(L) \rceil.$$
+
+For a simpler formula: in the usual case, $\sqrt{L} \ge 10\eta$, and then
+$2\eta\sqrt{L} - \eta^2 \ge 1.9\eta\sqrt{L}$. With $\eta = T/2$,
+
+$$d_x = \left\lceil d + k + \log\frac{2c}{1.9} - \tfrac{1}{2}\log L \right\rceil.$$
+
+$\log\frac{2c}{1.9}$ is about $-0.28$ for $c = \frac{1}{2}$, and $-0.27$ for
+$c = c_2$. With $L = 10^{\mathrm{siz}(x) - 1}$, this is
+
+$$d_x = \left\lceil d + k + \log\frac{2c}{1.9} - \frac{\mathrm{siz}(x) - 1}{2} \right\rceil.$$
+
+The 2015 rule $d_1 \ge d + 2 - \frac{1}{2}\mathrm{nsiz}(x)$ asks for slightly
+more than this with $k = 2$. So it was safe, even though it set nothing aside
+for evaluation error.
+
+If there's no useful lower bound, with $\sqrt{L} < \eta$, then
+$\delta = \eta^2$, and
+
+$$d_x = \lceil 2(d + k + \log 2) + \log c \rceil$$
+
+places work whatever $x$ is.
+
+**Significant figures.** $\tilde{x}$ is written with $d_x + \mathrm{siz}(x)$
+significant digits, and the output with $d + \mathrm{siz}(\sqrt{x})$, where
+$\mathrm{siz}(\sqrt{x}) = \lceil \mathrm{siz}(x)/2 \rceil$. Putting these into
+the formula above,
+
+$$d_x + \mathrm{siz}(x) \le d + \mathrm{siz}(\sqrt{x}) + k + 1.$$
+
+So the input needs about as many significant figures as the output, plus the
+$k$ guard digits. That is because a square root halves the relative error.
+
+**Compared with Theorem 4.** There, $A = 1/(2\sqrt{L - \varepsilon_x})$, which
+also gives $\delta \approx 2\eta\sqrt{L}$. Theorem 5 only makes a real
+difference near $0$, where Theorem 4's $A$ blows up but $\delta = \eta^2$ still
+works.
+
+**Example.** To get $\sqrt{\pi}$ good to $d = 4$ places, with $k = 2$, the
+budget is $T = 10^{-6}$ and $\eta = 5 \times 10^{-7}$. Since $\pi > 3$, take
+$L = 3$:
+
+$$\delta(3) = 2\eta\sqrt{3} - \eta^2 \approx 1.732 \times 10^{-6}.$$
+
+With $\pi$ rounded exactly, $c = \frac{1}{2}$, and
+
+$$d_x = \lceil \log 0.5 - \log(1.732 \times 10^{-6}) \rceil = \lceil 5.46 \rceil = 6.$$
+
+Five places wouldn't do: they allow an error of $5 \times 10^{-6}$, more than
+$\delta$.
+
+So $\tilde{x} = 3.141593$. Its square root to $d + k + 1 = 7$ places is
+$1.7724539$. The total error is at most
+$\eta + \frac{1}{2} \cdot 10^{-7} = 5.5 \times 10^{-7} \le T$, so by Lemma 1,
+$\mathrm{rnd}(1.7724539, 4) = 1.7725$ is good to 4 places. The nearest
+rounding boundary, $1.77245$, is about $3.9 \times 10^{-6}$ away, more than
+$5.5 \times 10^{-7}$, so by Lemma 3 this is $\sqrt{\pi}$ correctly rounded.
+(The true value is $1.7724538509\ldots$)
 
 ### Exponentials
 
-For $f(x) = e^x$, Theorem 5 gives
+**Exact δ.** For $f(x) = e^x$, Theorem 5 gives
 
 $$\delta^{+} = \ln(e^x + \eta) - x = \ln(1 + \eta e^{-x}), \qquad \delta^{-} = x - \ln(e^x - \eta) = -\ln(1 - \eta e^{-x}),$$
 
@@ -493,27 +591,93 @@ where $\delta^{-}$ is for $e^x > \eta$, and is $\infty$ otherwise. Since
 $\ln(1 + u) \le -\ln(1 - u)$ for $0 \le u < 1$, the smaller one is
 $\delta^{+}$. So the largest $\delta$ is
 
-$$\delta = \ln(1 + \eta e^{-x}).$$
+$$\delta(x) = \ln(1 + \eta e^{-x}).$$
 
-It shrinks as $x$ grows, so take an upper bound $U \ge x$, and let
-$u = \eta e^{-U}$.
+**Worst case.** $\delta(x)$ shrinks as $x$ grows, so take an upper bound
+$U \ge x$ on the true $x$. Let $u = \eta e^{-U}$, so $\delta(U) = \ln(1 + u)$.
 
-- **Small u.** If $u \le 1$, then $\ln(1 + u) \ge \frac{u}{1 + u} \ge \frac{u}{2}$, so by
-  Lemma 2 it is enough that
-  $d_x \ge \log(2c) - \log u = d + k + \log(2c) + U / \ln 10$.
-- **Large u.** If $u > 1$, then $\delta > \ln 2 > c$, so $d_x = 0$ is enough.
+**Places.** Lemma 2 gives the exact count:
 
-Both cases together:
+$$d_x = \lceil \log c - \log\ln(1 + u) \rceil.$$
 
-$$d_x = \max\left(0, \left\lceil d + k + \log(2c) + \frac{U}{\ln 10} \right\rceil\right).$$
+For a simpler formula: $\ln(1 + u) \ge \frac{u}{1 + u}$ for every $u > 0$, so it
+is enough that $d_x \ge \log c - \log u + \log(1 + u)$. With $\eta = T/2$,
 
-With $k = 2$ and $c = c_2$, $\log(2c) = \log 1.02 \approx 0.0086$, and this is the
-2015 rule $d_1 \ge (d + 3 + x/\ln 10) H(d + 3 + x/\ln 10)$, where $H$ is the
-step function, with a ceiling. Each unit added to $x$ multiplies $e^x$ by
-$e$, and needs $1/\ln 10 \approx 0.43$ more places of $x$.
+$$d_x = \left\lceil d + k + \log(2c) + \frac{U}{\ln 10} + \log(1 + u) \right\rceil.$$
 
-For example, to get $e^x$ good to $d = 3$ places when $x$ is about 10, take
-$U = 10.1$. Then $d_x = \lceil 3 + 2 + 0.0086 + 4.386 \rceil = 10$.
+$\log(2c)$ is $0$ for $c = \frac{1}{2}$, and about $0.0086$ for $c = c_2$.
+Usually $u$ is tiny, and $\log(1 + u)$ is too, but keeping it makes the
+formula safe for every $U$. For very negative $U$, $d_x$ can come out $0$ or
+negative. A negative $d_x$ is fine: it means $x$ can be rounded to tens,
+hundreds and so on.
+
+With $k = 2$ and $c = c_2$, the 2015 rule
+$d_1 \ge (d + 3 + x/\ln 10) H(d + 3 + x/\ln 10)$, where $H$ is the step
+function, asks for up to one more place than this. So it was safe too.
+
+**Significant figures.** $U/\ln 10 = \log e^U$, which is just below
+$\mathrm{siz}(e^U)$. So $d_x$ is about $d + \mathrm{siz}(e^x) + k$, and
+$d + \mathrm{siz}(e^x)$ is the number of significant figures in the output.
+The number of decimal places $x$ needs is about the number of significant
+figures wanted in $e^x$, plus $k$. That is because an absolute error $r$ in
+$x$ becomes a relative error of about $r$ in $e^x$.
+
+**Compared with Theorem 4.** There, $A = e^{U + \varepsilon_x}$, which gives
+$\delta \approx \eta e^{-U} = u$, about the same as $\ln(1 + u)$ when $u$ is
+small. Theorem 5 only makes a difference when $u$ is large, which means $e^x$
+is smaller than $\eta$, and the output is $0$ to $d$ places anyway.
+
+**Example.** To get $e^{3\pi}$ good to $d = 3$ places, with $k = 2$, the budget
+is $T = 10^{-5}$ and $\eta = 5 \times 10^{-6}$. Since $3\pi < 9.5$, take
+$U = 9.5$. Then $u = \eta e^{-9.5} \approx 3.74 \times 10^{-10}$, and with
+$x = 3\pi$ rounded exactly, $c = \frac{1}{2}$:
+
+$$d_x = \left\lceil 3 + 2 + 0 + \frac{9.5}{\ln 10} + \log(1 + u) \right\rceil = \lceil 9.13 \rceil = 10.$$
+
+Nine places wouldn't do: they allow an error of $5 \times 10^{-10}$, more than
+$\delta \approx 3.74 \times 10^{-10}$.
+
+So $\tilde{x} = \mathrm{rnd}(3\pi, 10) = 9.4247779608$. Its exponential to
+$d + k + 1 = 6$ places is $12391.647808$. The total error is at most
+$\eta + \frac{1}{2} \cdot 10^{-6} = 5.5 \times 10^{-6} \le T$, so by Lemma 1,
+$\mathrm{rnd}(12391.647808, 3) = 12391.648$ is good to 3 places. The nearest
+rounding boundary, $12391.6475$, is about $3.1 \times 10^{-4}$ away, so by
+Lemma 3 this is $e^{3\pi}$ correctly rounded. (The true value is
+$12391.6478079\ldots$)
+
+The output has 8 significant figures, and $x$ needed $10 = 8 + k$ places, as
+the significant-figures rule says.
+
+### Logarithms
+
+**Exact δ.** For $f(x) = \ln x$, which is increasing on $(0, \infty)$ with
+inverse $e^y$, Theorem 5 gives
+
+$$\delta^{+} = e^{\ln x + \eta} - x = x(e^{\eta} - 1), \qquad \delta^{-} = x - e^{\ln x - \eta} = x(1 - e^{-\eta}).$$
+
+Since $e^{\eta} + e^{-\eta} \ge 2$, $\delta^{-}$ is the smaller, so
+
+$$\delta(x) = x(1 - e^{-\eta}).$$
+
+**Worst case.** $\delta(x)$ grows with $x$, so take a lower bound $L \le x$ on
+the true $x$. Since $\varepsilon_x \le \delta(L) < L$, $\tilde{x}$ is
+automatically positive.
+
+**Places.** Since $e^{\eta} \ge 1 + \eta$, $1 - e^{-\eta} \ge \frac{\eta}{1 + \eta}$.
+With $\eta = T/2$, Lemma 2 gives
+
+$$d_x = \left\lceil d + k + \log(2c) + \log(1 + \eta) - \log L \right\rceil.$$
+
+**Significant figures.** $\delta \approx \eta x$, so the relative error of $x$
+has to be at most about $\eta = \frac{1}{2} \cdot 10^{-(d+k)}$. A value written
+with $s$ significant figures has relative error up to
+$\frac{1}{2} \cdot 10^{1-s}$, so $x$ needs about $d + k + 1$ significant
+figures, whatever its size. With $L = 10^{\mathrm{siz}(x) - 1}$ the formula can
+ask for one more, since $L$ can be up to 10 times smaller than $x$.
+
+This is the mirror image of exponentials: there, the decimal places of $x$
+control the significant figures of $e^x$. Here, the significant figures of $x$
+control the decimal places of $\ln x$.
 
 ## Relative error and significant figures
 
@@ -628,9 +792,13 @@ rounded. (The true value is $8.5397342\ldots$)
 - **One general rule**, Theorem 4, covers sums, products, quotients and any
   other differentiable function.
 - **Monotonic functions get an exact bound.** Theorem 5 states the 2015
-  inverse-function method with its edge cases, and gives constants, square
-  roots and exponentials as examples, without assuming $\varepsilon^2$ is
-  negligible.
+  inverse-function method with its edge cases. Constants, powers, square
+  roots, exponentials and logarithms are worked through, without assuming
+  $\varepsilon^2$ is negligible, each with its meaning in significant
+  figures.
+- **Evaluation error is budgeted.** Division, square roots, exponentials and
+  logarithms can't be computed exactly, so half of the error budget is set
+  aside for computing them.
 - **The place counts use a ceiling**, since they have to be whole numbers.
 - **Relative error** connects significant figures to products and quotients.
 - **Correct rounding** has a test (Lemma 3) instead of only a counterexample.
