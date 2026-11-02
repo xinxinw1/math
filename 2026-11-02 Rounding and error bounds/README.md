@@ -389,8 +389,12 @@ $$d_i = \left\lceil -\log\eta + \log(n c A_i) \right\rceil,$$
 where $-\log\eta$ is $d + k$ when $\eta = T$, and $d + k + \log 2$ when
 $\eta = T/2$.
 
-Here $c = c_k$ if the input is itself the output of an earlier step, and
-$c = \frac{1}{2}$ if it is exactly rounded.
+**What c is.** $c$ is the error constant of an input: its error is at most
+$c \cdot 10^{-d_i}$. It is $\frac{1}{2}$ if the input is exactly rounded, and
+$c_k = \frac{1}{2} + 10^{-k}$ if it is the rounded output of an earlier step,
+which is $0.51$ for $k = 2$. For any $k \ge 1$, $c$ is between $0.5$ and $0.6$,
+so $\log c$ is between $-0.31$ and $-0.22$. It is negative, so leaving it out
+never asks for fewer places, and asks for at most one more.
 
 **A circular dependency.** $A_i$ depends on the box $B$, which depends on the
 $\varepsilon_i$ being chosen. In practice, pick the bounds from a rough first
@@ -401,6 +405,39 @@ for $xy$ whatever accuracy $x$ ends up with. A looser bound only costs digits.
 $\varepsilon_i$ with $\sum A_i \varepsilon_i \le \eta$ works, and $T$ can be
 split unevenly between $\eta$ and the evaluation error too. An input that is
 cheap to get more digits of can take a smaller share of the error.
+
+### Quick rules
+
+The formulas in this section are exact, but they need logarithms. Each
+subsection below also gives a *quick rule* in whole numbers, which is easier
+to work out in base 10. The quick rules:
+
+- **Leave out log c.** $\log c$ is negative.
+- **Round small constants up,** such as $\log 2 \approx 0.30$, usually to 1.
+- **Use siz in place of log.** For an upper bound on $\lvert a \rvert$, use
+  $\log\lvert a \rvert < \mathrm{siz}(a)$. For a lower bound, use
+  $\log\lvert a \rvert \ge \mathrm{siz}(a) - 1$.
+
+A quick rule never asks for fewer places than the exact formula, and usually
+asks for the same number or one more.
+
+**Which siz.** The bounds are on the true values. Use the siz of the value you
+have, unless it is within its error of a power of 10. Then use one more for an
+upper bound, as for $y = 9.9996$ under [Products](#products), or one less for
+a lower bound.
+
+| Operation | Quick rule for input places |
+|---|---|
+| Sum of $n$ terms | $d + k + \mathrm{siz}(n)$ |
+| $xy$ | $d_x = d + k + 1 + \mathrm{siz}(y)$, and the same for $d_y$ with $x$ and $y$ swapped |
+| $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(y)$, $d_y = d + k + 3 + \mathrm{siz}(x) - 2\mathrm{siz}(y)$ |
+| $ax$ | $d + k + \mathrm{siz}(a)$ |
+| $x^n$ | $d + k + \mathrm{siz}(n) + (n - 1)\mathrm{siz}(x)$ |
+| $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(x) - 1)/2 \rfloor$ |
+| $e^x$ | $\max(1, d + k + 1 + \mathrm{siz}(E))$, for a rough upper bound $E \ge e^x$ |
+| $\ln x$ | $d + k + 2 - \mathrm{siz}(x)$ |
+
+The subsections below explain each rule and its conditions.
 
 ### Sums
 
@@ -421,6 +458,10 @@ $d + 2 + \log\frac{51n}{100}$, and gives the same table:
 With exactly rounded inputs, $c = \frac{1}{2}$ and the cutoffs become
 $n \le 2, 20, 200, 2000$.
 
+**Quick rule.** $d_i = d + k + \mathrm{siz}(n)$, since
+$\log(nc) < \log n < \mathrm{siz}(n)$. This is at most one more than the
+table. For 30 terms, $\mathrm{siz}(30) = 2$, so $d_i = d + k + 2$.
+
 ### Products
 
 For $xy$, take magnitude bounds $M_x \ge |\tilde{x}| + \varepsilon_x$ and
@@ -436,6 +477,9 @@ $d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the assumption that $r_1 r_2$
 is negligible. The one caveat is that $M_y$ has to bound $|\tilde{y}|$ as well
 as $|y|$. For $y = 9.9996$ that means $M_y = 100$, not $10$, if $\tilde{y}$
 might round up to $10.000$.
+
+**Quick rule.** $d_x = d + k + 1 + \mathrm{siz}(y)$ and
+$d_y = d + k + 1 + \mathrm{siz}(x)$, since $\log(2c) \le \log 1.2 < 1$.
 
 ### Quotients
 
@@ -456,6 +500,11 @@ Since $\mathrm{nsiz} = \mathrm{siz} - 1$, these are the 2015 rules $d_1 \ge d + 
 $d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$. Again, nothing is
 assumed negligible, but $L_y$ has to stay below $|\tilde{y}| - \varepsilon_y$,
 which needs a little room when $|y|$ is close to $10^{\mathrm{siz}(y) - 1}$.
+
+**Quick rule.** These are already whole numbers, and since
+$\log(4c) \le \log 2.4 < 1$, they hold for any $k$:
+
+$$d_x = d + k + 2 - \mathrm{siz}(y), \qquad d_y = d + k + 3 + \mathrm{siz}(x) - 2\mathrm{siz}(y).$$
 
 ### Adding and multiplying by a constant
 
@@ -478,6 +527,11 @@ The 2015 notes also give $d_1 \ge d + \log|a|$ for the case where the result is
 But $a\tilde{x}$ usually has more than $d$ places, and rounding it adds more
 error, so that version only applies when no rounding is needed.
 
+**Quick rule.** $d_x = d + k + \mathrm{siz}(a)$, since
+$\log(c\lvert a \rvert) < \log\lvert a \rvert < \mathrm{siz}(a)$. For
+$\lvert a \rvert < 1$, $\mathrm{siz}(a)$ is 0 or negative, and $x$ needs fewer
+places than the output.
+
 ### Powers
 
 For $f(x) = x^n$ with $n \ge 2$ a whole number, $\tilde{x}^n$ can be computed
@@ -493,6 +547,10 @@ In significant figures, raising to the $n$th power multiplies the relative
 error by about $n$. So $x$ needs about $\log n$ more significant figures than
 $x^n$, plus $k$. Theorem 5 gives essentially the same $\delta$ when $\eta$ is
 small.
+
+**Quick rule.** $d_x = d + k + \mathrm{siz}(n) + (n - 1)\mathrm{siz}(x)$, since
+$\log(cn) < \mathrm{siz}(n)$. For $n \le 9$, that is
+$d + k + 1 + (n - 1)\mathrm{siz}(x)$.
 
 ### Square roots
 
@@ -544,6 +602,23 @@ $\delta = \eta^2$, and
 $$d_x = \lceil 2(d + k + \log 2) + \log c \rceil$$
 
 places work whatever $x$ is.
+
+**Quick rule.** Subtract half of $\mathrm{siz}(x) - 1$, rounded down, from
+$d + k$:
+
+$$d_x = d + k - \left\lfloor \frac{\mathrm{siz}(x) - 1}{2} \right\rfloor.$$
+
+For a negative number, rounding down goes away from zero:
+$\lfloor -1/2 \rfloor = -1$. So $\sqrt{0.5}$, with $\mathrm{siz}(0.5) = 0$, needs
+$d + k + 1$ places. This drops $\log\frac{2c}{1.9}$, which is negative because
+$2c \le 1.2$.
+
+The rule needs $\sqrt{L} \ge 10\eta$, which holds when
+$\mathrm{siz}(x) \ge 3 - 2(d + k)$. That fails only for extremely small $x$.
+Then use $d_x = 2(d + k) + 1$ instead.
+
+For $\sqrt{\pi}$ to 4 places with $k = 2$, $\mathrm{siz}(\pi) = 1$, so
+$d_x = 4 + 2 - 0 = 6$, the same as the exact count.
 
 **Significant figures.** $\tilde{x}$ is written with $d_x + \mathrm{siz}(x)$
 significant digits, and the output with $d + \mathrm{siz}(\sqrt{x})$, where
@@ -615,6 +690,22 @@ With $k = 2$ and $c = c_2$, the 2015 rule
 $d_1 \ge (d + 3 + x/\ln 10) H(d + 3 + x/\ln 10)$, where $H$ is the step
 function, asks for up to one more place than this. So it was safe too.
 
+**Quick rule.** Find a rough upper bound $E \ge e^x$, for example by working
+out $e^U$ to 2 significant figures and rounding up. Then
+
+$$d_x = \max(1, d + k + 1 + \mathrm{siz}(E)).$$
+
+This needs no $\ln 10$. To see why it is enough, write $E = e^U$. Then
+$\log(2c) + U/\ln 10 + \log(1 + u) = \log(2c(E + \eta))$ in the formula above.
+If $E \ge \eta$, then $2c(E + \eta) \le 2.4E < 10^{\mathrm{siz}(E) + 1}$, so
+$d + k + 1 + \mathrm{siz}(E)$ is enough. If $E < \eta$, then since
+$2\eta = 10^{-(d+k)}$, the exact count is
+$\lceil \log(c(E + \eta)/\eta) \rceil \le \lceil \log(2c) \rceil \le 1$.
+
+For $e^{3\pi}$ to 3 places with $k = 2$, $e^{9.5} \approx 13360$, so take
+$E = 14000$, with $\mathrm{siz}(E) = 5$. Then $d_x = 3 + 2 + 1 + 5 = 11$, one
+more than the exact count.
+
 **Significant figures.** $U/\ln 10 = \log e^U$, which is just below
 $\mathrm{siz}(e^U)$. So $d_x$ is about $d + \mathrm{siz}(e^x) + k$, and
 $d + \mathrm{siz}(e^x)$ is the number of significant figures in the output.
@@ -667,6 +758,11 @@ automatically positive.
 With $\eta = T/2$, Lemma 2 gives
 
 $$d_x = \left\lceil d + k + \log(2c) + \log(1 + \eta) - \log L \right\rceil.$$
+
+**Quick rule.** $d_x = d + k + 2 - \mathrm{siz}(x)$. With
+$L = 10^{\mathrm{siz}(x) - 1}$, $-\log L = 1 - \mathrm{siz}(x)$, and
+$\log(2c) + \log(1 + \eta) \le \log(1.2 \times 1.5) < 1$. In other words, $x$
+needs $d + k + 2$ significant figures.
 
 **Significant figures.** $\delta \approx \eta x$, so the relative error of $x$
 has to be at most about $\eta = \frac{1}{2} \cdot 10^{-(d+k)}$. A value written
