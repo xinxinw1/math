@@ -326,3 +326,34 @@ $4$ and $-2 \pm \sqrt{3}$. With $\omega$ as above,
 
 $$\omega(2 + i) + \bar\omega(2 - i) = -2 - \sqrt{3}, \qquad
 \bar\omega(2 + i) + \omega(2 - i) = -2 + \sqrt{3}.$$
+
+## Lean proof
+
+`CubicIdentities.lean` formalizes the squarefree theorem using Mathlib.
+
+> **Status:** written but not yet compiled, so it may need small fixes.
+
+| Theorem | Statement |
+|---|---|
+| `eq_of_cube_roots` | Over any field of characteristic 0: if $s^2 = b$, $u^3 = a + s$, $v^3 = a - s$ and $u + v = x$ is rational, with $a \ne 0$ and $b > 0$ squarefree, then $(a, b, x) = (\pm 2, 5, \pm 1)$ |
+| `real_cube_roots` | The same statement over ℝ with $s = \sqrt{b}$ |
+| `golden_identity` | $\left(\tfrac{1 \pm \sqrt{5}}{2}\right)^3 = 2 \pm \sqrt{5}$, so the identity really holds |
+| `exists_int_of_cubic` | A rational root of $t^3 + ct + d$ with integer $c, d$ is an integer |
+| `int_classification` | The integer case analysis (Steps 3 and 4) |
+
+The proof never uses that the cube roots are real, which is why the main
+theorem is stated for any field of characteristic 0.
+
+To check it, see the [root README](../README.md) for installing Lean. Then,
+from this directory:
+
+```bash
+lake exe cache get
+```
+
+```bash
+lake build
+```
+
+`lake exe cache get` downloads prebuilt Mathlib files, which saves building
+Mathlib from source.
