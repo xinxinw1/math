@@ -373,9 +373,9 @@ $$\eta + (\text{evaluation error}) \le T,$$
 
 where $\eta$ is the budget for the propagated error.
 
-- **Exact evaluation.** Sums, differences, products and powers of terminating
+- **Exact evaluation.** Sums, differences and products of terminating
   decimals have no evaluation error, so $\eta = T$.
-- **Everything else.** For division, square roots, exponentials and
+- **Everything else.** For division, powers, square roots, exponentials and
   logarithms, take $\eta = T/2$, and compute $f(\tilde{x})$ to $d + k + 1$
   places, rounded or cut off. That has an error of at most
   $10^{-(d+k+1)} = T/10$, well within the other half.
@@ -432,7 +432,7 @@ a lower bound.
 | $xy$ | $d_x = d + k + 1 + \mathrm{siz}(y)$, and the same for $d_y$ with $x$ and $y$ swapped |
 | $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(y)$, $d_y = d + k + 3 + \mathrm{siz}(x) - 2\mathrm{siz}(y)$ |
 | $ax$ | $d + k + \mathrm{siz}(a)$ |
-| $x^n$ | $d + k + \mathrm{siz}(n) + (n - 1)\mathrm{siz}(x)$ |
+| $x^n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(x)$, or $d + k + 1 + (n - 1)\mathrm{siz}(x)$ for $n \le 8$ |
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(x) - 1)/2 \rfloor$ |
 | $e^x$ | $\max(1, d + k + 1 + \mathrm{siz}(E))$, for a rough upper bound $E \ge e^x$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(x)$ |
@@ -534,23 +534,33 @@ places than the output.
 
 ### Powers
 
-For $f(x) = x^n$ with $n \ge 2$ a whole number, $\tilde{x}^n$ can be computed
-exactly, so $\eta = T$. By Theorem 4, with $A = nM^{n-1}$ for a bound
-$M \ge |\tilde{x}| + \varepsilon_x$,
+For $f(x) = x^n$ with $n \ge 2$ a whole number, $\tilde{x}^n$ is exact in
+principle, but it has $n$ times as many decimal places as $\tilde{x}$, which is
+too many to carry for all but small $n$. So treat it like the other functions:
+take $\eta = T/2$, and compute $\tilde{x}^n$ to $d + k + 1$ places. If you do
+compute it exactly, as you might for $n = 2$, you can use $\eta = T$ instead
+and save up to one place.
 
-$$d_x = \left\lceil d + k + \log(cnM^{n-1}) \right\rceil.$$
+By Theorem 4, with $A = nM^{n-1}$ for a bound $M \ge |\tilde{x}| + \varepsilon_x$,
+
+$$d_x = \left\lceil d + k + \log(2cnM^{n-1}) \right\rceil.$$
 
 With $M = 10^{\mathrm{siz}(x)}$, and the same caveat as for products, this is
-$\lceil d + k + \log(cn) \rceil + (n - 1)\mathrm{siz}(x)$.
+$\lceil d + k + \log(2cn) \rceil + (n - 1)\mathrm{siz}(x)$.
+
+Computing $\tilde{x}^n$ to $d + k + 1$ places by repeated multiplication is
+itself a chain of products. Each product is rounded, so carry enough guard
+digits through the chain that the final value is within $10^{-(d+k+1)}$. The
+product rule above says how many.
 
 In significant figures, raising to the $n$th power multiplies the relative
 error by about $n$. So $x$ needs about $\log n$ more significant figures than
 $x^n$, plus $k$. Theorem 5 gives essentially the same $\delta$ when $\eta$ is
 small.
 
-**Quick rule.** $d_x = d + k + \mathrm{siz}(n) + (n - 1)\mathrm{siz}(x)$, since
-$\log(cn) < \mathrm{siz}(n)$. For $n \le 9$, that is
-$d + k + 1 + (n - 1)\mathrm{siz}(x)$.
+**Quick rule.** $d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(x)$,
+since $\log(2cn) \le \log(1.2n) < \log(2n) < \mathrm{siz}(2n)$. For $n \le 8$,
+$\log(1.2n) < 1$, so that is $d + k + 1 + (n - 1)\mathrm{siz}(x)$.
 
 ### Square roots
 
@@ -892,8 +902,8 @@ rounded. (The true value is $8.5397342\ldots$)
   roots, exponentials and logarithms are worked through, without assuming
   $\varepsilon^2$ is negligible, each with its meaning in significant
   figures.
-- **Evaluation error is budgeted.** Division, square roots, exponentials and
-  logarithms can't be computed exactly, so half of the error budget is set
+- **Evaluation error is budgeted.** Division, powers, square roots,
+  exponentials and logarithms can't be computed exactly, or not in practice, so half of the error budget is set
   aside for computing them.
 - **The place counts use a ceiling**, since they have to be whole numbers.
 - **Relative error** connects significant figures to products and quotients.
