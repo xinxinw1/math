@@ -3,12 +3,17 @@
 How many decimal places the inputs to a calculation need so that the result,
 rounded to $d$ decimal places, is accurate.
 
-*Xin-Xin* — handwritten notes from March 17–18, 2015, typed up.
+*Xin-Xin* — handwritten notes from March 17–18 and October 12, 2015, typed up.
 
 The original pages:
 [page 1](handwritten-notes-page-1.jpg) (precision functions),
-[page 2](handwritten-notes-page-2.jpg) (accuracy and sums) and
-[page 3](handwritten-notes-page-3.jpg) (products and quotients).
+[page 2](handwritten-notes-page-2.jpg) (accuracy and sums),
+[page 3](handwritten-notes-page-3.jpg) (products and quotients),
+[page 4](handwritten-notes-page-4.jpg) (input error from output error),
+[pages 5](handwritten-notes-page-5.jpg) and
+[6](handwritten-notes-page-6.jpg) (adding and multiplying by a constant),
+[page 7](handwritten-notes-page-7.jpg) (square roots) and
+[page 8](handwritten-notes-page-8.jpg) (exponentials).
 
 Throughout, $\log$ means $\log_{10}$, and $\mathrm{rnd}(x, p)$ means $x$ rounded
 to $p$ decimal places.
@@ -206,6 +211,211 @@ $$d_2 \ge d + 3 + \log|x| - 2\log|y|$$
 
 $$d_2 \ge d + 3 + \mathrm{siz}(x) - 2 \mathrm{nsiz}(y).$$
 
+## Error bound on input given error bound on output
+
+*March 17, 2015*
+
+Let $f$ be a function and $r$ the error in its input. The question is how
+small $|r| \le \delta$ has to be to guarantee
+
+$$|f(x) - f(x - r)| \le \varepsilon.$$
+
+Unpacking the absolute value:
+
+$$-\varepsilon \le f(x) - f(x - r) \le \varepsilon$$
+
+$$-f(x) - \varepsilon \le -f(x - r) \le -f(x) + \varepsilon$$
+
+$$f(x) + \varepsilon \ge f(x - r) \ge f(x) - \varepsilon.$$
+
+### Increasing functions
+
+If $f$ is always increasing, then so is $f^{-1}$, and applying it keeps the
+inequalities:
+
+$$f^{-1}(f(x) + \varepsilon) \ge x - r \ge f^{-1}(f(x) - \varepsilon)$$
+
+$$-x + f^{-1}(f(x) + \varepsilon) \ge -r \ge -x + f^{-1}(f(x) - \varepsilon)$$
+
+$$x - f^{-1}(f(x) + \varepsilon) \le r \le x - f^{-1}(f(x) - \varepsilon).$$
+
+Every $r$ with $|r| \le \delta$ satisfies this when
+
+$$x - f^{-1}(f(x) + \varepsilon) \le -\delta \quad \text{and} \quad x - f^{-1}(f(x) - \varepsilon) \ge \delta,$$
+
+that is, when
+
+$$\delta \le f^{-1}(f(x) + \varepsilon) - x \quad \text{and} \quad \delta \le x - f^{-1}(f(x) - \varepsilon).$$
+
+### Decreasing functions
+
+If $f$ is always decreasing, then so is $f^{-1}$, and applying it reverses the
+inequalities:
+
+$$f^{-1}(f(x) + \varepsilon) \le x - r \le f^{-1}(f(x) - \varepsilon).$$
+
+The rest is the same as above with the inequalities reversed:
+
+$$x - f^{-1}(f(x) + \varepsilon) \ge r \ge x - f^{-1}(f(x) - \varepsilon)$$
+
+$$x - f^{-1}(f(x) - \varepsilon) \le r \le x - f^{-1}(f(x) + \varepsilon),$$
+
+so the conditions are
+
+$$x - f^{-1}(f(x) - \varepsilon) \le -\delta \quad \text{and} \quad x - f^{-1}(f(x) + \varepsilon) \ge \delta,$$
+
+$$\delta \le f^{-1}(f(x) - \varepsilon) - x \quad \text{and} \quad \delta \le x - f^{-1}(f(x) + \varepsilon).$$
+
+## Adding and multiplying by a constant
+
+### Adding a constant
+
+Let $f(x) = x + a$, so $f^{-1}(x) = x - a$ and $f$ is increasing. Let the
+result be already rounded, so the output error is the full $d$-place bound and
+the input error is the $d_1$-place bound:
+
+$$\varepsilon = \frac{1}{2 \cdot 10^d} + \frac{1}{10^{d+2}}, \qquad \delta = \frac{1}{2 \cdot 10^{d_1}} + \frac{1}{10^{d_1+2}}.$$
+
+Then
+
+$$\delta \le f^{-1}(f(x) + \varepsilon) - x = x + a + \varepsilon - a - x = \varepsilon$$
+
+$$\delta \le x - f^{-1}(f(x) - \varepsilon) = x - (x + a - \varepsilon - a) = \varepsilon,$$
+
+so
+
+$$d_1 \ge d.$$
+
+### Multiplying by a positive constant
+
+Let $f(x) = ax$ with $a > 0$, so $f^{-1}(x) = x/a$ and $f$ is increasing. Let the
+result be already rounded, with $\varepsilon$ and $\delta$ as above. Then
+
+$$\delta \le \frac{1}{a}(ax + \varepsilon) - x = x + \frac{\varepsilon}{a} - x = \frac{\varepsilon}{a}$$
+
+$$\delta \le x - \frac{1}{a}(ax - \varepsilon) = x - x + \frac{\varepsilon}{a} = \frac{\varepsilon}{a}.$$
+
+So the condition is
+
+$$\frac{1}{2 \cdot 10^{d_1}} + \frac{1}{10^{d_1+2}} \le \frac{\varepsilon}{a},$$
+
+and, as in [Places needed for an error bound](#places-needed-for-an-error-bound),
+
+$$d_1 \ge \log\frac{51}{100} - \log\frac{\varepsilon}{a} = \log\frac{51}{100} - \log\left(\frac{51}{100} \cdot \frac{1}{10^d}\right) + \log a = d + \log a.$$
+
+### Multiplying by a negative constant
+
+Let $f(x) = ax$ with $a < 0$, so $f^{-1}(x) = x/a$ and $f$ is decreasing. With
+the result already rounded,
+
+$$\delta \le \frac{1}{a}(ax - \varepsilon) - x = x - \frac{\varepsilon}{a} - x = -\frac{\varepsilon}{a}$$
+
+$$\delta \le x - \frac{1}{a}(ax + \varepsilon) = x - x - \frac{\varepsilon}{a} = -\frac{\varepsilon}{a},$$
+
+so
+
+$$d_1 \ge d + \log(-a).$$
+
+For any $a \ne 0$, then,
+
+$$d_1 \ge d + \log|a|.$$
+
+### When the result is not already rounded
+
+Let $f(x) = ax$ with $a > 0$, but now with the result not already rounded. The
+output has to be within $\varepsilon = 1/10^{d+2}$ before rounding:
+
+$$|f(x) - f(x - r)| \le \varepsilon = \frac{1}{10^{d+2}}, \qquad |r| \le \delta = \frac{1}{2 \cdot 10^{d_1}} + \frac{1}{10^{d_1+2}}.$$
+
+As before, $\delta \le \varepsilon / a$, so
+
+$$d_1 \ge \log\frac{51}{100} - \log\frac{1}{10^{d+2}} + \log a = d + 2 + \log\left(\frac{51}{100}a\right).$$
+
+For any $a \ne 0$ (the notes say "for any $x$", but mean any $a$),
+
+$$d_1 \ge d + 2 + \log\left(\frac{51}{100}|a|\right).$$
+
+## Square roots
+
+*October 12, 2015*
+
+Let $f(x) = \sqrt{x}$, so $f^{-1}(x) = x^2$ and $f$ is increasing. Let
+
+$$|f(x) - f(x - r)| \le \varepsilon = \frac{1}{10^{d+2}}, \qquad |r| \le \delta = \frac{1}{2 \cdot 10^{d_1}} + \frac{1}{10^{d_1+2}}.$$
+
+Then
+
+$$\delta \le f^{-1}(f(x) + \varepsilon) - x = (\sqrt{x} + \varepsilon)^2 - x = x + 2\varepsilon\sqrt{x} + \varepsilon^2 - x$$
+
+$$\delta \le x - f^{-1}(f(x) - \varepsilon) = x - (\sqrt{x} - \varepsilon)^2 = x - x + 2\varepsilon\sqrt{x} - \varepsilon^2.$$
+
+Assume $\varepsilon^2$ is negligible. Then
+
+$$\delta \le 2\varepsilon\sqrt{x}$$
+
+$$\frac{1}{2 \cdot 10^{d_1}} + \frac{1}{10^{d_1+2}} \le 2\varepsilon\sqrt{x} = \frac{2\sqrt{x}}{10^{d+2}}$$
+
+$$d_1 \ge \log\frac{51}{100} - \log\frac{2\sqrt{x}}{10^{d+2}} = d + 2 - \log 2 + \log\frac{51}{100} - \tfrac{1}{2}\log x = d + 2 - \log\frac{200}{51} - \tfrac{1}{2}\log x.$$
+
+Since $\log\frac{200}{51} > 0$, it is enough that
+
+$$d_1 \ge d + 2 - \tfrac{1}{2}\log x.$$
+
+Since $\mathrm{nsiz}(x) \le \log x$,
+
+$$d + 2 - \tfrac{1}{2}\mathrm{nsiz}(x) \ge d + 2 - \tfrac{1}{2}\log x,$$
+
+so it is enough that
+
+$$d_1 \ge d + 2 - \tfrac{1}{2}\mathrm{nsiz}(x).$$
+
+## Exponentials
+
+*October 12, 2015*
+
+Let $f(x) = e^x$, so $f^{-1}(x) = \ln x$ and $f$ is increasing. Then
+
+$$\delta \le f^{-1}(f(x) + \varepsilon) - x = \ln(e^x + \varepsilon) - x = \ln\frac{e^x + \varepsilon}{e^x} = \ln\left(1 + \frac{\varepsilon}{e^x}\right)$$
+
+$$\delta \le x - f^{-1}(f(x) - \varepsilon) = x - \ln(e^x - \varepsilon) = \ln\frac{e^x}{e^x - \varepsilon} = -\ln\frac{e^x - \varepsilon}{e^x} = -\ln\left(1 - \frac{\varepsilon}{e^x}\right).$$
+
+Since $\ln(1 + u) \le -\ln(1 - u)$, the first condition is the one that matters:
+
+$$\delta \le \ln\left(1 + \frac{\varepsilon}{e^x}\right).$$
+
+So the condition is
+
+$$\frac{1}{2 \cdot 10^{d_1}} + \frac{1}{10^{d_1+2}} \le \ln\left(1 + \frac{\varepsilon}{e^x}\right),$$
+
+which gives
+
+$$d_1 \ge \log\frac{51}{100} - \log\ln\left(1 + \frac{\varepsilon}{e^x}\right) = \frac{1}{\ln 10}\left(-\ln\ln\left(1 + \frac{\varepsilon}{e^x}\right)\right) + \log\frac{51}{100}.$$
+
+To bound the $\ln\ln$ term, let $H$ be the step function
+
+$$H(x) = \begin{cases} 1, & x \ge 0 \\ 0, & x < 0. \end{cases}$$
+
+Then
+
+$$(x + 1)H(x + 1) > -\ln\ln\left(1 + \frac{1}{e^x}\right).$$
+
+Replacing $x$ with $x - \ln\varepsilon$, which turns $1/e^x$ into
+$\varepsilon/e^x$,
+
+$$(x - \ln\varepsilon + 1)H(x - \ln\varepsilon + 1) > -\ln\ln\left(1 + \frac{\varepsilon}{e^x}\right).$$
+
+So
+
+$$d_1 \ge \frac{1}{\ln 10}(x - \ln\varepsilon + 1)H(x - \ln\varepsilon + 1) + \log\frac{51}{100}$$
+
+$$d_1 \ge (\log e^x - \log\varepsilon + \log e)H(\log e^x - \log\varepsilon + \log e) + \log\frac{51}{100}.$$
+
+With $\varepsilon = 1/10^{d+2}$,
+
+$$d_1 \ge (d + 2 + (x + 1)\log e)H(d + 2 + (x + 1)\log e) + \log\frac{51}{100}$$
+
+$$d_1 \ge \left(d + 3 + \frac{x}{\ln 10}\right)H\left(d + 3 + \frac{x}{\ln 10}\right).$$
+
 ## Notes on the derivations
 
 *Added when typing up the notes.*
@@ -219,3 +429,29 @@ $$d_2 \ge d + 3 + \mathrm{siz}(x) - 2 \mathrm{nsiz}(y).$$
 - Replacing $\log|x|$ with $\mathrm{siz}(x)$, and $-\log|y|$ with
   $-\mathrm{nsiz}(y)$, only increases the required places, since
   $\mathrm{nsiz}(y) \le \log|y| \le \mathrm{siz}(y)$. Those steps are sound.
+- The inverse-function method on page 4 is exact for a monotonic function of
+  one variable: it gives the largest $\delta$ that works, with nothing assumed
+  negligible.
+- It needs $f(x) \pm \varepsilon$ to be in the range of $f$. If
+  $\sqrt{x} < \varepsilon$ or $e^x \le \varepsilon$, then
+  $f^{-1}(f(x) - \varepsilon)$ doesn't exist. In that case that side of the
+  bound is no constraint at all, so the results still hold, but the notes
+  don't say so.
+- Dropping $\varepsilon^2$ in the square root bound goes the unsafe way, since
+  the binding bound is $\delta \le 2\varepsilon\sqrt{x} - \varepsilon^2$. It is
+  covered by the $\log\frac{200}{51}$ that was also dropped, as long as
+  $\sqrt{x} \ge \varepsilon / 1.49$.
+- Near $x = 0$, the square root bound asks for far more places than needed.
+  $|\sqrt{x} - \sqrt{y}| \le \sqrt{|x - y|}$, so $\delta = \varepsilon^2$
+  always works.
+- The inequality $(x + 1)H(x + 1) > -\ln\ln(1 + e^{-x})$ holds for all $x$.
+  For $x < -1$, the right side is negative. For $x \ge -1$, let
+  $u = e^{-x} \le e$. If $u \le e - 1$, then $\ln(1 + u) \ge u/(1 + u) > u/e$,
+  and if $e - 1 < u \le e$, then $\ln(1 + u) > 1 \ge u/e$. Either way
+  $\ln(1 + u) > e^{-(x+1)}$, which is the inequality.
+- The last step of the exponential bound is safe: it rounds $\log e \approx 0.434$
+  up to 1 and drops $\log\frac{51}{100} < 0$, and $tH(t)$ never decreases as
+  $t$ grows.
+- These bounds also use the true $x$, and $d_1$ has to be a whole number, so it
+  needs a ceiling. That matters for the square root, where
+  $\frac{1}{2}\mathrm{nsiz}(x)$ can be a half-integer.

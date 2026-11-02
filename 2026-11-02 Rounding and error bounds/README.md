@@ -323,6 +323,42 @@ the suprema can be worked out:
 For products and quotients, Theorem 4 is slightly weaker than Theorem 3, but
 it covers every differentiable function.
 
+### Monotonic functions
+
+For a function of one variable that only goes up or only goes down, there is
+an exact answer: the largest input error that keeps the output error within
+$\eta$. This is the inverse-function method from the 2015 notes.
+
+**Theorem 5.** Let $f$ be continuous and strictly increasing on an interval
+$J$ containing $x$, and let $\eta > 0$. Let
+
+$$\delta^{+} = f^{-1}(f(x) + \eta) - x, \qquad \delta^{-} = x - f^{-1}(f(x) - \eta),$$
+
+taking $\delta^{+} = \infty$ if $f(x) + \eta$ is above every value of $f$ on
+$J$, and $\delta^{-} = \infty$ if $f(x) - \eta$ is below every value. Then
+$|f(\tilde{x}) - f(x)| \le \eta$ for every $\tilde{x}$ in $J$ with
+$|\tilde{x} - x| \le \delta$ exactly when
+
+$$\delta \le \min(\delta^{+}, \delta^{-}).$$
+
+For a strictly decreasing $f$, swap $f(x) + \eta$ and $f(x) - \eta$ in the
+definitions of $\delta^{+}$ and $\delta^{-}$.
+
+**Proof.** Take $\tilde{x} \ge x$ in $J$. Since $f$ is increasing,
+$|f(\tilde{x}) - f(x)| = f(\tilde{x}) - f(x)$, and this is at most $\eta$
+exactly when $\tilde{x} \le x + \delta^{+}$. That is automatic if
+$\delta^{+} = \infty$. If not, it holds because $f^{-1}$ is increasing too,
+and it fails for every $\tilde{x}$ just above $x + \delta^{+}$. So the inputs
+above $x$ are all fine exactly when $\delta \le \delta^{+}$. The inputs below
+$x$ work the same way with $\delta^{-}$. For a decreasing $f$, apply this to
+$-f$, which is increasing. ∎
+
+Unlike Theorem 4, this gives the largest $\delta$ that works, not just one
+that works. The catch is that $\delta^{+}$ and $\delta^{-}$ depend on the true
+$x$, which you only know approximately. So use the smallest value they take
+over the range $x$ might be in. In the cases below, that is at one end of the
+range.
+
 ## Choosing input places
 
 The question from the 2015 notes is the reverse: given the output places $d$,
@@ -398,6 +434,86 @@ Since $\mathrm{nsiz} = \mathrm{siz} - 1$, these are the 2015 rules $d_1 \ge d + 
 $d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$. Again, nothing is
 assumed negligible, but $L_y$ has to stay below $|\tilde{y}| - \varepsilon_y$,
 which needs a little room when $|y|$ is close to $10^{\mathrm{siz}(y) - 1}$.
+
+### Adding and multiplying by a constant
+
+For $f(x) = x + a$, with $a$ exact, Theorem 5 gives
+$\delta^{+} = \delta^{-} = \eta$. So adding an exact constant passes the error
+through unchanged. If $\tilde{x}$ is good to $d$ places and $a$ has at most
+$d$ places, then $\tilde{x} + a$ is good to $d$ places, with no rounding step.
+
+For $f(x) = ax$, with $a \ne 0$ exact, Theorem 5 gives
+$\delta^{+} = \delta^{-} = \eta / |a|$. With $\eta = T = 10^{-(d+k)}$, Lemma 2
+gives
+
+$$d_x = \lceil d + k + \log(c|a|) \rceil.$$
+
+For $k = 2$ and $c = c_2$, this is the 2015 rule
+$d_1 \ge d + 2 + \log\frac{51|a|}{100}$.
+
+The 2015 notes also give $d_1 \ge d + \log|a|$ for the case where the result is
+"already rounded". That makes $a\tilde{x}$ within $c_k \cdot 10^{-d}$ of $ax$.
+But $a\tilde{x}$ usually has more than $d$ places, and rounding it adds more
+error, so that version only applies when no rounding is needed.
+
+### Square roots
+
+For $f(x) = \sqrt{x}$, which is increasing on $[0, \infty)$, Theorem 5 gives
+
+$$\delta^{+} = (\sqrt{x} + \eta)^2 - x = 2\eta\sqrt{x} + \eta^2, \qquad \delta^{-} = x - (\sqrt{x} - \eta)^2 = 2\eta\sqrt{x} - \eta^2,$$
+
+where $\delta^{-}$ is for $\sqrt{x} \ge \eta$. If $\sqrt{x} < \eta$, then
+$\sqrt{x} - \eta < 0$ is below every value of $\sqrt{x}$, so
+$\delta^{-} = \infty$.
+
+So when $\sqrt{x} \ge \eta$, the largest $\delta$ is $2\eta\sqrt{x} - \eta^2$.
+It grows with $x$, so take a lower bound $L \le x$ with $\sqrt{L} \ge \eta$.
+Then $\delta = 2\eta\sqrt{L} - \eta^2 \ge \eta\sqrt{L}$, so it is enough that
+
+$$d_x = \left\lceil d + k + \log c - \tfrac{1}{2}\log L \right\rceil.$$
+
+With $L = 10^{\mathrm{siz}(x) - 1}$, this is
+
+$$d_x = \left\lceil d + k + \log c - \frac{\mathrm{siz}(x) - 1}{2} \right\rceil.$$
+
+The 2015 rule $d_1 \ge d + 2 - \frac{1}{2}\mathrm{nsiz}(x)$ is this with
+$k = 2$ and $\log c$ rounded up to 0, without the ceiling.
+
+Near $0$ this asks for far more places than needed. Since
+$|\sqrt{a} - \sqrt{b}| \le \sqrt{|a - b|}$, $\delta = \eta^2$ always works,
+which needs $d_x = \lceil 2(d + k) + \log c \rceil$ places whatever $x$ is.
+
+### Exponentials
+
+For $f(x) = e^x$, Theorem 5 gives
+
+$$\delta^{+} = \ln(e^x + \eta) - x = \ln(1 + \eta e^{-x}), \qquad \delta^{-} = x - \ln(e^x - \eta) = -\ln(1 - \eta e^{-x}),$$
+
+where $\delta^{-}$ is for $e^x > \eta$, and is $\infty$ otherwise. Since
+$\ln(1 + u) \le -\ln(1 - u)$ for $0 \le u < 1$, the smaller one is
+$\delta^{+}$. So the largest $\delta$ is
+
+$$\delta = \ln(1 + \eta e^{-x}).$$
+
+It shrinks as $x$ grows, so take an upper bound $U \ge x$, and let
+$u = \eta e^{-U}$.
+
+- **Small u.** If $u \le 1$, then $\ln(1 + u) \ge \frac{u}{1 + u} \ge \frac{u}{2}$, so by
+  Lemma 2 it is enough that
+  $d_x \ge \log(2c) - \log u = d + k + \log(2c) + U / \ln 10$.
+- **Large u.** If $u > 1$, then $\delta > \ln 2 > c$, so $d_x = 0$ is enough.
+
+Both cases together:
+
+$$d_x = \max\left(0, \left\lceil d + k + \log(2c) + \frac{U}{\ln 10} \right\rceil\right).$$
+
+With $k = 2$ and $c = c_2$, $\log(2c) = \log 1.02 \approx 0.0086$, and this is the
+2015 rule $d_1 \ge (d + 3 + x/\ln 10) H(d + 3 + x/\ln 10)$, where $H$ is the
+step function, with a ceiling. Each unit added to $x$ multiplies $e^x$ by
+$e$, and needs $1/\ln 10 \approx 0.43$ more places of $x$.
+
+For example, to get $e^x$ good to $d = 3$ places when $x$ is about 10, take
+$U = 10.1$. Then $d_x = \lceil 3 + 2 + 0.0086 + 4.386 \rceil = 10$.
 
 ## Relative error and significant figures
 
@@ -511,6 +627,10 @@ rounded. (The true value is $8.5397342\ldots$)
 - **Division has a precondition.** It needs $\varepsilon_y < |\tilde{y}|$.
 - **One general rule**, Theorem 4, covers sums, products, quotients and any
   other differentiable function.
+- **Monotonic functions get an exact bound.** Theorem 5 states the 2015
+  inverse-function method with its edge cases, and gives constants, square
+  roots and exponentials as examples, without assuming $\varepsilon^2$ is
+  negligible.
 - **The place counts use a ceiling**, since they have to be whole numbers.
 - **Relative error** connects significant figures to products and quotients.
 - **Correct rounding** has a test (Lemma 3) instead of only a counterexample.
