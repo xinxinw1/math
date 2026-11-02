@@ -63,6 +63,12 @@ something that rendered wrong in this repo.
   shows up as raw `$x$`. Put the label in bold and the math after it:
   `**Step 1.** $x$ and $m$ are integers.`
 
+- **Watch for underscores in inline math that Markdown can read as italics.**
+  In `$\tilde{t}_n = \mathrm{rnd}(-\tilde{t}_{n-1} \cdot \ldots)$`, GitHub
+  read `_n` as opening italics and `}_{` as closing them, and showed the
+  formula as raw LaTeX. A subscript after `}` or `)` followed later by `_{`
+  is the risky pattern. Put such formulas in a `$$` display block.
+
 - **Long display equations scroll sideways on phones.** Split very wide
   equations across lines, or accept the horizontal scroll.
 
@@ -84,6 +90,12 @@ Find the commands that are known to break:
 
 ```bash
 grep -n '\\,\|\\operatorname\|\\mathbb' path/to/README.md
+```
+
+Find inline math where an underscore could open and close italics:
+
+```bash
+grep -n '\$[^$]*[})]_[A-Za-z0-9][^$]*_{[^$]*\$' path/to/README.md
 ```
 
 Find math inside italic or bold text:

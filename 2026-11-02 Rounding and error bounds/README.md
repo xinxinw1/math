@@ -918,9 +918,11 @@ with $k = 2$, the budget is $T = 10^{-8}$.
 1. **Input.** $\pi/4 < 1$, so $e^{\pi/4} < e < 3$. The exponential rule with
    $E = 3$ gives $d_x = 6 + 2 + 1 + 1 = 10$, so
    $\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
-2. **Terms.** $t_0 = 1$ and
-   $\tilde{t}_n = \mathrm{rnd}(\tilde{t}_{n-1} \cdot \tilde{x} / n, p_n)$, with
-   $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
+2. **Terms.** Start with $t_0 = 1$, and compute
+
+   $$\tilde{t}_n = \mathrm{rnd}(\tilde{t}_{n-1} \cdot \tilde{x} / n, p_n),$$
+
+   with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
 
    | $n$ | $p_n$ | $\tilde{t}_n$ |
    |---|---|---|
@@ -952,8 +954,10 @@ $k = 2$, the budget is again $T = 10^{-8}$.
 
 1. **Input.** The [sine rule](#sine-and-cosine) gives $d_x = 6 + 2 + 1 = 9$, so
    $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
-2. **Terms.** $t_0 = \tilde{x}$ and
-   $\tilde{t}_n = \mathrm{rnd}(-\tilde{t}_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), p_n)$,
+2. **Terms.** Start with $t_0 = \tilde{x}$, and compute
+
+   $$\tilde{t}_n = \mathrm{rnd}(-\tilde{t}_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), p_n),$$
+
    with $p_n = 10$:
 
    | $n$ | $p_n$ | $\tilde{t}_n$ |
