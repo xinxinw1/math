@@ -63,11 +63,17 @@ something that rendered wrong in this repo.
   shows up as raw `$x$`. Put the label in bold and the math after it:
   `**Step 1.** $x$ and $m$ are integers.`
 
-- **Watch for underscores in inline math that Markdown can read as italics.**
-  In `$\tilde{t}_n = \mathrm{rnd}(-\tilde{t}_{n-1} \cdot \ldots)$`, GitHub
-  read `_n` as opening italics and `}_{` as closing them, and showed the
-  formula as raw LaTeX. A subscript after `}` or `)` followed later by `_{`
-  is the risky pattern. Put such formulas in a `$$` display block.
+- **Don't put display math inside a list item.** An indented `$$...$$` in a
+  numbered or bulleted list isn't recognized as math: GitHub shows the `$$`
+  and the raw LaTeX. End the list, or write the steps as paragraphs with bold
+  labels, and put the `$$` block at the top level.
+
+- **Watch for underscores that Markdown can read as italics.** In
+  `$\tilde{t}_n = \mathrm{rnd}(-\tilde{t}_{n-1} \cdot \ldots)$`, GitHub read
+  `_n` as opening italics and `}_{` as closing them, and showed the formula as
+  raw LaTeX. A subscript right after `}` or `)`, followed later by `_{`, is the
+  risky pattern. Avoid the `}` before the first subscript, for example
+  `\tilde t_n` instead of `\tilde{t}_n`, which displays the same.
 
 - **Long display equations scroll sideways on phones.** Split very wide
   equations across lines, or accept the horizontal scroll.
@@ -92,7 +98,13 @@ Find the commands that are known to break:
 grep -n '\\,\|\\operatorname\|\\mathbb' path/to/README.md
 ```
 
-Find inline math where an underscore could open and close italics:
+Find display math inside list items:
+
+```bash
+grep -n '^ \+\$\$' path/to/README.md
+```
+
+Find math where an underscore could open and close italics:
 
 ```bash
 grep -n '\$[^$]*[})]_[A-Za-z0-9][^$]*_{[^$]*\$' path/to/README.md

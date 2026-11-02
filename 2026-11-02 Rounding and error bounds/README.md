@@ -901,47 +901,52 @@ $t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
   for the input places, $T/4$ on the terms left off the end (the *tail*), and
   $T/4$ on rounding the terms.
 - **Terms.** Compute each term from the previous one, with exact
-  multiplications and one rounded or truncated division. Compute term $n$ to
-
-  $$p_n = d + k + 2\mathrm{siz}(n)$$
-
-  places. That is $d + k + 2$ places for terms 1 to 9, $d + k + 4$ for terms
-  10 to 99, and so on. Raising the precision never changes the terms already
-  computed.
+  multiplications and one rounded or truncated division, to the number of
+  places $p_n$ given below.
 - **Sum.** Add the terms as you go. Sums of terminating decimals are exact.
 - **Stop** after the first term with $|\tilde{t}_N| \le T/10$, including that
   term. Then round the sum to $d$ places.
 
+Compute term $n$ to
+
+$$p_n = d + k + 2\mathrm{siz}(n)$$
+
+places. That is $d + k + 2$ places for terms 1 to 9, $d + k + 4$ for terms 10
+to 99, and so on. Raising the precision never changes the terms already
+computed.
+
 **Example: e to the power π/4.** To get $e^{\pi/4}$ good to $d = 6$ places,
 with $k = 2$, the budget is $T = 10^{-8}$.
 
-1. **Input.** $\pi/4 < 1$, so $e^{\pi/4} < e < 3$. The exponential rule with
-   $E = 3$ gives $d_x = 6 + 2 + 1 + 1 = 10$, so
-   $\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
-2. **Terms.** Start with $t_0 = 1$, and compute
+**Input.** $\pi/4 < 1$, so $e^{\pi/4} < e < 3$. The exponential rule with
+$E = 3$ gives $d_x = 6 + 2 + 1 + 1 = 10$, so
+$\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
 
-   $$\tilde{t}_n = \mathrm{rnd}(\tilde{t}_{n-1} \cdot \tilde{x} / n, p_n),$$
+**Terms.** Start with $t_0 = 1$, and compute
 
-   with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
+$$\tilde t_n = \mathrm{rnd}(\tilde t_{n-1} \cdot \tilde{x} / n, p_n),$$
 
-   | $n$ | $p_n$ | $\tilde{t}_n$ |
-   |---|---|---|
-   | 0 | | $1$ |
-   | 1 | 10 | $0.7853981634$ |
-   | 2 | 10 | $0.3084251375$ |
-   | 3 | 10 | $0.0807455122$ |
-   | 4 | 10 | $0.0158543442$ |
-   | 5 | 10 | $0.0024903946$ |
-   | 6 | 10 | $0.0003259919$ |
-   | 7 | 10 | $0.0000365762$ |
-   | 8 | 10 | $0.0000035909$ |
-   | 9 | 10 | $0.0000003134$ |
-   | 10 | 12 | $0.000000024614$ |
-   | 11 | 12 | $0.000000001757$ |
-   | 12 | 12 | $0.000000000115$ |
+with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
 
-   $\tilde{t}_{12} \le T/10 = 10^{-9}$, so stop after it.
-3. **Sum.** $2.193280050786$, which rounds to $2.193280$.
+| $n$ | $p_n$ | $\tilde{t}_n$ |
+|---|---|---|
+| 0 | | $1$ |
+| 1 | 10 | $0.7853981634$ |
+| 2 | 10 | $0.3084251375$ |
+| 3 | 10 | $0.0807455122$ |
+| 4 | 10 | $0.0158543442$ |
+| 5 | 10 | $0.0024903946$ |
+| 6 | 10 | $0.0003259919$ |
+| 7 | 10 | $0.0000365762$ |
+| 8 | 10 | $0.0000035909$ |
+| 9 | 10 | $0.0000003134$ |
+| 10 | 12 | $0.000000024614$ |
+| 11 | 12 | $0.000000001757$ |
+| 12 | 12 | $0.000000000115$ |
+
+$\tilde{t}_{12} \le T/10 = 10^{-9}$, so stop after it.
+
+**Sum.** $2.193280050786$, which rounds to $2.193280$.
 
 The true value is $2.1932800507\ldots$, so the sum is off by about
 $5 \times 10^{-11}$, well within $T$. The nearest rounding boundary,
@@ -952,26 +957,28 @@ them gives $2.193280050176$, which rounds the same way.
 **Example: sin(π/4).** To get $\sin(\pi/4)$ good to $d = 6$ places, with
 $k = 2$, the budget is again $T = 10^{-8}$.
 
-1. **Input.** The [sine rule](#sine-and-cosine) gives $d_x = 6 + 2 + 1 = 9$, so
-   $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
-2. **Terms.** Start with $t_0 = \tilde{x}$, and compute
+**Input.** The [sine rule](#sine-and-cosine) gives $d_x = 6 + 2 + 1 = 9$, so
+$\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
 
-   $$\tilde{t}_n = \mathrm{rnd}(-\tilde{t}_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), p_n),$$
+**Terms.** Start with $t_0 = \tilde{x}$, and compute
 
-   with $p_n = 10$:
+$$\tilde t_n = \mathrm{rnd}(-\tilde t_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), p_n),$$
 
-   | $n$ | $p_n$ | $\tilde{t}_n$ |
-   |---|---|---|
-   | 0 | | $0.785398163$ |
-   | 1 | 10 | $-0.0807455121$ |
-   | 2 | 10 | $0.0024903946$ |
-   | 3 | 10 | $-0.0000365762$ |
-   | 4 | 10 | $0.0000003134$ |
-   | 5 | 10 | $-0.0000000018$ |
-   | 6 | 10 | $0.0000000000$ |
+with $p_n = 10$:
 
-   $\tilde{t}_6$ rounds to 0, so stop after it.
-3. **Sum.** $0.7071067809$, which rounds to $0.707107$.
+| $n$ | $p_n$ | $\tilde{t}_n$ |
+|---|---|---|
+| 0 | | $0.785398163$ |
+| 1 | 10 | $-0.0807455121$ |
+| 2 | 10 | $0.0024903946$ |
+| 3 | 10 | $-0.0000365762$ |
+| 4 | 10 | $0.0000003134$ |
+| 5 | 10 | $-0.0000000018$ |
+| 6 | 10 | $0.0000000000$ |
+
+$\tilde{t}_6$ rounds to 0, so stop after it.
+
+**Sum.** $0.7071067809$, which rounds to $0.707107$.
 
 The true value is $\sqrt{2}/2 = 0.7071067811\ldots$, so the sum is off by
 about $3 \times 10^{-10}$, within $T$. The nearest rounding boundary,
