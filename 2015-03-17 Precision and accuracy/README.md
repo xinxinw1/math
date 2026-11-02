@@ -20,13 +20,13 @@ to $p$ decimal places.
 The size of the whole-number part of $x$ (for $|x| \ge 1$, it is the number of
 digits before the decimal point):
 
-$$\mathrm{sig}(x) = \lfloor \log|x| \rfloor + 1$$
+$$\mathrm{siz}(x) = \lfloor \log|x| \rfloor + 1$$
 
-$$\mathrm{nsig}(x) = \lfloor \log|x| \rfloor$$
+$$\mathrm{nsiz}(x) = \lfloor \log|x| \rfloor$$
 
 So
 
-$$\mathrm{nsig}(x) \le \log|x| \le \mathrm{sig}(x), \qquad \mathrm{sig}(x) = \mathrm{nsig}(x) + 1.$$
+$$\mathrm{nsiz}(x) \le \log|x| \le \mathrm{siz}(x), \qquad \mathrm{siz}(x) = \mathrm{nsiz}(x) + 1.$$
 
 The precision of $x$ is the number of decimal places it needs:
 
@@ -34,7 +34,7 @@ $$\mathrm{prec}(x) = \text{the smallest } p \text{ such that } \mathrm{rnd}(x, p
 
 The number of significant figures in $x$ is
 
-$$\mathrm{fig}(x) = \mathrm{prec}(x) + \mathrm{sig}(x).$$
+$$\mathrm{fig}(x) = \mathrm{prec}(x) + \mathrm{siz}(x).$$
 
 For example, $\mathrm{fig}(0.005) = 3 + (-2) = 1$ and
 $\mathrm{fig}(1200) = -2 + 4 = 2$.
@@ -43,9 +43,9 @@ Rounding interacts with these as follows:
 
 $$\mathrm{prec}(\mathrm{rnd}(x, p)) \le p$$
 
-$$\mathrm{sig}(\mathrm{rnd}(x, p)) \le \mathrm{sig}(x) + 1$$
+$$\mathrm{siz}(\mathrm{rnd}(x, p)) \le \mathrm{siz}(x) + 1$$
 
-$$\mathrm{fig}(\mathrm{rnd}(x, p)) = \min(p + \mathrm{sig}(x), \mathrm{fig}(x))$$
+$$\mathrm{fig}(\mathrm{rnd}(x, p)) = \min(p + \mathrm{siz}(x), \mathrm{fig}(x))$$
 
 ## Accuracy
 
@@ -168,13 +168,13 @@ Since $\log\frac{51}{100} + \log 2 = \log 1.02 < 1$, it is enough that
 
 $$d_2 \ge d + 3 + \log|x|,$$
 
-and since $\log|x| \le \mathrm{sig}(x)$, it is enough that
+and since $\log|x| \le \mathrm{siz}(x)$, it is enough that
 
-$$d_2 \ge d + 3 + \mathrm{sig}(x).$$
+$$d_2 \ge d + 3 + \mathrm{siz}(x).$$
 
 By symmetry,
 
-$$d_1 \ge d + 3 + \mathrm{sig}(y).$$
+$$d_1 \ge d + 3 + \mathrm{siz}(y).$$
 
 ## Quotients
 
@@ -196,7 +196,7 @@ $$d_1 \ge \log\frac{51}{100} + d + 2 + \log 2 - \log|y|$$
 
 $$d_1 \ge d + 3 - \log|y|$$
 
-$$d_1 \ge d + 3 - \mathrm{nsig}(y).$$
+$$d_1 \ge d + 3 - \mathrm{nsiz}(y).$$
 
 For $r_2$, the condition is $|r_2| \le \dfrac{y^2}{2|x| \cdot 10^{d + 2}}$, so
 
@@ -204,7 +204,7 @@ $$d_2 \ge \log\frac{51}{100} + d + 2 + \log 2 + \log|x| - 2\log|y|$$
 
 $$d_2 \ge d + 3 + \log|x| - 2\log|y|$$
 
-$$d_2 \ge d + 3 + \mathrm{sig}(x) - 2 \mathrm{nsig}(y).$$
+$$d_2 \ge d + 3 + \mathrm{siz}(x) - 2 \mathrm{nsiz}(y).$$
 
 ## Notes on the derivations
 
@@ -216,6 +216,6 @@ $$d_2 \ge d + 3 + \mathrm{sig}(x) - 2 \mathrm{nsig}(y).$$
   $y(y - r_2)$ with $y^2$. So both are approximations as written. The slack
   from the previous point is presumably what covers those dropped terms, but
   the notes don't show that.
-- Replacing $\log|x|$ with $\mathrm{sig}(x)$, and $-\log|y|$ with
-  $-\mathrm{nsig}(y)$, only increases the required places, since
-  $\mathrm{nsig}(y) \le \log|y| \le \mathrm{sig}(y)$. Those steps are sound.
+- Replacing $\log|x|$ with $\mathrm{siz}(x)$, and $-\log|y|$ with
+  $-\mathrm{nsiz}(y)$, only increases the required places, since
+  $\mathrm{nsiz}(y) \le \log|y| \le \mathrm{siz}(y)$. Those steps are sound.

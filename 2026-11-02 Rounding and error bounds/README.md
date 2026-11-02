@@ -72,8 +72,8 @@ A few things the table shows:
   $\mathrm{mag}(999.9) = 2$ but $\mathrm{mag}(1000) = 3$.
 - **Sign.** The sign doesn't matter: $\mathrm{mag}(-250) = \mathrm{mag}(250)$.
 
-The 2015 notes had $\mathrm{nsig}(x) = \mathrm{mag}(x)$ and
-$\mathrm{sig}(x) = \mathrm{mag}(x) + 1$. $\mathrm{mag}(0)$ is undefined.
+The 2015 notes had $\mathrm{nsiz}(x) = \mathrm{mag}(x)$ and
+$\mathrm{siz}(x) = \mathrm{mag}(x) + 1$. $\mathrm{mag}(0)$ is undefined.
 
 ### Precision
 
@@ -165,7 +165,7 @@ So rounding never adds significant figures, and if it changes $x$ without a
 carry it removes at least one.
 
 The 2015 notes claimed
-$\mathrm{fig}(\mathrm{rnd}(x, p)) = \min(p + \mathrm{sig}(x), \mathrm{fig}(x))$.
+$\mathrm{fig}(\mathrm{rnd}(x, p)) = \min(p + \mathrm{siz}(x), \mathrm{fig}(x))$.
 That fails in two ways:
 
 - **A carry:** $\mathrm{rnd}(99.6, 0) = 100$ has 1 significant figure, but the
@@ -369,7 +369,7 @@ $$d_x = \lceil d + k + \log(2c M_y) \rceil, \qquad d_y = \lceil d + k + \log(2c 
 If $M_y = 10^{m}$ for a whole number $m$, and $k = 2$, then
 $\log(2 c_2 M_y) = m + \log 1.02$ and $d_x = d + 3 + m$. With
 $m = \mathrm{mag}(y) + 1$ this is the 2015 rule
-$d_1 \ge d + 3 + \mathrm{sig}(y)$, now without the assumption that $r_1 r_2$
+$d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the assumption that $r_1 r_2$
 is negligible. The one caveat is that $M_y$ has to bound $|\tilde{y}|$ as well
 as $|y|$. For $y = 9.9996$ that means $M_y = 100$, not $10$, if $\tilde{y}$
 might round up to $10.000$.
@@ -383,8 +383,8 @@ $A_y = M_x / L_y^2$, so
 $$d_x = \lceil d + k + \log(2c) - \log L_y \rceil, \qquad d_y = \lceil d + k + \log(2c) + \log M_x - 2\log L_y \rceil.$$
 
 With $k = 2$, $M_x = 10^{\mathrm{mag}(x) + 1}$ and $L_y = 10^{\mathrm{mag}(y)}$,
-these are the 2015 rules $d_1 \ge d + 3 - \mathrm{nsig}(y)$ and
-$d_2 \ge d + 3 + \mathrm{sig}(x) - 2\mathrm{nsig}(y)$. Again, nothing is
+these are the 2015 rules $d_1 \ge d + 3 - \mathrm{nsiz}(y)$ and
+$d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$. Again, nothing is
 assumed negligible, but $L_y$ has to stay below $|\tilde{y}| - \varepsilon_y$,
 which needs a little room when $|y|$ is close to $10^{\mathrm{mag}(y)}$.
 
@@ -483,8 +483,8 @@ rounded. (The true value is $8.5397342\ldots$)
 ## Changes from the 2015 notes
 
 - **Rounding is defined**, with a tie rule, and $p$ can be negative.
-- **One magnitude function.** $\mathrm{mag}$ replaces $\mathrm{sig}$ and
-  $\mathrm{nsig}$, which are $\mathrm{mag} + 1$ and $\mathrm{mag}$.
+- **One magnitude function.** $\mathrm{mag}$ replaces $\mathrm{siz}$ and
+  $\mathrm{nsiz}$, which are $\mathrm{mag} + 1$ and $\mathrm{mag}$.
 - **Stated domains.** $\mathrm{prec}$ and $\mathrm{fig}$ are defined on
   nonzero terminating decimals.
 - **A wrong formula fixed.** The formula for $\mathrm{fig}(\mathrm{rnd}(x, p))$
