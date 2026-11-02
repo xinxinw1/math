@@ -1,5 +1,12 @@
 # Notes for Claude
 
+## Workflow
+
+- **Push changes directly to `main`.** Don't open pull requests unless asked.
+  If you're working on another branch, fast-forward `main` to it and push, for
+  example `git push origin HEAD:main`, after checking that `origin/main` is an
+  ancestor of your commit.
+
 ## Writing math in GitHub Markdown
 
 The notes in this repo are Markdown files rendered by GitHub, which displays
