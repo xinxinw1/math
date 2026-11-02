@@ -547,6 +547,54 @@ $d_1 \ge d + 3 - \mathrm{nsiz}(y)$ and
 $d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$, now with nothing
 assumed negligible.
 
+#### Division by truncation
+
+The usual long division algorithm truncates: it stops after $p$ places and
+drops the rest, which rounds toward zero. For $x, y > 0$, the truncated
+quotient $q$ satisfies
+
+$$q \le \frac{x}{y} < q + 10^{-p}.$$
+
+For negative inputs, divide $|x|$ by $|y|$ and attach the sign at the end.
+
+**Exact inputs.** If $x$ and $y$ are exact, for example integers or decimals
+given exactly, truncating to $d + 1$ places and then rounding is already
+correct, with no guard digits.
+
+**Lemma 4.** Let $x, y > 0$, and let $q$ be $x / y$ truncated to $d + 1$
+places. Then $\mathrm{rnd}(q, d) = \mathrm{rnd}(x / y, d)$.
+
+**Proof.** The rounding boundaries for $d$ places, $(n + \frac{1}{2}) \cdot 10^{-d}$,
+are multiples of $10^{-(d+1)}$, and so is $q$. Since
+$q \le x / y < q + 10^{-(d+1)}$, no boundary lies strictly between $q$ and
+$x / y$, and a boundary at or below $x / y$ is also at or below $q$. So $q$ and
+$x / y$ are on the same side of every boundary, including when $x / y$ is
+exactly on one, where both round away from zero. ∎
+
+For example, $22 / 7$ truncated to 4 places is $3.1428$, which rounds to
+$3.143$. The true value, $3.142857\ldots$, also rounds to $3.143$.
+
+The lemma relies on ties going away from zero. With round-half-to-even, a
+truncated digit 5 in place $d + 1$ can't be rounded correctly without also
+knowing whether the remainder is zero.
+
+**Approximate inputs.** If $x$ and $y$ are themselves rounded results, use the
+rule above for the input places, then truncate the quotient to $d + k + 1$
+places and round it to $d$ places. The truncation error is below
+$10^{-(d+k+1)} = T/10$, inside the half of the budget kept for evaluation, so
+the result is good to $d$ places.
+
+It isn't always the correctly rounded value. To check, use Lemma 3 with
+$\eta = T$: if the truncated quotient is more than $T = 10^{-(d+k)}$ from the
+nearest rounding boundary, the result is $x / y$ correctly rounded.
+
+For example, for $\pi / e$ to $d = 3$ places, with $k = 2$, the rule above
+gives $\tilde{x} = 3.141593$ and $\tilde{y} = 2.7182818$. Their quotient
+truncated to 6 places is $1.155727$, which rounds to $1.156$. The nearest
+boundary, $1.1555$, is about $2.3 \times 10^{-4}$ away, more than $10^{-5}$, so
+$1.156$ is $\pi / e$ correctly rounded. (The true value is
+$1.1557273\ldots$)
+
 ### Adding and multiplying by a constant
 
 **Rule.** For an exact constant $a$:
@@ -892,3 +940,5 @@ needed here.
 - **The place counts use a ceiling**, since they have to be whole numbers.
 - **Relative error** connects significant figures to products and quotients.
 - **Correct rounding** has a test (Lemma 3) instead of only a counterexample.
+- **Division by truncation.** Lemma 4 shows that for exact inputs, truncating
+  the quotient to one extra place and then rounding is correctly rounded.
