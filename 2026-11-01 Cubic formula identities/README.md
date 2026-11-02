@@ -109,8 +109,12 @@ irreducibilis*), and the formula needs complex cube roots.
 
 | $x$ | $y$ | Identity |
 |---|---|---|
+| 1 | 4 | $\sqrt[3]{2 + \sqrt{5}} + \sqrt[3]{2 - \sqrt{5}} = 1$ |
 | 1 | 2 | $\sqrt[3]{1 + \tfrac{2}{9}\sqrt{21}} + \sqrt[3]{1 - \tfrac{2}{9}\sqrt{21}} = 1$ |
 | 2 | 2 | $\sqrt[3]{2 + \tfrac{10}{9}\sqrt{3}} + \sqrt[3]{2 - \tfrac{10}{9}\sqrt{3}} = 2$ |
+
+In the first example the formula gives $b = \tfrac{1}{3}$ and $c = 45$, which
+simplify because $\tfrac{1}{3}\sqrt{45} = \sqrt{5}$.
 
 When $3(4y - x^2)$ is a perfect square, the identity is trivial. For example,
 $x = 1,\ y = 1$ gives $\sqrt[3]{1} + \sqrt[3]{0} = 1$.
