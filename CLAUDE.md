@@ -7,6 +7,23 @@
   example `git push origin HEAD:main`, after checking that `origin/main` is an
   ancestor of your commit.
 
+## Directory structure
+
+Each topic gets its own top-level directory named `YYYY-MM-DD Title`, for
+example `2026-11-01 Cubic formula identities`.
+
+- The date is when the topic was started, as given by the user. It can be
+  earlier than the commit date.
+- The title is in sentence case: only the first word and proper nouns are
+  capitalized (`Investigating Antihydra`). Use spaces, not hyphens or
+  underscores.
+- Each directory has a `README.md` with the write-up.
+- Lean proofs go in the same directory, next to the README, with a
+  `lean-toolchain` file. A proof that uses Mathlib also needs a
+  `lakefile.toml`, plus a `.gitignore` containing `.lake/`.
+- Shared material, such as the Lean install instructions, goes in the root
+  `README.md`. Topic READMEs link to it with `../README.md`.
+
 ## Writing math in GitHub Markdown
 
 The notes in this repo are Markdown files rendered by GitHub, which displays
