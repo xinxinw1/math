@@ -459,6 +459,8 @@ of can take a smaller share of the error.
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
 | $e^x$ | $\max(1, d + k + 1 + \mathrm{siz}(E))$, for an upper bound $E \ge e^x$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
+| $\sin x$, $\cos x$ | $d + k + 1$ |
+| Series terms | $p = d + k + 1 + \mathrm{siz}(\hat{N})$ places each, for at most $\hat{N}$ terms |
 
 ### Sums
 
@@ -814,6 +816,147 @@ $$d_x = \left\lceil d + k + \log(2c) + \log(1 + \eta) - \log L_x \right\rceil.$$
 Since $\log(2c) + \log(1 + \eta) \le \log(1.2 \times 1.5) < 1$ and
 $-\log L_x \le 1 - \mathrm{siz}(L_x)$, the rule is enough.
 
+### Series
+
+This covers evaluating $f(\tilde{x})$ by a series, such as the Taylor series
+for $e^x$ or $\sin x$, computing each term once, from the previous one,
+without going back to redo earlier terms.
+
+**Rule.** For a series $t_0 + t_1 + t_2 + \cdots$ whose terms satisfy
+$t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
+
+- **Budget.** Spend $T/2$ on the input error, using the function's own rule
+  for the input places, $T/4$ on the terms left off the end (the *tail*), and
+  $T/4$ on rounding the terms.
+- **Terms.** Compute each term from the previous one, with exact
+  multiplications and one rounded or truncated division, to
+
+  $$p = d + k + 1 + \mathrm{siz}(\hat{N})$$
+
+  places, where $\hat{N}$ is an upper bound on the number of terms.
+- **Sum.** Add the terms as you go. Sums of numbers with $p$ places are exact.
+- **Stop** after the first term with $|\tilde{t}_N| \le T/10$, including that
+  term. Then round the sum to $d$ places.
+
+Only $\mathrm{siz}(\hat{N})$ matters, so $\hat{N}$ can be rough. For $e^x$ with
+$|x| \le 1$, $|t_n| \le 1/n!$, so the series stops by the first $n$ with
+$n! \ge 10^{d+k+1}$. For $\sin x$, it stops by the first $n$ with
+$(2n+1)! \ge 10^{d+k+1}$.
+
+If you can't bound the number of terms in advance, let the precision grow
+instead: compute term $n$ to
+
+$$p_n = d + k + 2 + 2\mathrm{siz}(n)$$
+
+places. That adds 2 places at $n = 10$, 2 more at $n = 100$, and so on, and
+never changes the terms already computed.
+
+For $\sin x$ and $\cos x$, the input rule is $d_x = d + k + 1$, since their
+derivatives are at most 1 in size, so $A = 1$ in Theorem 4.
+
+**Example: e to the power π/4.** To get $e^{\pi/4}$ good to $d = 6$ places,
+with $k = 2$, the budget is $T = 10^{-8}$.
+
+1. **Input.** $\pi/4 < 1$, so $e^{\pi/4} < e < 3$. The exponential rule with
+   $E = 3$ gives $d_x = 6 + 2 + 1 + 1 = 10$, so
+   $\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
+2. **Precision.** $13! \approx 6.2 \times 10^9 \ge 10^9$, so at most 13 terms
+   are needed, and $\mathrm{siz}(13) = 2$. So
+   $p = 6 + 2 + 1 + 2 = 11$.
+3. **Terms.** $t_0 = 1$ and $t_n = \mathrm{rnd}(t_{n-1} \cdot \tilde{x} / n, 11)$:
+
+   | $n$ | $\tilde{t}_n$ |
+   |---|---|
+   | 0 | $1$ |
+   | 1 | $0.78539816340$ |
+   | 2 | $0.30842513754$ |
+   | 3 | $0.08074551219$ |
+   | 4 | $0.01585434424$ |
+   | 5 | $0.00249039457$ |
+   | 6 | $0.00032599189$ |
+   | 7 | $0.00003657620$ |
+   | 8 | $0.00000359086$ |
+   | 9 | $0.00000031336$ |
+   | 10 | $0.00000002461$ |
+   | 11 | $0.00000000176$ |
+   | 12 | $0.00000000012$ |
+
+   $\tilde{t}_{12} \le T/10 = 10^{-9}$, so stop after it.
+4. **Sum.** $2.19328005074$, which rounds to $2.193280$.
+
+The true value is $2.1932800507\ldots$, so the sum is off by about
+$2 \times 10^{-12}$, well within $T$. The nearest rounding boundary,
+$2.1932805$, is about $4.5 \times 10^{-7}$ away, more than $T$, so by Lemma 3,
+$2.193280$ is correctly rounded. Truncating the divisions instead of rounding
+them gives $2.19328005068$, which rounds the same way.
+
+**Example: sin(π/4).** To get $\sin(\pi/4)$ good to $d = 6$ places, with
+$k = 2$, the budget is again $T = 10^{-8}$.
+
+1. **Input.** The sine rule gives $d_x = 6 + 2 + 1 = 9$, so
+   $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
+2. **Precision.** $13! \ge 10^9$, so at most 6 terms after $t_0$ are needed,
+   and $\mathrm{siz}(6) = 1$. So $p = 6 + 2 + 1 + 1 = 10$.
+3. **Terms.** $t_0 = \tilde{x}$ and
+   $t_n = \mathrm{rnd}(-t_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), 10)$:
+
+   | $n$ | $\tilde{t}_n$ |
+   |---|---|
+   | 0 | $0.785398163$ |
+   | 1 | $-0.0807455121$ |
+   | 2 | $0.0024903946$ |
+   | 3 | $-0.0000365762$ |
+   | 4 | $0.0000003134$ |
+   | 5 | $-0.0000000018$ |
+   | 6 | $0.0000000000$ |
+
+   $\tilde{t}_6$ rounds to 0, so stop after it.
+4. **Sum.** $0.7071067809$, which rounds to $0.707107$.
+
+The true value is $\sqrt{2}/2 = 0.7071067811\ldots$, so the sum is off by
+about $3 \times 10^{-10}$, within $T$. The nearest rounding boundary,
+$0.7071065$, is about $2.8 \times 10^{-7}$ away, more than $T$, so by Lemma 3,
+$0.707107$ is correctly rounded.
+
+**Why.** Let $e_n = \tilde{t}_n - t_n$ be the error in term $n$, where $t_n$ is
+the exact term at $\tilde{x}$. Each step multiplies the previous error by
+$r_n$ and adds a new rounding error of at most $u_n = 10^{-p_n}$, which covers
+truncation too. So an error made at term $m$ carries into the later terms with
+total weight at most
+
+$$1 + |r_{m+1}| + |r_{m+1} r_{m+2}| + \cdots \le 1 + \frac{1}{2} + \frac{1}{2 \cdot 3} + \cdots = e - 1 \approx 1.72,$$
+
+using $|r_n| \le 1/n$. The total rounding error in the sum is at most
+$1.72 \sum u_n$.
+
+- **Fixed precision.** With $N \le \hat{N}$ rounded terms, this is at most
+  $1.72\hat{N} \cdot 10^{-p}$. That is at most $T/4$ when
+  $p \ge d + k + \log(6.9\hat{N})$, and $\log 6.9 < 1$ and
+  $\log\hat{N} < \mathrm{siz}(\hat{N})$ give the rule.
+- **Growing precision.** $u_n < T/(100n^2)$, and $\sum 1/n^2 < 1.65$, so the
+  total is at most $1.72 \cdot 1.65 \cdot T/100 < 0.03T$.
+
+For the tail:
+
+- **e to the x.** With $|x| \le 1$, $|t_{N+j}| \le |t_N| / ((N+1)(N+2)\cdots(N+j))$, so the tail
+  is at most $|t_N|(1/2 + 1/6 + \cdots) = (e - 2)|t_N| < 0.72|t_N|$.
+- **sin x.** The terms alternate in sign and shrink, so the tail is at most
+  the first term left off, which is at most
+  $|t_N| x^2 / ((2N+2)(2N+3)) \le 0.3|t_N|$ for $|x| \le 2.4$.
+
+Either way, stopping at $|\tilde{t}_N| \le T/10$ leaves a tail well under
+$T/4$, even allowing for the error in $\tilde{t}_N$.
+
+**Large arguments.** The rule needs $|r_n| \le 1/n$. For $e^x$ that means
+$|x| \le 1$. For larger $|x|$, the terms grow until $n \approx |x|$, errors grow
+with them, and an alternating series like $e^{-20}$ also cancels
+catastrophically. So reduce the argument first. For example, compute
+$e^x = (e^{x/2^m})^{2^m}$ with $|x/2^m| \le 1$, and use the power rule to choose
+the places for $e^{x/2^m}$. For $\sin x$, subtract a multiple of $2\pi$, and use
+symmetries to bring $x$ into $[-\pi/4, \pi/4]$. Its ratios are
+$|r_n| = x^2/((2n)(2n+1))$, which is at most $1/n$ whenever $|x| \le 2.4$, so
+the rule has room to spare.
+
 ## Relative error and significant figures
 
 The *relative error* of an approximation is $\rho_x = \varepsilon_x / |\tilde{x}|$.
@@ -940,5 +1083,8 @@ needed here.
 - **The place counts use a ceiling**, since they have to be whole numbers.
 - **Relative error** connects significant figures to products and quotients.
 - **Correct rounding** has a test (Lemma 3) instead of only a counterexample.
+- **Series.** Taylor series are evaluated term by term at a fixed or slowly
+  growing precision, without recomputing earlier terms, with $e^x$ and
+  $\sin x$ worked through.
 - **Division by truncation.** Lemma 4 shows that for exact inputs, truncating
   the quotient to one extra place and then rounding is correctly rounded.
