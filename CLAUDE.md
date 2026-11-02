@@ -18,6 +18,8 @@ example `2026-11-01 Cubic formula identities`.
   capitalized (`Investigating Antihydra`). Use spaces, not hyphens or
   underscores.
 - Each directory has a `README.md` with the write-up.
+- Photos of handwritten notes go in the topic directory, named like
+  `handwritten-notes-page-1.jpg`, and the README links to them near the top.
 - Lean proofs go in the same directory, next to the README, with a
   `lean-toolchain` file. A proof that uses Mathlib also needs a
   `lakefile.toml`, plus a `.gitignore` containing `.lake/`.

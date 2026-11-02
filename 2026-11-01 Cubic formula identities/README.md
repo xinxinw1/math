@@ -8,6 +8,10 @@ that equal a chosen number $x$.
 
 *Xin-Xin*
 
+The derivation below is typed up from handwritten notes:
+[page 1](handwritten-notes-page-1.jpg) and
+[page 2](handwritten-notes-page-2.jpg).
+
 ## Idea
 
 Build a cubic that has $x$ as a root, solve it with Cardano's formula, and set
