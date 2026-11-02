@@ -38,11 +38,11 @@ it too.
 
 For $x \ne 0$, let
 
-$$\mathrm{size}(x) = \lfloor \log|x| \rfloor + 1.$$
+$$\mathrm{siz}(x) = \lfloor \log|x| \rfloor + 1.$$
 
 For $\lvert x \rvert \ge 1$, this is the length of the integer part of $x$: the
 number of digits before the decimal point. The formula extends it to every
-nonzero $x$. Equivalently, $\mathrm{size}(x)$ is the integer $s$ with
+nonzero $x$. Equivalently, $\mathrm{siz}(x)$ is the integer $s$ with
 
 $$10^{s - 1} \le |x| < 10^s.$$
 
@@ -56,7 +56,7 @@ the integer part:
 
 For example:
 
-| $x$ | Rule | $\mathrm{size}(x)$ |
+| $x$ | Rule | $\mathrm{siz}(x)$ |
 |---|---|---|
 | $1234$ | 4 digits before the point | $4$ |
 | $1000$ | 4 digits before the point | $4$ |
@@ -70,15 +70,15 @@ For example:
 
 A few things the table shows:
 
-- **Powers of 10.** $\mathrm{size}$ steps up exactly at each power of 10:
-  $\mathrm{size}(999.9) = 3$ but $\mathrm{size}(1000) = 4$.
+- **Powers of 10.** $\mathrm{siz}$ steps up exactly at each power of 10:
+  $\mathrm{siz}(999.9) = 3$ but $\mathrm{siz}(1000) = 4$.
 - **Leading digit.** The leading digit of $x$ is in the
-  $10^{\mathrm{size}(x) - 1}$ place. For $0.05$ that is the $10^{-2}$ place.
-- **Sign.** The sign doesn't matter: $\mathrm{size}(-250) = \mathrm{size}(250)$.
-- **Zero.** $\mathrm{size}(0)$ is undefined, since $0$ has no nonzero digit.
+  $10^{\mathrm{siz}(x) - 1}$ place. For $0.05$ that is the $10^{-2}$ place.
+- **Sign.** The sign doesn't matter: $\mathrm{siz}(-250) = \mathrm{siz}(250)$.
+- **Zero.** $\mathrm{siz}(0)$ is undefined, since $0$ has no nonzero digit.
 
-$\mathrm{size}$ is the 2015 $\mathrm{siz}$, extended below 1. The 2015
-$\mathrm{nsiz}(x)$ is $\mathrm{size}(x) - 1$, the exponent of $x$ in
+This keeps the 2015 name $\mathrm{siz}$, short for size, and extends it below 1.
+The 2015 $\mathrm{nsiz}(x)$ is $\mathrm{siz}(x) - 1$, the exponent of $x$ in
 scientific notation.
 
 ### Precision
@@ -92,7 +92,7 @@ This is the number of decimal places $x$ has: $\mathrm{prec}(2.50) = 1$ and
 $\mathrm{prec}(1200) = -2$.
 
 The smallest $p$ exists. $10^p x$ is an integer for every large enough $p$, and
-for $p \le -\mathrm{size}(x)$ it lies strictly between $-1$ and $1$ but isn't 0.
+for $p \le -\mathrm{siz}(x)$ it lies strictly between $-1$ and $1$ but isn't 0.
 
 By properties 1 and 3 of rounding, $\mathrm{rnd}(x, p) = x$ exactly when
 $p \ge \mathrm{prec}(x)$. So this matches the 2015 definition ("the smallest $p$
@@ -104,14 +104,14 @@ $1/3$ (no $p$ works).
 
 For a nonzero terminating decimal $x$, let
 
-$$\mathrm{fig}(x) = \mathrm{prec}(x) + \mathrm{size}(x).$$
+$$\mathrm{fig}(x) = \mathrm{prec}(x) + \mathrm{siz}(x).$$
 
-The leading digit of $x$ is in the $10^{\mathrm{size}(x) - 1}$ place and the last
+The leading digit of $x$ is in the $10^{\mathrm{siz}(x) - 1}$ place and the last
 nonzero digit is in the $10^{-\mathrm{prec}(x)}$ place. So $\mathrm{fig}(x)$
 counts the digits from the first nonzero digit to the last nonzero digit. For
 example:
 
-| $x$ | $\mathrm{prec}(x)$ | $\mathrm{size}(x)$ | $\mathrm{fig}(x)$ |
+| $x$ | $\mathrm{prec}(x)$ | $\mathrm{siz}(x)$ | $\mathrm{fig}(x)$ |
 |---|---|---|---|
 | $1.5$ | $1$ | $1$ | $2$ |
 | $0.005$ | $3$ | $-2$ | $1$ |
@@ -129,16 +129,16 @@ and an error bound, rather than a value alone.
 
 **Theorem 1.** Let $x \ne 0$, and let $y = \mathrm{rnd}(x, p) \ne 0$. Then
 
-$$\mathrm{size}(y) = \mathrm{size}(x) \quad \text{or} \quad \mathrm{size}(y) = \mathrm{size}(x) + 1.$$
+$$\mathrm{siz}(y) = \mathrm{siz}(x) \quad \text{or} \quad \mathrm{siz}(y) = \mathrm{siz}(x) + 1.$$
 
-The second case happens only when $|y| = 10^{\mathrm{size}(x)}$. This is a
+The second case happens only when $|y| = 10^{\mathrm{siz}(x)}$. This is a
 *carry*, as in $\mathrm{rnd}(99.6, 0) = 100$.
 
 **Proof.** By property 4 we can assume $x > 0$, so $y > 0$. Let
-$s = \mathrm{size}(x)$ and $u = 10^{-p}$, so $10^{s-1} \le x < 10^s$.
+$s = \mathrm{siz}(x)$ and $u = 10^{-p}$, so $10^{s-1} \le x < 10^s$.
 
 **Upper bound.** If $10^s$ is a multiple of $u$, then by properties 3 and 4,
-$y \le \mathrm{rnd}(10^s, p) = 10^s$. So $\mathrm{size}(y) \le s + 1$, with
+$y \le \mathrm{rnd}(10^s, p) = 10^s$. So $\mathrm{siz}(y) \le s + 1$, with
 equality only if $y = 10^s$. If $10^s$ is not a multiple of $u$, then
 $u \ge 10^{s+1}$. That makes $x < 10^s \le u/10 < u/2$, so $y = 0$, which was
 excluded.
@@ -146,7 +146,7 @@ excluded.
 **Lower bound.** If $10^{s-1}$ is a multiple of $u$, then
 $y \ge \mathrm{rnd}(10^{s-1}, p) = 10^{s-1}$ by properties 3 and 4. If not, then
 $u > 10^{s-1}$, and $y$ is a positive multiple of $u$, so $y \ge u > 10^{s-1}$.
-Either way, $\mathrm{size}(y) \ge s$. ∎
+Either way, $\mathrm{siz}(y) \ge s$. ∎
 
 **Theorem 2.** Let $x$ be a nonzero terminating decimal, and let
 $y = \mathrm{rnd}(x, p) \ne 0$. Then:
@@ -154,17 +154,17 @@ $y = \mathrm{rnd}(x, p) \ne 0$. Then:
 1. $\mathrm{prec}(y) \le p$.
 2. If $p \ge \mathrm{prec}(x)$, then $y = x$.
 3. $\mathrm{fig}(y) \le \mathrm{fig}(x)$.
-4. $\mathrm{fig}(y) \le p + \mathrm{size}(y)$.
+4. $\mathrm{fig}(y) \le p + \mathrm{siz}(y)$.
 
 **Proof.** Part 1 is property 1 of rounding, and part 2 is property 3. Part 4
 follows from part 1 and the definition of $\mathrm{fig}$.
 
 For part 3, if $p \ge \mathrm{prec}(x)$ then $y = x$. Otherwise
-$p \le \mathrm{prec}(x) - 1$. If rounding carried, $y = \pm 10^{\mathrm{size}(x)}$
-and $\mathrm{fig}(y) = 1$. If not, $\mathrm{size}(y) = \mathrm{size}(x)$ by
+$p \le \mathrm{prec}(x) - 1$. If rounding carried, $y = \pm 10^{\mathrm{siz}(x)}$
+and $\mathrm{fig}(y) = 1$. If not, $\mathrm{siz}(y) = \mathrm{siz}(x)$ by
 Theorem 1, so
 
-$$\mathrm{fig}(y) \le p + \mathrm{size}(x) \le \mathrm{prec}(x) - 1 + \mathrm{size}(x) = \mathrm{fig}(x) - 1.$$
+$$\mathrm{fig}(y) \le p + \mathrm{siz}(x) \le \mathrm{prec}(x) - 1 + \mathrm{siz}(x) = \mathrm{fig}(x) - 1.$$
 
 ∎
 
@@ -375,7 +375,7 @@ $$d_x = \lceil d + k + \log(2c M_y) \rceil, \qquad d_y = \lceil d + k + \log(2c 
 
 If $M_y = 10^{m}$ for a whole number $m$, and $k = 2$, then
 $\log(2 c_2 M_y) = m + \log 1.02$ and $d_x = d + 3 + m$. With
-$m = \mathrm{size}(y)$, so $d_x = d + 3 + \mathrm{size}(y)$, this is the 2015 rule
+$m = \mathrm{siz}(y)$, so $d_x = d + 3 + \mathrm{siz}(y)$, this is the 2015 rule
 $d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the assumption that $r_1 r_2$
 is negligible. The one caveat is that $M_y$ has to bound $|\tilde{y}|$ as well
 as $|y|$. For $y = 9.9996$ that means $M_y = 100$, not $10$, if $\tilde{y}$
@@ -389,15 +389,15 @@ $A_y = M_x / L_y^2$, so
 
 $$d_x = \lceil d + k + \log(2c) - \log L_y \rceil, \qquad d_y = \lceil d + k + \log(2c) + \log M_x - 2\log L_y \rceil.$$
 
-With $k = 2$, $M_x = 10^{\mathrm{size}(x)}$ and $L_y = 10^{\mathrm{size}(y) - 1}$,
+With $k = 2$, $M_x = 10^{\mathrm{siz}(x)}$ and $L_y = 10^{\mathrm{siz}(y) - 1}$,
 these become
 
-$$d_x = d + 4 - \mathrm{size}(y), \qquad d_y = d + 5 + \mathrm{size}(x) - 2\mathrm{size}(y).$$
+$$d_x = d + 4 - \mathrm{siz}(y), \qquad d_y = d + 5 + \mathrm{siz}(x) - 2\mathrm{siz}(y).$$
 
 Since $\mathrm{nsiz} = \mathrm{siz} - 1$, these are the 2015 rules $d_1 \ge d + 3 - \mathrm{nsiz}(y)$ and
 $d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$. Again, nothing is
 assumed negligible, but $L_y$ has to stay below $|\tilde{y}| - \varepsilon_y$,
-which needs a little room when $|y|$ is close to $10^{\mathrm{size}(y) - 1}$.
+which needs a little room when $|y|$ is close to $10^{\mathrm{siz}(y) - 1}$.
 
 ## Relative error and significant figures
 
@@ -413,9 +413,9 @@ absolute errors add for sums.
 Relative error is what significant figures measure. If $\tilde{x}$ is $x$
 rounded to $p$ places, then
 
-$$\rho_x \le \frac{\frac{1}{2} \cdot 10^{-p}}{10^{\mathrm{size}(\tilde{x}) - 1}} = \tfrac{1}{2} \cdot 10^{1 - s},$$
+$$\rho_x \le \frac{\frac{1}{2} \cdot 10^{-p}}{10^{\mathrm{siz}(\tilde{x}) - 1}} = \tfrac{1}{2} \cdot 10^{1 - s},$$
 
-where $s = p + \mathrm{size}(\tilde{x})$ is the number of digits
+where $s = p + \mathrm{siz}(\tilde{x})$ is the number of digits
 $\tilde{x}$ is written with, counted from its leading digit.
 
 This explains the shape of the results:
@@ -423,11 +423,11 @@ This explains the shape of the results:
 - **Sums:** the decimal places of the output depend on the decimal places of
   the inputs, and magnitudes don't matter.
 - **Products and quotients:** what carries over is significant figures, so
-  the rules for decimal places have $\mathrm{size}$ terms in them. In the
+  the rules for decimal places have $\mathrm{siz}$ terms in them. In the
   product rule with $k = 2$, $\tilde{x}$ is written with
-  $d_x + \mathrm{size}(x) = d + \mathrm{size}(x) + \mathrm{size}(y) + 3$
-  digits. The output has $d + \mathrm{size}(xy)$ digits, and
-  $\mathrm{size}(xy)$ is $\mathrm{size}(x) + \mathrm{size}(y)$ or one less. So
+  $d_x + \mathrm{siz}(x) = d + \mathrm{siz}(x) + \mathrm{siz}(y) + 3$
+  digits. The output has $d + \mathrm{siz}(xy)$ digits, and
+  $\mathrm{siz}(xy)$ is $\mathrm{siz}(x) + \mathrm{siz}(y)$ or one less. So
   each input needs 3 or 4 more significant figures than the output has.
 
 ## Correct rounding
@@ -494,8 +494,8 @@ rounded. (The true value is $8.5397342\ldots$)
 ## Changes from the 2015 notes
 
 - **Rounding is defined**, with a tie rule, and $p$ can be negative.
-- **One size function.** $\mathrm{size}$ is $\mathrm{siz}$ extended to all
-  nonzero $x$, and replaces $\mathrm{nsiz}$, which is $\mathrm{size} - 1$.
+- **One size function.** $\mathrm{siz}$ is extended to all nonzero $x$, and
+  replaces $\mathrm{nsiz}$, which is $\mathrm{siz} - 1$.
 - **Stated domains.** $\mathrm{prec}$ and $\mathrm{fig}$ are defined on
   nonzero terminating decimals.
 - **A wrong formula fixed.** The formula for $\mathrm{fig}(\mathrm{rnd}(x, p))$
