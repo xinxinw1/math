@@ -370,20 +370,30 @@ in whole numbers that answers this, then an example, then why the rule works.
 
 You choose the input places before computing the inputs, so the rules can't
 use the inputs' exact values. They use rough bounds instead, found from a
-quick low-accuracy estimate:
+quick low-accuracy estimate. There are two kinds:
 
-- **Upper bound.** $U_x$ is a number with $|x| \le U_x$.
-- **Lower bound.** $L_x$ is a positive number with $L_x \le |x|$.
+- **Bounds on the true value.** $U_x$ is a number with $|x| \le U_x$, and
+  $L_x$ is a positive number with $L_x \le |x|$.
+- **Bounds that also cover the approximation.** $\bar{U}_x$ is at least both
+  $|x|$ and $|\tilde{x}|$, and $\bar{L}_x$ is positive and at most both.
 
-The rules only need the sizes of these bounds, $\mathrm{siz}(U_x)$ and
-$\mathrm{siz}(L_x)$, which are digit counts. For example, $\pi < 4$ gives
-$U = 4$ with $\mathrm{siz}(U) = 1$, and $\pi > 3$ gives $L = 3$ with
-$\mathrm{siz}(L) = 1$.
+Which kind a rule needs depends on how it was derived. The square root,
+exponential and logarithm rules come from Theorem 5, which fixes the true $x$,
+so they only need $U$ and $L$. The product, quotient and power rules come from
+error formulas that mix $x$ and $\tilde{x}$, so they need $\bar{U}$ or
+$\bar{L}$.
 
-The bounds have to hold for the approximation $\tilde{x}$ as well as for $x$,
-so leave a little room. For $x \approx 9.9996$, $\tilde{x}$ might round up to
-$10.000$, so use $U_x = 11$, with $\mathrm{siz} = 2$, rather than $10$. Any
-valid bound works. A looser one costs at most a digit or so.
+The rules only need the sizes of the bounds, which are digit counts. For
+example, $\pi < 4$ gives an upper bound of 4, with $\mathrm{siz}(4) = 1$, and
+$\pi > 3$ gives a lower bound of 3, with $\mathrm{siz}(3) = 1$.
+
+You don't know $\tilde{x}$ yet when you choose the bounds, but it is within
+$\varepsilon_x$ of $x$, which is tiny next to a rough bound. So a bound on $x$
+with a little room also covers $\tilde{x}$. It only matters when $x$ is within
+$\varepsilon_x$ of the bound. For $x \approx 9.9996$, $\tilde{x}$ might round
+up to $10.000$, so 10 is a valid $U_x$, but take $\bar{U}_x = 11$, with
+$\mathrm{siz} = 2$. Any valid bound works. A looser one costs at most a digit
+or so.
 
 ### The error budget
 
@@ -440,12 +450,12 @@ of can take a smaller share of the error.
 | Operation | Input places |
 |---|---|
 | Sum of $n$ terms | $d + k + \mathrm{siz}(n)$ |
-| $xy$ | $d_x = d + k + 1 + \mathrm{siz}(U_y)$, and $d_y = d + k + 1 + \mathrm{siz}(U_x)$ |
-| $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(L_y)$, and $d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(L_y)$ |
+| $xy$ | $d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y)$, and $d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x)$ |
+| $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
 | $x + a$ | $d$ |
 | $ax$ | $d + k + \mathrm{siz}(a)$ |
-| $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(U_x)$ |
-| $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(U_x)$ |
+| $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
+| $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
 | $e^x$ | $\max(1, d + k + 1 + \mathrm{siz}(E))$, for an upper bound $E \ge e^x$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
@@ -478,9 +488,10 @@ table.
 
 ### Products
 
-**Rule.** With upper bounds $U_x \ge |x|$ and $U_y \ge |y|$,
+**Rule.** With upper bounds $\bar{U}_x$ on both $|x|$ and $|\tilde{x}|$, and
+$\bar{U}_y$ on both $|y|$ and $|\tilde{y}|$,
 
-$$d_x = d + k + 1 + \mathrm{siz}(U_y), \qquad d_y = d + k + 1 + \mathrm{siz}(U_x).$$
+$$d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y), \qquad d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x).$$
 
 Each input's places depend on the size of the *other* input.
 
@@ -488,40 +499,49 @@ Each input's places depend on the size of the *other* input.
 $e < 3$, both of size 1, so each needs $3 + 2 + 1 + 1 = 7$ places.
 [Examples](#examples) works this through.
 
-**Why.** For $xy$, Theorem 4 gives $A_x = U_y$ and $A_y = U_x$, where the
-bounds also cover $\tilde{x}$ and $\tilde{y}$. The product is exact, so
-$\eta = T$, and the exact counts are
+**Why.** From the proof of Theorem 3,
+$\tilde{x}\tilde{y} - xy = \tilde{x}(\tilde{y} - y) + y(\tilde{x} - x)$, so the
+propagated error is at most $\bar{U}_x \varepsilon_y + \bar{U}_y \varepsilon_x$.
+Strictly, this needs the bound on $|\tilde{x}|$ and the bound on $|y|$ (or the
+other way round, splitting the product the other way), but covering both is
+simpler. The product is exact, so $\eta = T$, and the exact counts are
 
-$$d_x = \lceil d + k + \log(2c U_y) \rceil, \qquad d_y = \lceil d + k + \log(2c U_x) \rceil.$$
+$$d_x = \lceil d + k + \log(2c \bar{U}_y) \rceil, \qquad d_y = \lceil d + k + \log(2c \bar{U}_x) \rceil.$$
 
-Since $\log(2c) \le \log 1.2 < 1$ and $\log U_y < \mathrm{siz}(U_y)$, the rule
-is enough.
+Since $\log(2c) \le \log 1.2 < 1$ and
+$\log \bar{U}_y < \mathrm{siz}(\bar{U}_y)$, the rule is enough.
 
-With $k = 2$ and $U_y = 10^{\mathrm{siz}(y)}$, the rule is the 2015 rule
+With $k = 2$ and $\bar{U}_y = 10^{\mathrm{siz}(y)}$, the rule is the 2015 rule
 $d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the assumption that $r_1 r_2$
 is negligible.
 
 ### Quotients
 
-**Rule.** With an upper bound $U_x \ge |x|$ and a lower bound
-$L_y \le |y|$,
+**Rule.** With an upper bound $U_x \ge |x|$ and a lower bound $\bar{L}_y$ on
+both $|y|$ and $|\tilde{y}|$,
 
-$$d_x = d + k + 2 - \mathrm{siz}(L_y), \qquad d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(L_y).$$
+$$d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y), \qquad d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y).$$
 
 **Example.** For $\pi / e$ good to $d = 3$ places, with $k = 2$: $\pi < 4$ and
 $e > 2$, both of size 1. So $\pi$ needs $3 + 2 + 2 - 1 = 6$ places, and $e$
 needs $3 + 2 + 3 + 1 - 2 = 7$.
 
-**Why.** For $x / y$, Theorem 4 gives $A_x = 1/L_y$ and $A_y = U_x / L_y^2$,
-with $L_y \le |\tilde{y}| - \varepsilon_y$. The quotient can't be computed
-exactly, so $\eta = T/2$, and the exact counts are
+**Why.** For $x / y$,
 
-$$d_x = \lceil d + k + \log(4c) - \log L_y \rceil, \qquad d_y = \lceil d + k + \log(4c) + \log U_x - 2\log L_y \rceil.$$
+$$\frac{\tilde{x}}{\tilde{y}} - \frac{x}{y} = \frac{\tilde{x} - x}{\tilde{y}} - \frac{x(\tilde{y} - y)}{\tilde{y}y},$$
+
+so the propagated error is at most
+$\varepsilon_x / \bar{L}_y + U_x \varepsilon_y / \bar{L}_y^2$. The lower bound
+has to cover both $y$ and $\tilde{y}$, but the upper bound only the true $x$.
+The quotient can't be computed exactly, so $\eta = T/2$, and the exact counts
+are
+
+$$d_x = \lceil d + k + \log(4c) - \log \bar{L}_y \rceil, \qquad d_y = \lceil d + k + \log(4c) + \log U_x - 2\log \bar{L}_y \rceil.$$
 
 Since $\log(4c) \le \log 2.4 < 1$, $\log U_x < \mathrm{siz}(U_x)$ and
-$-\log L_y \le 1 - \mathrm{siz}(L_y)$, the rule is enough.
+$-\log \bar{L}_y \le 1 - \mathrm{siz}(\bar{L}_y)$, the rule is enough.
 
-With $k = 2$, $U_x = 10^{\mathrm{siz}(x)}$ and $L_y = 10^{\mathrm{siz}(y) - 1}$,
+With $k = 2$, $U_x = 10^{\mathrm{siz}(x)}$ and $\bar{L}_y = 10^{\mathrm{siz}(y) - 1}$,
 and since $\mathrm{nsiz} = \mathrm{siz} - 1$, the rule is the 2015 rules
 $d_1 \ge d + 3 - \mathrm{nsiz}(y)$ and
 $d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$, now with nothing
@@ -556,9 +576,9 @@ applies when no rounding is needed.
 ### Powers
 
 **Rule.** For $x^n$ with $n \ge 2$ a whole number, and an upper bound
-$U_x \ge |x|$,
+$\bar{U}_x$ on both $|x|$ and $|\tilde{x}|$,
 
-$$d_x = d + k + 1 + (n - 1)\mathrm{siz}(U_x) \quad \text{for } n \le 8, \qquad d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(U_x) \quad \text{for any } n.$$
+$$d_x = d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x) \quad \text{for } n \le 8, \qquad d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x) \quad \text{for any } n.$$
 
 Then compute $\tilde{x}^n$ to $d + k + 1$ places.
 
@@ -571,12 +591,15 @@ $n$. So treat it like the other functions, with $\eta = T/2$. If you do
 compute it exactly, as you might for $n = 2$, you can use $\eta = T$ and save
 up to one place.
 
-By Theorem 4, with $A = nU_x^{n-1}$, the exact count is
+Since
+$\tilde{x}^n - x^n = (\tilde{x} - x)(\tilde{x}^{n-1} + \tilde{x}^{n-2}x + \cdots + x^{n-1})$,
+and every term in the second factor mixes $x$ and $\tilde{x}$, the bound has to
+cover both. Then $A = n\bar{U}_x^{n-1}$, and the exact count is
 
-$$d_x = \left\lceil d + k + \log(2cnU_x^{n-1}) \right\rceil.$$
+$$d_x = \left\lceil d + k + \log(2cn\bar{U}_x^{n-1}) \right\rceil.$$
 
 Since $\log(2cn) \le \log(1.2n) < \log(2n) < \mathrm{siz}(2n)$, and
-$\log U_x < \mathrm{siz}(U_x)$, the rule is enough. For $n \le 8$,
+$\log \bar{U}_x < \mathrm{siz}(\bar{U}_x)$, the rule is enough. For $n \le 8$,
 $\log(1.2n) < 1$. Theorem 5 gives essentially the same count when $\eta$ is
 small.
 
@@ -587,7 +610,7 @@ product rule says how many.
 
 ### Square roots
 
-**Rule.** With a lower bound $L_x \le x$,
+**Rule.** With a lower bound $L_x \le x$ on the true value,
 
 $$d_x = d + k - \left\lfloor \frac{\mathrm{siz}(L_x) - 1}{2} \right\rfloor.$$
 
@@ -657,7 +680,7 @@ $0$, where Theorem 4's $A$ blows up but $\delta = \eta^2$ still works.
 
 ### Exponentials
 
-**Rule.** With an upper bound $E \ge e^x$,
+**Rule.** With an upper bound $E \ge e^x$ on the true value,
 
 $$d_x = \max(1, d + k + 1 + \mathrm{siz}(E)).$$
 
@@ -718,7 +741,7 @@ output is $0$ to $d$ places anyway.
 
 ### Logarithms
 
-**Rule.** With a lower bound $L_x \le x$,
+**Rule.** With a lower bound $L_x \le x$ on the true value,
 
 $$d_x = d + k + 2 - \mathrm{siz}(L_x).$$
 
@@ -811,8 +834,8 @@ line with the 2015 table: $20 \le n \le 196$ needs $d + 4$.
 To get $\pi e$ good to $d = 3$ places, with $k = 2$, the target propagated
 error is $T = 10^{-5}$.
 
-**Places.** $\pi < 4$ and $e < 3$, so take $U_x = 4$ for $x = \pi$ and
-$U_y = 3$ for $y = e$, both of size 1. The product rule gives each input
+**Places.** $\pi < 4$ and $e < 3$, with plenty of room, so take
+$\bar{U}_x = 4$ for $x = \pi$ and $\bar{U}_y = 3$ for $y = e$, both of size 1. The product rule gives each input
 $3 + 2 + 1 + 1 = 7$ places. Rounding both exactly gives $\tilde{x} = 3.1415927$
 and $\tilde{y} = 2.7182818$.
 
