@@ -553,10 +553,7 @@ itself a chain of products. Each product is rounded, so carry enough guard
 digits through the chain that the final value is within $10^{-(d+k+1)}$. The
 product rule above says how many.
 
-In significant figures, raising to the $n$th power multiplies the relative
-error by about $n$. So $x$ needs about $\log n$ more significant figures than
-$x^n$, plus $k$. Theorem 5 gives essentially the same $\delta$ when $\eta$ is
-small.
+Theorem 5 gives essentially the same $\delta$ when $\eta$ is small.
 
 **Quick rule.** $d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(x)$,
 since $\log(2cn) \le \log(1.2n) < \log(2n) < \mathrm{siz}(2n)$. For $n \le 8$,
@@ -629,16 +626,6 @@ Then use $d_x = 2(d + k) + 1$ instead.
 
 For $\sqrt{\pi}$ to 4 places with $k = 2$, $\mathrm{siz}(\pi) = 1$, so
 $d_x = 4 + 2 - 0 = 6$, the same as the exact count.
-
-**Significant figures.** $\tilde{x}$ is written with $d_x + \mathrm{siz}(x)$
-significant digits, and the output with $d + \mathrm{siz}(\sqrt{x})$, where
-$\mathrm{siz}(\sqrt{x}) = \lceil \mathrm{siz}(x)/2 \rceil$. Putting these into
-the formula above,
-
-$$d_x + \mathrm{siz}(x) \le d + \mathrm{siz}(\sqrt{x}) + k + 1.$$
-
-So the input needs about as many significant figures as the output, plus the
-$k$ guard digits. That is because a square root halves the relative error.
 
 **Compared with Theorem 4.** There, $A = 1/(2\sqrt{L - \varepsilon_x})$, which
 also gives $\delta \approx 2\eta\sqrt{L}$. Theorem 5 only makes a real
@@ -716,13 +703,6 @@ For $e^{3\pi}$ to 3 places with $k = 2$, $e^{9.5} \approx 13360$, so take
 $E = 14000$, with $\mathrm{siz}(E) = 5$. Then $d_x = 3 + 2 + 1 + 5 = 11$, one
 more than the exact count.
 
-**Significant figures.** $U/\ln 10 = \log e^U$, which is just below
-$\mathrm{siz}(e^U)$. So $d_x$ is about $d + \mathrm{siz}(e^x) + k$, and
-$d + \mathrm{siz}(e^x)$ is the number of significant figures in the output.
-The number of decimal places $x$ needs is about the number of significant
-figures wanted in $e^x$, plus $k$. That is because an absolute error $r$ in
-$x$ becomes a relative error of about $r$ in $e^x$.
-
 **Compared with Theorem 4.** There, $A = e^{U + \varepsilon_x}$, which gives
 $\delta \approx \eta e^{-U} = u$, about the same as $\ln(1 + u)$ when $u$ is
 small. Theorem 5 only makes a difference when $u$ is large, which means $e^x$
@@ -746,9 +726,6 @@ rounding boundary, $12391.6475$, is about $3.1 \times 10^{-4}$ away, so by
 Lemma 3 this is $e^{3\pi}$ correctly rounded. (The true value is
 $12391.6478079\ldots$)
 
-The output has 8 significant figures, and $x$ needed $10 = 8 + k$ places, as
-the significant-figures rule says.
-
 ### Logarithms
 
 **Exact δ.** For $f(x) = \ln x$, which is increasing on $(0, \infty)$ with
@@ -771,19 +748,7 @@ $$d_x = \left\lceil d + k + \log(2c) + \log(1 + \eta) - \log L \right\rceil.$$
 
 **Quick rule.** $d_x = d + k + 2 - \mathrm{siz}(x)$. With
 $L = 10^{\mathrm{siz}(x) - 1}$, $-\log L = 1 - \mathrm{siz}(x)$, and
-$\log(2c) + \log(1 + \eta) \le \log(1.2 \times 1.5) < 1$. In other words, $x$
-needs $d + k + 2$ significant figures.
-
-**Significant figures.** $\delta \approx \eta x$, so the relative error of $x$
-has to be at most about $\eta = \frac{1}{2} \cdot 10^{-(d+k)}$. A value written
-with $s$ significant figures has relative error up to
-$\frac{1}{2} \cdot 10^{1-s}$, so $x$ needs about $d + k + 1$ significant
-figures, whatever its size. With $L = 10^{\mathrm{siz}(x) - 1}$ the formula can
-ask for one more, since $L$ can be up to 10 times smaller than $x$.
-
-This is the mirror image of exponentials: there, the decimal places of $x$
-control the significant figures of $e^x$. Here, the significant figures of $x$
-control the decimal places of $\ln x$.
+$\log(2c) + \log(1 + \eta) \le \log(1.2 \times 1.5) < 1$.
 
 ## Relative error and significant figures
 
@@ -900,11 +865,10 @@ rounded. (The true value is $8.5397342\ldots$)
 - **Monotonic functions get an exact bound.** Theorem 5 states the 2015
   inverse-function method with its edge cases. Constants, powers, square
   roots, exponentials and logarithms are worked through, without assuming
-  $\varepsilon^2$ is negligible, each with its meaning in significant
-  figures.
+  $\varepsilon^2$ is negligible.
 - **Evaluation error is budgeted.** Division, powers, square roots,
-  exponentials and logarithms can't be computed exactly, or not in practice, so half of the error budget is set
-  aside for computing them.
+  exponentials and logarithms can't be computed exactly, or not in practice,
+  so half of the error budget is set aside for computing them.
 - **The place counts use a ceiling**, since they have to be whole numbers.
 - **Relative error** connects significant figures to products and quotients.
 - **Correct rounding** has a test (Lemma 3) instead of only a counterexample.
