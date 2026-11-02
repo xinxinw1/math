@@ -459,7 +459,7 @@ of can take a smaller share of the error.
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
 | $e^x$ | $\max(1, d + k + 1 + \mathrm{siz}(E))$, for an upper bound $E \ge e^x$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
-| $\sin x$, $\cos x$ | $d + k + 1$ |
+| $\sin x$, $\cos x$ | $d + k + 1$, and $\pi$ to $d + k + 1 + \mathrm{siz}(j)$ places when reducing by $j$ quarter turns |
 | Series term $n$ | $p_n = d + k + 2\mathrm{siz}(n)$ places |
 
 ### Sums
@@ -816,6 +816,77 @@ $$d_x = \left\lceil d + k + \log(2c) + \log(1 + \eta) - \log L_x \right\rceil.$$
 Since $\log(2c) + \log(1 + \eta) \le \log(1.2 \times 1.5) < 1$ and
 $-\log L_x \le 1 - \mathrm{siz}(L_x)$, the rule is enough.
 
+### Sine and cosine
+
+**Rule.** For $\sin x$ or $\cos x$,
+
+$$d_x = d + k + 1.$$
+
+No bounds are needed. If $x$ is exactly rounded, $d + k$ places are enough.
+
+**Argument reduction.** A calculator usually first reduces $x$ by a whole
+number $j$ of quarter turns, to $r = x - j\pi/2$ with $|r| \le \pi/4$, and then
+uses
+
+| $j$ mod 4 | $\sin x$ | $\cos x$ |
+|---|---|---|
+| 0 | $\sin r$ | $\cos r$ |
+| 1 | $\cos r$ | $-\sin r$ |
+| 2 | $-\sin r$ | $-\cos r$ |
+| 3 | $-\cos r$ | $\sin r$ |
+
+The reduction uses an approximation to $\pi$, whose error is multiplied by
+$|j|/2$. So with reduction:
+
+- **x** needs $d + k + 1$ places, as before.
+- **π** needs $d + k + 1 + \mathrm{siz}(j)$ places.
+
+Then compute $\tilde{r} = \tilde{x} - j\tilde{\pi}/2$ exactly. It has the
+accuracy the rule asks of the input, so evaluate $\sin \tilde{r}$ or
+$\cos \tilde{r}$ by its series. $j$ only has to be roughly
+$x / (\pi/2)$: being off by one makes $|r|$ at most $3\pi/4 \approx 2.36$,
+still within the $|x| \le 2.4$ that the series rule needs.
+
+**Example.** For $\sin(\pi/4)$ good to $d = 6$ places, with $k = 2$, $\pi/4$
+needs $6 + 2 + 1 = 9$ places: $\tilde{x} = 0.785398163$.
+[Series](#series) works this through.
+
+For $\sin 100$ good to $d = 6$ places, with $k = 2$: $100 / (\pi/2) \approx 63.7$,
+so $j = 64$. Since 64 mod 4 is 0, $\sin 100 = \sin r$. $x = 100$ is exact.
+$\pi$ needs $6 + 2 + 1 + \mathrm{siz}(64) = 11$ places, so
+$\tilde{\pi} = 3.14159265359$, and
+
+$$\tilde{r} = 100 - 32\tilde{\pi} = -0.53096491488.$$
+
+The sine series at $\tilde{r}$, computed as in [Series](#series), sums to
+$-0.50636564118$, which rounds to $-0.506366$. The true value is
+$\sin 100 = -0.5063656411\ldots$, and the nearest rounding boundary,
+$-0.5063655$, is about $1.4 \times 10^{-7}$ away, more than $T = 10^{-8}$, so
+by Lemma 3 this is correctly rounded.
+
+**Why.** The derivatives of $\sin$ and $\cos$ are $\cos$ and $-\sin$, which are
+at most 1 in size, so Theorem 4 gives $A = 1$. Neither can be computed exactly,
+so $\eta = T/2$, and the exact count is $\lceil d + k + \log(2c) \rceil$. Since
+$\log(2c) \le \log 1.2 < 1$, the rule is enough. For an exactly rounded input,
+$c = \frac{1}{2}$ and $\log(2c) = 0$, so $d + k$ is enough.
+
+Near the peaks of $\sin$, where $\cos x$ is close to 0, a smaller $A$ would do,
+but the rule doesn't try to use that.
+
+With reduction, the error in $\tilde{r}$ is at most
+$\varepsilon_x + \frac{|j|}{2}\varepsilon_\pi$. This is a sum of two inputs
+with $A_x = 1$ and $A_\pi = |j|/2$, so with $\eta = T/2$ split between them,
+the exact counts are
+
+$$d_x = \lceil d + k + \log(4c) \rceil, \qquad d_\pi = \lceil d + k + \log(2c|j|) \rceil.$$
+
+Since $\log(4c) \le \log 2.4 < 1$, and
+$\log(2c|j|) \le \log 1.2 + \log|j| < 1 + \mathrm{siz}(j)$, the rule is enough.
+
+For $\sin 100$, the error in $\tilde{r}$ is at most
+$32 \cdot \frac{1}{2} \cdot 10^{-11} = 1.6 \times 10^{-10}$, well within
+$T/2$.
+
 ### Series
 
 This covers evaluating $f(\tilde{x})$ by a series, such as the Taylor series
@@ -840,9 +911,6 @@ $t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
 - **Sum.** Add the terms as you go. Sums of terminating decimals are exact.
 - **Stop** after the first term with $|\tilde{t}_N| \le T/10$, including that
   term. Then round the sum to $d$ places.
-
-For $\sin x$ and $\cos x$, the input rule is $d_x = d + k + 1$, since their
-derivatives are at most 1 in size, so $A = 1$ in Theorem 4.
 
 **Example: e to the power π/4.** To get $e^{\pi/4}$ good to $d = 6$ places,
 with $k = 2$, the budget is $T = 10^{-8}$.
@@ -882,7 +950,7 @@ them gives $2.193280050176$, which rounds the same way.
 **Example: sin(π/4).** To get $\sin(\pi/4)$ good to $d = 6$ places, with
 $k = 2$, the budget is again $T = 10^{-8}$.
 
-1. **Input.** The sine rule gives $d_x = 6 + 2 + 1 = 9$, so
+1. **Input.** The [sine rule](#sine-and-cosine) gives $d_x = 6 + 2 + 1 = 9$, so
    $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
 2. **Terms.** $t_0 = \tilde{x}$ and
    $\tilde{t}_n = \mathrm{rnd}(-\tilde{t}_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), p_n)$,
@@ -944,8 +1012,8 @@ $|x| \le 1$. For larger $|x|$, the terms grow until $n \approx |x|$, errors grow
 with them, and an alternating series like $e^{-20}$ also cancels
 catastrophically. So reduce the argument first. For example, compute
 $e^x = (e^{x/2^m})^{2^m}$ with $|x/2^m| \le 1$, and use the power rule to choose
-the places for $e^{x/2^m}$. For $\sin x$, subtract a multiple of $2\pi$, and use
-symmetries to bring $x$ into $[-\pi/4, \pi/4]$. Its ratios are
+the places for $e^{x/2^m}$. For $\sin x$, reduce by quarter turns into
+$[-\pi/4, \pi/4]$, as in [Sine and cosine](#sine-and-cosine). Its ratios are
 $|r_n| = x^2/((2n)(2n+1))$, which is at most $1/n$ whenever $|x| \le 2.4$, so
 the rule has room to spare.
 
