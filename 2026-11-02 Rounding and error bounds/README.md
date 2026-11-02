@@ -931,7 +931,8 @@ $\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
 
 $$\tilde t_n = \mathrm{rnd}(\tilde t_{n-1} \cdot \tilde{x} / n, p_n),$$
 
-with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
+with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$. Stop after the
+first term with $\mathrm{siz} \le -(6 + 2 + 1) = -9$.
 
 | $n$ | $p_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
 |---|---|---|---|
@@ -949,8 +950,8 @@ with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$:
 | 11 | 12 | $0.000000001757$ | $-8$ |
 | 12 | 12 | $0.000000000115$ | $-9$ |
 
-$\tilde{t}_{12}$ is the first term with
-$\mathrm{siz} \le -(6 + 2 + 1) = -9$, so stop after it.
+$\tilde{t}_{12}$ is the first term with $\mathrm{siz} \le -9$, so stop after
+it.
 
 **Sum.** $2.193280050786$, which rounds to $2.193280$.
 
@@ -970,7 +971,8 @@ $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
 
 $$\tilde t_n = \mathrm{rnd}(-\tilde t_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), p_n),$$
 
-with $p_n = 10$:
+with $p_n = 10$. Stop after the first term with
+$\mathrm{siz} \le -(6 + 2 + 1) = -9$, or that rounds to 0.
 
 | $n$ | $p_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
 |---|---|---|---|
@@ -1088,7 +1090,8 @@ $T = 10^{-8}$.
 **z.** $z = -0.25/1.75$, which to 10 places is $-0.1428571429$, and
 $z^2 = 0.02040816327755102041$ exactly.
 
-**Terms.** With $p_n = 11$:
+**Terms.** Use $p_n = 11$ places. Stop after the first term with
+$\mathrm{siz} \le -(6 + 2 + 1) = -9$.
 
 | $n$ | $p_n$ | $\tilde{P}_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
 |---|---|---|---|---|
