@@ -372,17 +372,17 @@ You choose the input places before computing the inputs, so the rules can't
 use the inputs' exact values. They use rough bounds instead, found from a
 quick low-accuracy estimate:
 
-- **Upper bound.** $M_x$ is a number with $|x| \le M_x$.
+- **Upper bound.** $U_x$ is a number with $|x| \le U_x$.
 - **Lower bound.** $L_x$ is a positive number with $L_x \le |x|$.
 
-The rules only need the sizes of these bounds, $\mathrm{siz}(M_x)$ and
+The rules only need the sizes of these bounds, $\mathrm{siz}(U_x)$ and
 $\mathrm{siz}(L_x)$, which are digit counts. For example, $\pi < 4$ gives
-$M = 4$ with $\mathrm{siz}(M) = 1$, and $\pi > 3$ gives $L = 3$ with
+$U = 4$ with $\mathrm{siz}(U) = 1$, and $\pi > 3$ gives $L = 3$ with
 $\mathrm{siz}(L) = 1$.
 
 The bounds have to hold for the approximation $\tilde{x}$ as well as for $x$,
 so leave a little room. For $x \approx 9.9996$, $\tilde{x}$ might round up to
-$10.000$, so use $M_x = 11$, with $\mathrm{siz} = 2$, rather than $10$. Any
+$10.000$, so use $U_x = 11$, with $\mathrm{siz} = 2$, rather than $10$. Any
 valid bound works. A looser one costs at most a digit or so.
 
 ### The error budget
@@ -424,7 +424,7 @@ The rules turn the exact count into whole numbers:
 - **Leave out log c.** $\log c$ is between $-0.31$ and $-0.22$, so it is
   negative.
 - **Round small constants up,** such as $\log 2 \approx 0.30$, usually to 1.
-- **Use siz in place of log.** For an upper bound, $\log M < \mathrm{siz}(M)$.
+- **Use siz in place of log.** For an upper bound, $\log U < \mathrm{siz}(U)$.
   For a lower bound, $\log L \ge \mathrm{siz}(L) - 1$.
 
 So a rule never asks for fewer places than the exact count, and usually asks
@@ -440,12 +440,12 @@ of can take a smaller share of the error.
 | Operation | Input places |
 |---|---|
 | Sum of $n$ terms | $d + k + \mathrm{siz}(n)$ |
-| $xy$ | $d_x = d + k + 1 + \mathrm{siz}(M_y)$, and $d_y = d + k + 1 + \mathrm{siz}(M_x)$ |
-| $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(L_y)$, and $d_y = d + k + 3 + \mathrm{siz}(M_x) - 2\mathrm{siz}(L_y)$ |
+| $xy$ | $d_x = d + k + 1 + \mathrm{siz}(U_y)$, and $d_y = d + k + 1 + \mathrm{siz}(U_x)$ |
+| $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(L_y)$, and $d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(L_y)$ |
 | $x + a$ | $d$ |
 | $ax$ | $d + k + \mathrm{siz}(a)$ |
-| $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(M_x)$ |
-| $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(M_x)$ |
+| $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(U_x)$ |
+| $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(U_x)$ |
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
 | $e^x$ | $\max(1, d + k + 1 + \mathrm{siz}(E))$, for an upper bound $E \ge e^x$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
@@ -478,9 +478,9 @@ table.
 
 ### Products
 
-**Rule.** With upper bounds $M_x \ge |x|$ and $M_y \ge |y|$,
+**Rule.** With upper bounds $U_x \ge |x|$ and $U_y \ge |y|$,
 
-$$d_x = d + k + 1 + \mathrm{siz}(M_y), \qquad d_y = d + k + 1 + \mathrm{siz}(M_x).$$
+$$d_x = d + k + 1 + \mathrm{siz}(U_y), \qquad d_y = d + k + 1 + \mathrm{siz}(U_x).$$
 
 Each input's places depend on the size of the *other* input.
 
@@ -488,40 +488,40 @@ Each input's places depend on the size of the *other* input.
 $e < 3$, both of size 1, so each needs $3 + 2 + 1 + 1 = 7$ places.
 [Examples](#examples) works this through.
 
-**Why.** For $xy$, Theorem 4 gives $A_x = M_y$ and $A_y = M_x$, where the
+**Why.** For $xy$, Theorem 4 gives $A_x = U_y$ and $A_y = U_x$, where the
 bounds also cover $\tilde{x}$ and $\tilde{y}$. The product is exact, so
 $\eta = T$, and the exact counts are
 
-$$d_x = \lceil d + k + \log(2c M_y) \rceil, \qquad d_y = \lceil d + k + \log(2c M_x) \rceil.$$
+$$d_x = \lceil d + k + \log(2c U_y) \rceil, \qquad d_y = \lceil d + k + \log(2c U_x) \rceil.$$
 
-Since $\log(2c) \le \log 1.2 < 1$ and $\log M_y < \mathrm{siz}(M_y)$, the rule
+Since $\log(2c) \le \log 1.2 < 1$ and $\log U_y < \mathrm{siz}(U_y)$, the rule
 is enough.
 
-With $k = 2$ and $M_y = 10^{\mathrm{siz}(y)}$, the rule is the 2015 rule
+With $k = 2$ and $U_y = 10^{\mathrm{siz}(y)}$, the rule is the 2015 rule
 $d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the assumption that $r_1 r_2$
 is negligible.
 
 ### Quotients
 
-**Rule.** With an upper bound $M_x \ge |x|$ and a lower bound
+**Rule.** With an upper bound $U_x \ge |x|$ and a lower bound
 $L_y \le |y|$,
 
-$$d_x = d + k + 2 - \mathrm{siz}(L_y), \qquad d_y = d + k + 3 + \mathrm{siz}(M_x) - 2\mathrm{siz}(L_y).$$
+$$d_x = d + k + 2 - \mathrm{siz}(L_y), \qquad d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(L_y).$$
 
 **Example.** For $\pi / e$ good to $d = 3$ places, with $k = 2$: $\pi < 4$ and
 $e > 2$, both of size 1. So $\pi$ needs $3 + 2 + 2 - 1 = 6$ places, and $e$
 needs $3 + 2 + 3 + 1 - 2 = 7$.
 
-**Why.** For $x / y$, Theorem 4 gives $A_x = 1/L_y$ and $A_y = M_x / L_y^2$,
+**Why.** For $x / y$, Theorem 4 gives $A_x = 1/L_y$ and $A_y = U_x / L_y^2$,
 with $L_y \le |\tilde{y}| - \varepsilon_y$. The quotient can't be computed
 exactly, so $\eta = T/2$, and the exact counts are
 
-$$d_x = \lceil d + k + \log(4c) - \log L_y \rceil, \qquad d_y = \lceil d + k + \log(4c) + \log M_x - 2\log L_y \rceil.$$
+$$d_x = \lceil d + k + \log(4c) - \log L_y \rceil, \qquad d_y = \lceil d + k + \log(4c) + \log U_x - 2\log L_y \rceil.$$
 
-Since $\log(4c) \le \log 2.4 < 1$, $\log M_x < \mathrm{siz}(M_x)$ and
+Since $\log(4c) \le \log 2.4 < 1$, $\log U_x < \mathrm{siz}(U_x)$ and
 $-\log L_y \le 1 - \mathrm{siz}(L_y)$, the rule is enough.
 
-With $k = 2$, $M_x = 10^{\mathrm{siz}(x)}$ and $L_y = 10^{\mathrm{siz}(y) - 1}$,
+With $k = 2$, $U_x = 10^{\mathrm{siz}(x)}$ and $L_y = 10^{\mathrm{siz}(y) - 1}$,
 and since $\mathrm{nsiz} = \mathrm{siz} - 1$, the rule is the 2015 rules
 $d_1 \ge d + 3 - \mathrm{nsiz}(y)$ and
 $d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$, now with nothing
@@ -556,9 +556,9 @@ applies when no rounding is needed.
 ### Powers
 
 **Rule.** For $x^n$ with $n \ge 2$ a whole number, and an upper bound
-$M_x \ge |x|$,
+$U_x \ge |x|$,
 
-$$d_x = d + k + 1 + (n - 1)\mathrm{siz}(M_x) \quad \text{for } n \le 8, \qquad d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(M_x) \quad \text{for any } n.$$
+$$d_x = d + k + 1 + (n - 1)\mathrm{siz}(U_x) \quad \text{for } n \le 8, \qquad d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(U_x) \quad \text{for any } n.$$
 
 Then compute $\tilde{x}^n$ to $d + k + 1$ places.
 
@@ -571,12 +571,12 @@ $n$. So treat it like the other functions, with $\eta = T/2$. If you do
 compute it exactly, as you might for $n = 2$, you can use $\eta = T$ and save
 up to one place.
 
-By Theorem 4, with $A = nM_x^{n-1}$, the exact count is
+By Theorem 4, with $A = nU_x^{n-1}$, the exact count is
 
-$$d_x = \left\lceil d + k + \log(2cnM_x^{n-1}) \right\rceil.$$
+$$d_x = \left\lceil d + k + \log(2cnU_x^{n-1}) \right\rceil.$$
 
 Since $\log(2cn) \le \log(1.2n) < \log(2n) < \mathrm{siz}(2n)$, and
-$\log M_x < \mathrm{siz}(M_x)$, the rule is enough. For $n \le 8$,
+$\log U_x < \mathrm{siz}(U_x)$, the rule is enough. For $n \le 8$,
 $\log(1.2n) < 1$. Theorem 5 gives essentially the same count when $\eta$ is
 small.
 
@@ -686,8 +686,8 @@ $\delta^{+}$, so the largest $\delta$ is
 
 $$\delta(x) = \ln(1 + \eta e^{-x}).$$
 
-It shrinks as $x$ grows, so the worst case is where $e^x$ is largest. Write
-$E = e^U$ and $u = \eta / E$. The exact count is
+It shrinks as $x$ grows, so the worst case is where $e^x$ is largest, which
+is at most $E$. Let $u = \eta / E$. The exact count is
 
 $$d_x = \lceil \log c - \log\ln(1 + u) \rceil.$$
 
@@ -710,7 +710,8 @@ function, is $d + k + 1 + \log e^x$: the rule with $\log e^x$ in place of
 $\mathrm{siz}(E)$. The argument above shows that is enough too, so it was
 safe.
 
-Theorem 4 gives $A = e^{U + \varepsilon_x}$, so $\delta \approx \eta / E = u$,
+Theorem 4 gives $A = E$, if $E$ also covers $e^{\tilde{x} + \varepsilon_x}$, so
+$\delta \approx \eta / E = u$,
 about the same as $\ln(1 + u)$ when $u$ is small. Theorem 5 only makes a
 difference when $u$ is large, which means $e^x$ is smaller than $\eta$, and the
 output is $0$ to $d$ places anyway.
@@ -810,8 +811,8 @@ line with the 2015 table: $20 \le n \le 196$ needs $d + 4$.
 To get $\pi e$ good to $d = 3$ places, with $k = 2$, the target propagated
 error is $T = 10^{-5}$.
 
-**Places.** $\pi < 4$ and $e < 3$, so take $M_x = 4$ for $x = \pi$ and
-$M_y = 3$ for $y = e$, both of size 1. The product rule gives each input
+**Places.** $\pi < 4$ and $e < 3$, so take $U_x = 4$ for $x = \pi$ and
+$U_y = 3$ for $y = e$, both of size 1. The product rule gives each input
 $3 + 2 + 1 + 1 = 7$ places. Rounding both exactly gives $\tilde{x} = 3.1415927$
 and $\tilde{y} = 2.7182818$.
 
