@@ -224,3 +224,9 @@ lake build
 
 `lake exe cache get` downloads prebuilt Mathlib files, which saves building
 Mathlib from source.
+
+## Next
+
+[Sums of conjugate nested roots](../2026-11-03%202%20Sums%20of%20conjugate%20nested%20roots/README.md)
+uses these results to find when
+$\sqrt{a + \sqrt{b}} + \sqrt{a - \sqrt{b}}$ is a single square root.
