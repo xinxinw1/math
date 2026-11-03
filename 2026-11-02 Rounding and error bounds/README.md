@@ -451,6 +451,7 @@ of can take a smaller share of the error.
 |---|---|
 | Sum of $n$ terms | $d + k + \mathrm{siz}(n)$ |
 | $xy$ | $d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y)$, and $d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x)$ |
+| $x_1 \cdots x_n$ | factor $i$: $d + k + \mathrm{siz}(n)$, plus the sizes of the other factors' $\bar{U}$ |
 | $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
 | $x + a$ | $d$ |
 | $ax$ | $d + k + \mathrm{siz}(a)$ |
@@ -517,6 +518,51 @@ $\log \bar{U}_y < \mathrm{siz}(\bar{U}_y)$, the rule is enough.
 With $k = 2$ and $\bar{U}_y = 10^{\mathrm{siz}(y)}$, the rule is the 2015 rule
 $d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the assumption that $r_1 r_2$
 is negligible.
+
+#### Products of more than two factors
+
+**Rule.** For a product $x_1 x_2 \cdots x_n$, with upper bounds $\bar{U}_j$ on
+both $|x_j|$ and $|\tilde{x}_j|$, factor $i$ needs
+
+$$d_i = d + k + \mathrm{siz}(n) + \sum_{j \ne i} \mathrm{siz}(\bar{U}_j)$$
+
+places: $d + k + \mathrm{siz}(n)$, plus the sizes of the bounds on all the
+*other* factors. For $n = 2$, this is the rule above.
+
+Treat the product as one node, rather than as nested pairs. Nested pairs pay
+$k + 1$ extra places at every level.
+
+This assumes the product is computed exactly. With many factors, the exact
+product has too many places to carry, so round it as you go, as for
+[powers](#powers). Then take $\eta = T/2$, compute the product to $d + k + 1$
+places, and use $\mathrm{siz}(2n)$ in place of $\mathrm{siz}(n)$.
+
+**Example.** For $\pi e \sqrt{2}$ good to $d = 3$ places, with $k = 2$: take
+$\bar{U} = 4$ for $\pi$, $3$ for $e$ and $1.5$ for $\sqrt{2}$, all of size 1.
+Each factor needs $3 + 2 + \mathrm{siz}(3) + 1 + 1 = 8$ places:
+$3.14159265$, $2.71828183$ and $1.41421356$. Their product is exactly
+$12.077007929547305081711220$, which rounds to $12.077$. The true value is
+$12.0770079568\ldots$, and the nearest rounding boundary is about
+$5 \times 10^{-4}$ away, so this is correctly rounded.
+
+The exact counts are 6, 6 and 7 places. As nested pairs, $(\pi e)\sqrt{2}$, the
+product node would ask $\pi e$ for $3 + 2 + 1 + 1 = 7$ places, which would ask
+$\pi$ and $e$ for $7 + 2 + 1 + 1 = 11$ each, instead of 8.
+
+**Why.** Changing one factor at a time,
+
+$$\tilde x_1 \cdots \tilde x_n - x_1 \cdots x_n = \sum_i \tilde x_1 \cdots \tilde x_{i-1}(\tilde x_i - x_i) x_{i+1} \cdots x_n,$$
+
+so the propagated error is at most
+$\sum_i \varepsilon_i \prod_{j \ne i} \bar{U}_j$. The factors before $i$ are
+approximations and the ones after are true values, which is why the bounds
+have to cover both. The product is exact, so $\eta = T$, and splitting it
+evenly, the exact count for factor $i$ is
+
+$$d_i = \left\lceil d + k + \log\left(nc \prod_{j \ne i} \bar{U}_j\right) \right\rceil.$$
+
+Since $\log(nc) < \log n < \mathrm{siz}(n)$, and
+$\log \bar{U}_j < \mathrm{siz}(\bar{U}_j)$ for each $j$, the rule is enough.
 
 ### Quotients
 
