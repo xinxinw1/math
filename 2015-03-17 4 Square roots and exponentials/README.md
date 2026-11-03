@@ -126,3 +126,5 @@ $$d_1 \ge \left(d + 3 + \frac{x}{\ln 10}\right)H\left(d + 3 + \frac{x}{\ln 10}\r
 - These bounds also use the true $x$, and $d_1$ has to be a whole number, so it
   needs a ceiling. That matters for the square root, where
   $\frac{1}{2}\mathrm{nsiz}(x)$ can be a half-integer.
+
+Next: [Reciprocals](../2015-03-17%205%20Reciprocals/README.md).
