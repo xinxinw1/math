@@ -247,3 +247,5 @@ $$
 which is the half-angle form from the first doc. That fits: halving
 $\mathrm{atan}(x)$ and $\mathrm{atan}(y)$ separately and adding gives half of
 their sum, which is half of $\mathrm{atan2}(b, a)$.
+
+Next: [atan2 identities revisited](../2026-11-03%20atan2%20identities%20revisited/README.md) proves these identities from one rule and generalizes the split.

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280" width="440" height="280" font-family="Helvetica, Arial, sans-serif" font-size="16">
+  <rect width="440" height="280" fill="#ffffff"/>
+  <line x1="20" y1="230" x2="420" y2="230" stroke="#999999" stroke-width="1"/>
+  <line x1="200" y1="20" x2="200" y2="260" stroke="#999999" stroke-width="1"/>
+  <polygon points="200,230 350,230 275,100 125,100" fill="#e8f0fe" stroke="#1a56db" stroke-width="2"/>
+  <line x1="200" y1="230" x2="275" y2="100" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <path d="M 240 230 A 40 40 0 0 0 180 195.4" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <path d="M 265 230 A 65 65 0 0 0 232.5 173.7" fill="none" stroke="#c2410c" stroke-width="1.5"/>
+  <circle cx="200" cy="230" r="3.5" fill="#111111"/>
+  <circle cx="125" cy="100" r="3.5" fill="#111111"/>
+  <circle cx="350" cy="230" r="3.5" fill="#111111"/>
+  <circle cx="275" cy="100" r="3.5" fill="#111111"/>
+  <text x="182" y="250" fill="#111111">0</text>
+  <text x="70" y="92" fill="#111111">z = x + iy</text>
+  <text x="355" y="250" fill="#111111">r</text>
+  <text x="283" y="92" fill="#111111">z + r</text>
+  <text x="196" y="186" fill="#111111">θ</text>
+  <text x="270" y="190" fill="#c2410c">θ/2</text>
+  <text x="140" y="172" fill="#1a56db">r</text>
+  <text x="270" y="250" fill="#1a56db">r</text>
+</svg>
