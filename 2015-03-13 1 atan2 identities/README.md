@@ -78,9 +78,10 @@ $$
 \end{cases}
 $$
 
-**Correction.** The notes give the first condition as "$y \ne 0$, $x > 0$",
-which leaves out points such as $x < 0$, $y > 0$ where the formula still holds.
-The page 1 version above has the right condition, "$y \ne 0$ or $x > 0$".
+**Correction.** The notes give the first condition as $y \ne 0$ and $x > 0$
+together, which leaves out points such as $x < 0$, $y > 0$ where the formula
+still holds. The page 1 version above has the right condition: $y \ne 0$ or
+$x > 0$.
 
 ## Sums of arctangents
 

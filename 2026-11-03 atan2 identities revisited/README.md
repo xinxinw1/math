@@ -31,8 +31,8 @@ $(-\tfrac{\pi}{2}, \tfrac{\pi}{2})$, and $\mathrm{atan}(t)$ is the angle of
 $1 + it$.
 
 **The cut.** atan2 jumps from $\pi$ to just above $-\pi$ as a point crosses
-the negative x-axis. Most conditions in the old docs, such as "$y \ne 0$ or
-$x > 0$", say that $z$ is off the closed negative x-axis: $z$ isn't a real
+the negative x-axis. Most conditions in the old docs, such as $y \ne 0$ or
+$x > 0$, say that $z$ is off the closed negative x-axis: $z$ isn't a real
 number $\le 0$. This doc says that directly. An equivalent test is
 $x + r > 0$, since $x + r = 0$ exactly when $y = 0$ and $x \le 0$.
 

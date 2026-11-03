@@ -108,6 +108,11 @@ something that rendered wrong in this repo.
   follows it, and showed `$n$th` as plain text. Reword instead, for example
   `the power $n$`.
 
+- **Don't put a quotation mark right before inline math.** In
+  `such as "$y \ne 0$ or $x > 0$"`, GitHub didn't treat the `$` after the quote
+  as opening math and showed `$y \ne 0$` as plain text. Drop the quotes, or
+  reword so the math doesn't sit inside them.
+
 - **Long display equations scroll sideways on phones.** Split very wide
   equations across lines, or accept the horizontal scroll.
 
@@ -153,6 +158,12 @@ Find inline math followed directly by a letter or digit:
 
 ```bash
 grep -n '\(^\|[^$]\)\$[^$ ]\+\$[A-Za-z0-9]' path/to/README.md
+```
+
+Find inline math opened right after a quotation mark:
+
+```bash
+grep -n '["“‘]\$[^$]' path/to/README.md
 ```
 
 Find math inside italic or bold text:
