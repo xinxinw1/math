@@ -12,10 +12,11 @@ and [Input places for functions](../2026-11-02%203%20Input%20places%20for%20func
 which say how many places the inputs of one operation need. Here they are
 applied to every operation in an expression at once. Notation is as in
 [Rounding and error bounds](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md):
-$d$ is the output places, $k$ the guard digits, and $\mathrm{siz}$ the size of
-a number. A value is **good to d places** if its error is at most
-$c \cdot 10^{-d}$ with $c \le 0.6$. Unlike there, it may have more
-than $d$ places: extra places only make it more accurate.
+$d$ is the number of places an operation's output needs, $k$ the guard digits,
+and $\mathrm{siz}$ the size of a number. Here every node has its own $d$. A
+value is **good to d places** if its error is at most $c \cdot 10^{-d}$ with
+$c \le 0.6$. Unlike there, it may have more than $d$ places: extra places only
+make it more accurate.
 
 The 0.6 comes from the
 [definition](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md#good-to-d-places)
@@ -37,7 +38,7 @@ So the method works on the expression as a tree, in three passes:
 1. **Bounds, bottom-up.** Find a cheap interval for the value of every part.
    Where a lower bound is needed and the interval contains 0, tighten it by
    evaluating that part to more places.
-2. **Places, top-down.** Starting from the $d$ wanted at the top, use each
+2. **Places, top-down.** Starting from the places wanted for the result, use each
    operation's rule to give its parts their places.
 3. **Evaluate, bottom-up.** Compute every part to its places.
 
@@ -55,7 +56,7 @@ Each operation in the expression is a *node*, and its inputs are its
 
 Two changes to the tree help:
 
-- **Flatten sums and products.** Treat $a + b + c + d$ as one sum of 4 terms,
+- **Flatten sums and products.** Treat $w + x + y + z$ as one sum of 4 terms,
   not as nested pairs. Each level of nesting would cost $k + 1$ extra places,
   while a flat sum costs $k + \mathrm{siz}(n)$ once. Products flatten the same
   way.
@@ -205,7 +206,7 @@ The rules need a lower bound above 0 for:
 - **Logarithm arguments.** The logarithm rule uses $L_x$.
 
 Square root arguments aren't tightened. If one's interval contains 0, the
-square root rule uses $2(D + k) + 1$ places, which is what it needs anyway
+square root rule uses $2(d + k) + 1$ places, which is what it needs anyway
 when the argument is close to 0.
 
 If a node's cheap interval contains 0 but its parent needs such a lower bound,
@@ -221,9 +222,9 @@ more places can't tell which. Then give up and report that the divisor or
 logarithm argument can't be shown to be nonzero. See
 [Exact singularities](#exact-singularities).
 
-Evaluating a node to $p$ places is passes 2 and 3 on the part of the
-expression below it, with $d = p$. Those use the bounds already found for its
-descendants, which were handled first, and tighten them the same way if they
+Evaluating a node to $p$ places means running passes 2 and 3 on the part of
+the expression below it, with that node as the top. Those use the bounds
+already found for its descendants, which were handled first, and tighten them the same way if they
 need to. So the recursion only goes down the tree, and only where a value is
 close to 0.
 
@@ -246,28 +247,29 @@ keep that error under 1% of $L$ or $U$. See
 
 ## Pass 2: places
 
-Give the top node the $d$ wanted. Then go through the nodes from the top down,
-so that every parent has made its request before a child is handled. Each node
-uses its operation's rule to ask its children for places. A child with several
-parents takes the most places any of them asks for.
+Give the top node the places wanted for the result. Then go through the nodes
+from the top down, so that every parent has made its request before a child is
+handled. Each node, with its own places $d$, uses its operation's rule to ask
+its children for places. A child with several parents takes the most places
+any of them asks for.
 
 ### Rules for each operation
 
-These are the rules from the input-places docs, written with the bounds from pass 1. A
-node with $D$ places asks its children for:
+These are the rules from the input-places docs, written with the bounds from
+pass 1. A node with $d$ places asks its children for:
 
 | Node | Places for its children |
 |---|---|
-| Sum or difference with $n \ge 2$ inexact terms | each inexact term: $D + k + \mathrm{siz}(n)$ |
-| Sum or difference with 1 inexact term | $D$ |
-| Product of $n$ inexact factors | factor $i$: $D + k + \mathrm{siz}(n)$ plus the sizes of the other factors' $\bar{U}$ |
-| $x / y$ | $x$: $D + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $y$: $D + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
-| $x^n$, $n \le 8$ | $D + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
-| $x^n$, any $n$ | $D + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
-| $\sqrt{x}$ | $\min(D + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(D + k) + 1)$, or $2(D + k) + 1$ if $\ell_x \le 0$ |
-| $e^x$ | $D + k + 2 + \lfloor 0.44 h_x \rfloor$ if $h_x \ge 0$, and $\max(1, D + k + 2 - \lceil 0.43 \lvert h_x \rvert \rceil)$ if $h_x < 0$ |
-| $\ln x$ | $D + k + 2 - \mathrm{siz}(\ell_x)$ |
-| $\sin x$, $\cos x$ | $x$: $D + k + 1$, and $\pi$: $D + k + 1 + \mathrm{siz}(j)$, reducing by $j \ne 0$ quarter turns |
+| Sum or difference with $n \ge 2$ inexact terms | each inexact term: $d + k + \mathrm{siz}(n)$ |
+| Sum or difference with 1 inexact term | $d$ |
+| Product of $n$ inexact factors | factor $i$: $d + k + \mathrm{siz}(n)$ plus the sizes of the other factors' $\bar{U}$ |
+| $x / y$ | $x$: $d + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $y$: $d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
+| $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
+| $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
+| $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ if $\ell_x \le 0$ |
+| $e^x$ | $d + k + 2 + \lfloor 0.44 h_x \rfloor$ if $h_x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 \lvert h_x \rvert \rceil)$ if $h_x < 0$ |
+| $\ln x$ | $d + k + 2 - \mathrm{siz}(\ell_x)$ |
+| $\sin x$, $\cos x$ | $x$: $d + k + 1$, and $\pi$: $d + k + 1 + \mathrm{siz}(j)$, reducing by $j \ne 0$ quarter turns |
 
 Notes:
 
@@ -275,15 +277,15 @@ Notes:
   for is rounded to those places, with $c = \frac{1}{2}$, but never to fewer
   than its [minimum places](#minimum-places).
 - **Sums with exact terms** count only the inexact terms in $n$. Exact terms
-  with at most $D$ places add no error and need no rounding. An exact term
+  with at most $d$ places add no error and need no rounding. An exact term
   with more places counts as inexact, since it gets rounded.
 - **A sum with one inexact term** passes that term's error straight through,
   as for $x + a$ in Input places for arithmetic, so it needs no guard digits. Pass 3 leaves
-  it unrounded. The top node is the exception: it asks for $D + k + 1$, the
+  it unrounded. The top node is the exception: it asks for $d + k + 1$, the
   general sum rule with $n = 1$, so that the
   [correct-rounding check](#correct-rounding) has its guard digits.
 - **Products with one inexact factor,** such as $3x$, can use one place fewer:
-  $D + k$ plus the sizes of the exact factors.
+  $d + k$ plus the sizes of the exact factors.
 - **Exponentials** use the upper end $h_x$ of the interval, since that is where
   $e^x$ is largest.
 - **Sine and cosine** take $j$ from the interval of $x / (\pi/2)$: the largest
@@ -313,14 +315,14 @@ node are used, by different parents, the minimum for $L$ is the larger one,
 since $L \le U$. This applies to exact children too: an exact divisor rounded
 to too few places could become 0.
 
-Why: with $D$ places, the error is at most $0.6 \cdot 10^{-D}$. With
-$D \ge 3 - \mathrm{siz}(M)$, that is at most $0.6 \cdot 10^{\mathrm{siz}(M) - 3}$,
+Why: with $d$ places, the error is at most $0.6 \cdot 10^{-d}$. With
+$d \ge 3 - \mathrm{siz}(M)$, that is at most $0.6 \cdot 10^{\mathrm{siz}(M) - 3}$,
 and since $M \ge 10^{\mathrm{siz}(M) - 1}$, it is under $0.01M$. Then
 $|\tilde{x}| \ge 0.99L = \bar{L}$ and $|\tilde{x}| \le 1.01U = \bar{U}$.
 
 Usually the rule already asks for more. The minimum matters when the other
 operand is very small. For example, take $10^{-20} / y$ with $y$ in
-$[0.9 \cdot 10^{-5}, 1.1 \cdot 10^{-5}]$ and $D = 2$. Then $L_y$ and
+$[0.9 \cdot 10^{-5}, 1.1 \cdot 10^{-5}]$ and $d = 2$. Then $L_y$ and
 $\bar{L}_y$ both have size $-5$, and the quotient rule asks $y$ for
 $2 + 2 + 3 - 19 + 10 = -2$ places, which would round $y$ to 0. The minimum
 asks for $3 - (-5) = 8$.
@@ -328,13 +330,13 @@ asks for $3 - (-5) = 8$.
 ## Pass 3: evaluate
 
 Go through the nodes from the bottom up. Each node computes its value from its
-children's values, and rounds it to its own places $D$:
+children's values, and rounds it to its own places $d$:
 
 - **Exact operations,** sums, differences and products, are computed exactly
   and then rounded. A sum with one inexact term, other than the top, isn't
   rounded.
-- **Other operations** are computed to $D + k + 1$ places, rounded or cut off,
-  and then rounded to $D$. This covers division by the usual truncating
+- **Other operations** are computed to $d + k + 1$ places, rounded or cut off,
+  and then rounded to $d$. This covers division by the usual truncating
   algorithm, and functions by
   [series](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule).
   The series need small arguments, so reduce first:
@@ -347,9 +349,9 @@ be rounded to $d$.
 
 Why it works: the leaves are good to their places. If a node's children are
 good to the places it asked for, its rule guarantees that its computed value
-is within $10^{-(D+k)}$ of the true value, and rounding to $D$ places then
-makes it good to $D$ places. A sum with one inexact term is the exception: it
-isn't rounded, so its error is the term's, at most $0.6 \cdot 10^{-D}$. So by
+is within $10^{-(d+k)}$ of the true value, and rounding to $d$ places then
+makes it good to $d$ places. A sum with one inexact term is the exception: it
+isn't rounded, so its error is the term's, at most $0.6 \cdot 10^{-d}$. So by
 induction, from the leaves up, the top node is good to $d$ places.
 
 ### Correct rounding
@@ -362,7 +364,7 @@ $10^{-(d+k)}$ from the nearest rounding boundary, rounding it to $d$ places is
 correct.
 
 If the check fails, which is rare, run passes 2 and 3 again with one more
-guard digit for the top node only. Most rules ask for $D$ plus a constant,
+guard digit for the top node only. Most rules ask for $d$ plus a constant,
 so this adds about one place to every node below the top. Raising $k$
 everywhere would instead add one place per level. Cap the retries, because a
 result exactly on a boundary never passes. See [Exact ties](#exact-ties).
@@ -527,7 +529,7 @@ extra work.
 from decimal import Decimal
 
 
-def precision_for(expr, d, k=2, retries=5):
+def precision_for(expr, wanted, k=2, retries=5):
     graph = flatten_and_share(expr)          # flatten sums/products, merge repeats
     intervals, best = {}, {}                 # best: most precise value per node
 
@@ -542,10 +544,10 @@ def precision_for(expr, d, k=2, retries=5):
 
     # Passes 2 and 3, with one more guard digit at the top on each retry
     for k_top in range(k, k + retries + 1):
-        value = evaluate(graph.root, d, intervals, best, k, k_top)
-        if distance_to_boundary(value, d) > Decimal(10) ** -(d + k_top):
-            return rnd(value, d), True       # correctly rounded
-    return rnd(value, d), False              # good to d places only
+        value = evaluate(graph.root, wanted, intervals, best, k, k_top)
+        if distance_to_boundary(value, wanted) > Decimal(10) ** -(wanted + k_top):
+            return rnd(value, wanted), True       # correctly rounded
+    return rnd(value, wanted), False         # good to wanted places only
 
 
 def tighten(node, intervals, best, k):
@@ -559,37 +561,37 @@ def tighten(node, intervals, best, k):
     raise ValueError(f"can't show {node} is nonzero")
 
 
-def evaluate(top, d, intervals, best, k, k_top):
+def evaluate(top, top_places, intervals, best, k, k_top):
     # Pass 2: places, parents before children
-    places = {top: d}
+    places = {top: top_places}
     for node in top.top_down():
-        D = places[node]
+        d = places[node]
         is_top = node is top
         rule = rule_for(node, is_top)        # a sum with one inexact term uses
                                              # the n = 1 sum rule at the top
-        for child, wanted in rule.child_places(D, k_top if is_top else k, intervals):
+        for child, wanted in rule.child_places(d, k_top if is_top else k, intervals):
             wanted = max(wanted, minimum_places(node, child, intervals))
             places[child] = max(places.get(child, wanted), wanted)
 
     # Pass 3: evaluate, children before parents
     for node in top.bottom_up():
-        D = places[node]
+        d = places[node]
         is_top = node is top
-        # Inner nodes must be good to D places. The top must be within
-        # 10^-(D + k_top) for the check, which being good to D + k_top ensures.
-        needed = D + k_top if is_top else D
+        # Inner nodes must be good to d places. The top must be within
+        # 10^-(d + k_top) for the check, which being good to d + k_top ensures.
+        needed = d + k_top if is_top else d
         if node in best and best[node].places >= needed:
             continue                                   # reuse a better value
         if node.is_exact_op():
             v = node.compute_exactly(best)
         else:
-            v = node.compute_to(best, D + (k_top if is_top else k) + 1)  # truncating is fine
+            v = node.compute_to(best, d + (k_top if is_top else k) + 1)  # truncating is fine
         if is_top:
-            good_to = D + k_top - 1      # within 10^-(D + k_top) = 0.1 * 10^-(D + k_top - 1)
+            good_to = d + k_top - 1      # within 10^-(d + k_top) = 0.1 * 10^-(d + k_top - 1)
         else:
-            good_to = D
+            good_to = d
             if not node.is_sum_with_one_inexact_term():
-                v = rnd(v, D)
+                v = rnd(v, d)
         best[node] = Value(v, places=good_to)
     return best[top].value
 ```
