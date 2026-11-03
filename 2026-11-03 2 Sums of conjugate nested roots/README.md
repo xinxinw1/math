@@ -117,19 +117,19 @@ stays nested.
 
 ## Examples
 
-| $b$ | $b = u \cdot v$ | $a$ | $S$ |
+| $b$ | $b = u \cdot v$ | $a$ | Expression |
 |---|---|---|---|
 | 2 | none with $u, v$ odd | — | never nice |
-| 3 | $1 \cdot 3$ | 2 | $\sqrt{6}$ |
-| 5 | $1 \cdot 5$ | 3 | $\sqrt{10}$ |
+| 3 | $1 \cdot 3$ | 2 | $\sqrt{2 + \sqrt{3}} + \sqrt{2 - \sqrt{3}} = \sqrt{6}$ |
+| 5 | $1 \cdot 5$ | 3 | $\sqrt{3 + \sqrt{5}} + \sqrt{3 - \sqrt{5}} = \sqrt{10}$ |
 | 6 | none with $u, v$ odd | — | never nice |
-| 7 | $1 \cdot 7$ | 4 | $\sqrt{14}$ |
-| 15 | $1 \cdot 15$ | 8 | $\sqrt{30}$ |
-| 15 | $3 \cdot 5$ | 4 | $\sqrt{10}$ |
-| 105 | $1 \cdot 105$ | 53 | $\sqrt{210}$ |
-| 105 | $3 \cdot 35$ | 19 | $\sqrt{70}$ |
-| 105 | $5 \cdot 21$ | 13 | $\sqrt{42}$ |
-| 105 | $7 \cdot 15$ | 11 | $\sqrt{30}$ |
+| 7 | $1 \cdot 7$ | 4 | $\sqrt{4 + \sqrt{7}} + \sqrt{4 - \sqrt{7}} = \sqrt{14}$ |
+| 15 | $1 \cdot 15$ | 8 | $\sqrt{8 + \sqrt{15}} + \sqrt{8 - \sqrt{15}} = \sqrt{30}$ |
+| 15 | $3 \cdot 5$ | 4 | $\sqrt{4 + \sqrt{15}} + \sqrt{4 - \sqrt{15}} = \sqrt{10}$ |
+| 105 | $1 \cdot 105$ | 53 | $\sqrt{53 + \sqrt{105}} + \sqrt{53 - \sqrt{105}} = \sqrt{210}$ |
+| 105 | $3 \cdot 35$ | 19 | $\sqrt{19 + \sqrt{105}} + \sqrt{19 - \sqrt{105}} = \sqrt{70}$ |
+| 105 | $5 \cdot 21$ | 13 | $\sqrt{13 + \sqrt{105}} + \sqrt{13 - \sqrt{105}} = \sqrt{42}$ |
+| 105 | $7 \cdot 15$ | 11 | $\sqrt{11 + \sqrt{105}} + \sqrt{11 - \sqrt{105}} = \sqrt{30}$ |
 
 A brute-force search over every squarefree $b < 200$ and every $a < 400$
 found exactly the pairs this predicts.
