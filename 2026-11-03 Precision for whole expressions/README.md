@@ -81,8 +81,15 @@ error bar: the true value is within $0.6 \cdot 10^{-p}$ of the result.
 
 There are two ways to bound $\sin x$ for $x$ in $[\ell, h]$.
 
-**Midpoint plus slope.** This is simple, and good for narrow intervals. Since
-$|\sin'| = |\cos| \le 1$, with midpoint $m$ and half-width $w$,
+**Midpoint plus slope.** This is simple, and good for narrow intervals. The
+*midpoint* and *half-width* of the interval are
+
+$$m = \frac{\ell + h}{2}, \qquad w = \frac{h - \ell}{2},$$
+
+so every $x$ in the interval is within $w$ of $m$. For example, $[3.141582, 3.141583]$
+has midpoint $3.1415825$ and half-width $0.0000005$.
+
+Since $|\sin'| = |\cos| \le 1$, $|\sin x - \sin m| \le |x - m| \le w$, so
 
 $$\sin([\ell, h]) \subseteq [\sin m - w, \sin m + w] \cap [-1, 1],$$
 
