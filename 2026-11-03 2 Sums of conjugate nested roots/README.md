@@ -188,3 +188,9 @@ lake build
 
 `lake exe cache get` downloads prebuilt Mathlib files, which saves building
 Mathlib from source.
+
+## Next
+
+[Sums of conjugate complex roots](../2026-11-03%203%20Sums%20of%20conjugate%20complex%20roots/README.md)
+asks the same question for $\sqrt{a + bi} + \sqrt{a - bi}$, where the sum can
+be an integer.
