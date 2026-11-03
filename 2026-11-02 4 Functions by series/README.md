@@ -15,14 +15,6 @@ The [series rule](#the-series-rule) works for any series whose terms shrink
 fast enough. The sections after it apply it to exponentials, sines and
 cosines, and logarithms.
 
-## Summary
-
-| Quantity | Places |
-|---|---|
-| Series term $n$ | $d + k + 2\mathrm{siz}(n)$ |
-| $\pi$, reducing $\sin x$ or $\cos x$ by $j \ne 0$ quarter turns | $d + k + 1 + \mathrm{siz}(j)$ |
-| $\ln x$: terms, $z$ and $\ln 2$ | $d + k + 1 + 2\mathrm{siz}(n)$, $d + k + 2$, and $d + k + 1 + \mathrm{siz}(j)$ |
-
 ## The series rule
 
 This covers evaluating $f(\tilde{x})$ by a series, computing each term once,
