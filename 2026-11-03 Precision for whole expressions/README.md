@@ -209,16 +209,22 @@ The rules need a lower bound above 0 for:
 If a node's cheap interval contains 0 but its parent needs such a lower bound,
 evaluate the node to $p = 5$ places, then 10, 20, 40, and so on, until the
 interval $[\tilde{x} - 0.6 \cdot 10^{-p}, \tilde{x} + 0.6 \cdot 10^{-p}]$
-excludes 0, or $p$ passes a cap, such as 80. Use that interval for the node
-from then on, and carry on with the cheap pass.
+excludes 0, or $p$ passes a cap, such as 80. For a square root argument, try
+only $p = 5$. Use that interval for the node from then on, and carry on with
+the cheap pass.
 
 The cap is needed because a node whose true value is 0, such as $\sin \pi$,
 never gets an interval that excludes 0, however many places are used.
 Reaching the cap means the value is 0 or within about $10^{-80}$ of it, and
 more places can't tell which. For a divisor or a logarithm argument, give up
-and report that it can't be shown to be nonzero. For a square root argument,
-use the rule without a lower bound instead. See
+and report that it can't be shown to be nonzero. See
 [Exact singularities](#exact-singularities).
+
+A square root argument doesn't need a lower bound, and one below about
+$10^{-2(D+k)}$ gains nothing over the square root rule without one. $D$ isn't
+known until pass 2, so evaluating such an argument to many places could be
+wasted work. If $p = 5$ doesn't exclude 0, use the rule without a lower bound.
+A value that small usually saves only a few places anyway.
 
 Evaluating a node to $p$ places is passes 2 and 3 on the part of the
 expression below it, with $d = p$. Those use the bounds already found for its
@@ -263,7 +269,7 @@ node with $D$ places asks its children for:
 | $x / y$ | $x$: $D + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $y$: $D + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
 | $x^n$, $n \le 8$ | $D + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $x^n$, any $n$ | $D + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
-| $\sqrt{x}$ | $D + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$, or $2(D + k) + 1$ if $\ell_x \le 0$ or $\mathrm{siz}(L_x) < 3 - 2(D + k)$ |
+| $\sqrt{x}$ | $\min(D + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(D + k) + 1)$, or $2(D + k) + 1$ if $\ell_x \le 0$ |
 | $e^x$ | $D + k + 2 + \lfloor 0.44 h_x \rfloor$ if $h_x \ge 0$, and $\max(1, D + k + 2 - \lceil 0.43 \lvert h_x \rvert \rceil)$ if $h_x < 0$ |
 | $\ln x$ | $D + k + 2 - \mathrm{siz}(\ell_x)$ |
 | $\sin x$, $\cos x$ | $x$: $D + k + 1$, and $\pi$: $D + k + 1 + \mathrm{siz}(j)$, reducing by $j \ne 0$ quarter turns |
@@ -534,7 +540,8 @@ def precision_for(expr, d, k=2, retries=5):
     for node in graph.bottom_up():
         for child in node.children_needing_lower_bound():
             if contains_zero(intervals[child]):
-                tightened = tighten(child, intervals, best, k)
+                cap = 5 if node.is_sqrt() else 80
+                tightened = tighten(child, intervals, best, k, cap)
                 if tightened is not None:
                     intervals[child] = tightened
                 elif not node.is_sqrt():           # square roots fall back
@@ -551,9 +558,9 @@ def precision_for(expr, d, k=2, retries=5):
     return rnd(value, d), False              # good to d places only
 
 
-def tighten(node, intervals, best, k):
+def tighten(node, intervals, best, k, cap):
     p = 5
-    while p <= 80:
+    while p <= cap:
         v = evaluate(node, p, intervals, best, k, k)
         w = Decimal(6).scaleb(-(p + 1))      # 0.6 * 10^-p
         if v - w > 0 or v + w < 0:

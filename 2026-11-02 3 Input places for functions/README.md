@@ -59,7 +59,7 @@ cover $\tilde{x}$.
 
 | Operation | Input places |
 |---|---|
-| $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
+| $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ with no lower bound |
 | $e^x$ | $d + k + 2 + \lfloor 0.44 U_x \rfloor$ for $x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 L_x \rceil)$ for $x < 0$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
 | $\sin x$, $\cos x$ | $d + k + 1$ |
@@ -68,17 +68,18 @@ cover $\tilde{x}$.
 
 **Rule.** With a lower bound $L_x \le x$ on the true value,
 
-$$d_x = d + k - \left\lfloor \frac{\mathrm{siz}(L_x) - 1}{2} \right\rfloor.$$
+$$d_x = \min\left(d + k - \left\lfloor \frac{\mathrm{siz}(L_x) - 1}{2} \right\rfloor, 2(d + k) + 1\right).$$
 
-That is, subtract half of $\mathrm{siz}(L_x) - 1$, rounded down, from $d + k$.
-For a negative number, rounding down goes away from zero:
+Without a lower bound, $d_x = 2(d + k) + 1$.
+
+The first part subtracts half of $\mathrm{siz}(L_x) - 1$, rounded down, from
+$d + k$. For a negative number, rounding down goes away from zero:
 $\lfloor -1/2 \rfloor = -1$. So $\sqrt{0.5}$, with $L_x = 0.5$ and
-$\mathrm{siz}(0.5) = 0$, needs $d + k + 1$ places.
+$\mathrm{siz}(0.5) = 0$, needs $d + k + 1$ places. The second part only takes
+over for extremely small $x$, below about $10^{-2(d+k)}$.
 
-The rule needs $\mathrm{siz}(L_x) \ge 3 - 2(d + k)$, which fails only for
-extremely small $x$. Then, or with no lower bound at all, use
-$d_x = 2(d + k) + 1$. If $\tilde{x}$ comes out negative, use $0$ instead:
-since $x \ge 0$, that only moves $\tilde{x}$ closer to $x$.
+If $\tilde{x}$ comes out negative, use $0$ instead: since $x \ge 0$, that only
+moves $\tilde{x}$ closer to $x$.
 
 **Example.** To get $\sqrt{\pi}$ good to $d = 4$ places, with $k = 2$: $\pi > 3$,
 and $\mathrm{siz}(3) = 1$, so $\pi$ needs $4 + 2 - 0 = 6$ places.
@@ -112,17 +113,25 @@ $$d_x = \lceil \log c - \log \delta(L_x) \rceil.$$
 
 For $\sqrt{\pi}$, that is $\lceil 5.46 \rceil = 6$, the same as the rule.
 
-When $\sqrt{L_x} \ge 10\eta$, $2\eta\sqrt{L_x} - \eta^2 \ge 1.9\eta\sqrt{L_x}$, so
-with $\eta = T/2$ it is enough that
+When $\sqrt{L_x} \ge 2\eta$, $\eta^2 \le \frac{1}{2}\eta\sqrt{L_x}$, so
+$\delta(L_x) \ge 1.5\eta\sqrt{L_x}$. With $\eta = T/2$ it is then enough that
 
-$$d_x \ge d + k + \log\frac{2c}{1.9} - \tfrac{1}{2}\log L_x.$$
+$$d_x \ge d + k + \log\frac{c}{0.75} - \tfrac{1}{2}\log L_x.$$
 
-$\log\frac{2c}{1.9}$ is negative because $2c \le 1.2$, and
+$\log\frac{c}{0.75}$ is negative because $c \le 0.6$, and
 $-\frac{1}{2}\log L_x \le -\frac{1}{2}(\mathrm{siz}(L_x) - 1)$, which gives the
-rule. The condition $\sqrt{L_x} \ge 10\eta$ holds when
-$\mathrm{siz}(L_x) \ge 3 - 2(d + k)$. Without it, $\delta = \eta^2$ always
-works, which needs $\lceil 2(d + k + \log 2) + \log c \rceil \le 2(d + k) + 1$
-places.
+first part of the rule. The condition $\sqrt{L_x} \ge 2\eta$ says
+$L_x \ge 10^{-2(d+k)}$, which holds when $\mathrm{siz}(L_x) \ge 1 - 2(d + k)$.
+
+For any $x \ge 0$, $\delta = \eta^2$ works, which needs
+$\lceil 2(d + k + \log 2) + \log c \rceil \le 2(d + k) + 1$ places: the
+second part. For $x$ near 0 the largest $\delta$ is close to $\eta^2$, so no
+rule can do much better there.
+
+So the minimum is always enough. When $\mathrm{siz}(L_x) \ge 1 - 2(d + k)$, the
+first part is valid. When $\mathrm{siz}(L_x) \le -2(d + k)$, the first part is
+at least $2(d + k) + 1$, so the minimum is the second part, which is always
+valid.
 
 The 2015 rule $d_1 \ge d + 2 - \frac{1}{2}\mathrm{nsiz}(x)$ asks for slightly
 more than the exact count with $k = 2$. So it was safe, even though it set
