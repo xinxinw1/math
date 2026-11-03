@@ -234,38 +234,12 @@ less than the last one again, and starting at 5 means most succeed at once.
 
 ### The bounds the rules use
 
-From each node's interval $[\ell, h]$:
-
-- **Bounds on the true value.** The upper bound $U = \max(|\ell|, |h|)$, and,
-  if $0$ is not in the interval, the lower bound $L = \min(|\ell|, |h|)$.
-- **Bounds that also cover the approximation.** $\bar{U} = 1.01U$ and
-  $\bar{L} = 0.99L$.
-
-The product, quotient and power rules need bounds that cover both the true
-value $x$ and the computed value $\tilde{x}$. See
-[Bounds before digits](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#bounds-before-digits).
-Pass 1 only bounds the true value, and $\tilde{x}$ isn't computed until pass 3.
-But $\tilde{x}$ will be within its error of $x$, so widening $U$ and $L$ by a
-margin also covers $\tilde{x}$, as long as that error stays inside the
-margin. Pass 2 makes sure it does, by giving the node at least its
-[minimum places](#minimum-places).
-
-The 1% margin is a choice. A wider margin absorbs more error, so it needs
-fewer minimum places, but it changes the sizes of the bounds more often, and
-the rules use those sizes:
-
-| Margin | $\bar{U}$ and $\bar{L}$ | Minimum places | Sizes change when $U$ or $L$ is |
-|---|---|---|---|
-| 10% | $1.1U$ and $0.9L$ | $2 - \mathrm{siz}(M)$ | within about 10% of a power of 10 |
-| 1% | $1.01U$ and $0.99L$ | $3 - \mathrm{siz}(M)$ | within about 1% of a power of 10 |
-| 0.1% | $1.001U$ and $0.999L$ | $4 - \mathrm{siz}(M)$ | within about 0.1% of a power of 10 |
-
-Here $M$ is $L$ or $U$. $U$ is affected just below a power of 10, and $L$ just
-above one. The two costs aren't equal. The minimum rarely matters, because the
-rules usually ask for more places anyway. A change of size goes straight into
-the rules, and for a divisor it costs 2 places, through
-$-2\mathrm{siz}(\bar{L}_y)$. A small margin like 1% keeps that rare, while
-the minimum stays low.
+From each node's interval $[\ell, h]$, take the upper bound
+$U = \max(|\ell|, |h|)$, and, if $0$ is not in the interval, the lower bound
+$L = \min(|\ell|, |h|)$. These bound the true value. The
+product, quotient and power rules also use $\bar{U} = 1.01U$ and
+$\bar{L} = 0.99L$, which cover the computed value too, as explained in
+[Covering the approximation](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#covering-the-approximation).
 
 ## Pass 2: places
 
@@ -295,9 +269,13 @@ pass 1. A node with $d$ places asks its children for:
 
 Notes:
 
-- **Exact children** need nothing. An exact number with more places than asked
-  for is rounded to those places, with $c = \frac{1}{2}$, but never to fewer
-  than its [minimum places](#minimum-places).
+- **Minimum places.** The factors of a product, the base of a power and the
+  divisor of a quotient also get at least their
+  [minimum places](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#covering-the-approximation): $3 - \mathrm{siz}(U)$, or
+  $3 - \mathrm{siz}(L)$ for a divisor. This applies to exact children too: an
+  exact divisor rounded to too few places could become 0.
+- **Exact children** need nothing else. An exact number with more places than
+  asked for is rounded to those places, with $c = \frac{1}{2}$.
 - **Sums with exact terms** count only the inexact terms in $n$. Exact terms
   with at most $d$ places add no error and need no rounding. An exact term
   with more places counts as inexact, since it gets rounded.
@@ -313,43 +291,6 @@ Notes:
 - **Sine and cosine** take $j$ from the interval of $x / (\pi/2)$: the largest
   $|j|$ the reduction might use. If $j$ can only be 0, there is no reduction
   and no $\pi$.
-
-### Minimum places
-
-Some rules use a child's barred bound, $\bar{U}$ or $\bar{L}$:
-
-- **Products** use the $\bar{U}$ of every factor but one.
-- **Powers** use the $\bar{U}$ of the base.
-- **Quotients** use the $\bar{L}$ of the divisor. The dividend's bound, $U_x$,
-  isn't barred.
-
-The square root, exponential and logarithm rules use unbarred bounds, so they
-don't need this.
-
-A child whose barred bound is used also needs its error to stay within the 1%
-margin of [the bound](#the-bounds-the-rules-use). That holds if it has at least
-
-$$3 - \mathrm{siz}(M)$$
-
-places, where $M$ is $L$ for a lower bound and $U$ for an upper bound. The
-parent asks for the larger of this and its rule's count. If both bounds of a
-node are used, by different parents, the minimum for $L$ is the larger one,
-since $L \le U$. This applies to exact children too: an exact divisor rounded
-to too few places could become 0.
-
-Why: with $d$ places, the error is at most $0.6 \cdot 10^{-d}$. With
-$d \ge 3 - \mathrm{siz}(M)$, that is at most $0.6 \cdot 10^{\mathrm{siz}(M) - 3}$,
-and since $M \ge 10^{\mathrm{siz}(M) - 1}$, it is under $0.01M$. Then
-$|\tilde{x}| \ge 0.99L = \bar{L}$ and $|\tilde{x}| \le 1.01U = \bar{U}$. The
-same argument with a margin of $10^{-m}$ gives $m + 1 - \mathrm{siz}(M)$ places,
-which is where the other rows of the margin table come from.
-
-Usually the rule already asks for more. The minimum matters when the other
-operand is very small. For example, take $10^{-20} / y$ with $y$ in
-$[0.9 \cdot 10^{-5}, 1.1 \cdot 10^{-5}]$ and $d = 2$. Then $L_y$ and
-$\bar{L}_y$ both have size $-5$, and the quotient rule asks $y$ for
-$2 + 2 + 3 - 19 + 10 = -2$ places, which would round $y$ to 0. The minimum
-asks for $3 - (-5) = 8$.
 
 ## Pass 3: evaluate
 
@@ -415,7 +356,8 @@ $\bar{L} = 0.99 \cdot 1.414204 = 1.40006\ldots$ for $\sqrt{2}$, also of size 1.
 | $\pi + e$, with 7 places | $7 + 2 + 1 = 10$ | each of $\pi$ and $e$ |
 | $\sqrt{2}$, with 8 places | $8 + 2 - 0 = 10$ | $2$, which is exact |
 
-The minimum places for $\sqrt{2}$, $3 - 1 = 2$, are well below 8.
+The minimum places for $\sqrt{2}$ as a divisor, $3 - 1 = 2$, are well below
+8.
 
 **Evaluate.**
 
@@ -594,7 +536,6 @@ def evaluate(top, top_places, intervals, best, k, k_top):
         rule = rule_for(node, is_top)        # a sum with one inexact term uses
                                              # the n = 1 sum rule at the top
         for child, wanted in rule.child_places(d, k_top if is_top else k, intervals):
-            wanted = max(wanted, minimum_places(node, child, intervals))
             places[child] = max(places.get(child, wanted), wanted)
 
     # Pass 3: evaluate, children before parents
@@ -621,5 +562,5 @@ def evaluate(top, top_places, intervals, best, k, k_top):
 ```
 
 `rule_for(node, is_top).child_places` is the table in
-[Rules for each operation](#rules-for-each-operation), and `minimum_places`
-is the rule in [Minimum places](#minimum-places).
+[Rules for each operation](#rules-for-each-operation), including the minimum
+places.

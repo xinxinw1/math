@@ -106,36 +106,65 @@ in whole numbers that answers this, then an example, then why the rule works.
 ### Bounds before digits
 
 You choose the input places before computing the inputs, so the rules can't
-use the inputs' exact values. They use rough bounds instead, found from a
-quick low-accuracy estimate. There are two kinds:
-
-- **Bounds on the true value.** $U_x$ is a number with $|x| \le U_x$, and
-  $L_x$ is a positive number with $L_x \le |x|$.
-- **Bounds that also cover the approximation.** $\bar{U}_x$ is at least both
-  $|x|$ and $|\tilde{x}|$, and $\bar{L}_x$ is positive and at most both.
-
-Which kind a rule needs depends on how it was derived. The product, quotient
-and power rules below come from error formulas that mix $x$ and $\tilde{x}$,
-so they need $\bar{U}$ or $\bar{L}$. The square root, exponential and
-logarithm rules in [Input places for functions](../2026-11-02%203%20Input%20places%20for%20functions/README.md) fix the true $x$, so
-they only need $U$ and $L$.
+use the inputs' exact values. They use rough bounds on the true values
+instead, found from a quick low-accuracy estimate: an upper bound $U_x$ with
+$|x| \le U_x$, and a lower bound $L_x$, a positive number with $L_x \le |x|$.
 
 The rules only need the sizes of the bounds, which are digit counts. For
 example, $\pi < 4$ gives an upper bound of 4, with $\mathrm{siz}(4) = 1$, and
-$\pi > 3$ gives a lower bound of 3, with $\mathrm{siz}(3) = 1$.
+$\pi > 3$ gives a lower bound of 3, with $\mathrm{siz}(3) = 1$. Any valid
+bound works, and a looser one costs at most a digit or so.
 
-You don't know $\tilde{x}$ yet when you choose the bounds, but it is within
-$\varepsilon_x$ of $x$, which is tiny next to a rough bound. So a bound on $x$
-with a little room also covers $\tilde{x}$. It only matters when $x$ is within
-$\varepsilon_x$ of the bound. For $x \le 9.9997$, $U_x = 9.9997$ is valid,
-but with 3 places $\tilde{x}$ might come out as $10.000$, which is above it.
-So take $\bar{U}_x = 10.1$, with $\mathrm{siz} = 2$. Any valid bound works. A
-looser one costs at most a digit or so.
+### Covering the approximation
 
-A round bound needs no room. If $U_x$ is a multiple of $10^{-p}$ and
-$\tilde{x}$ has $p$ places with an error below $10^{-p}$, then $\tilde{x}$
-can't pass $U_x$, since the next multiple up is too far from $x$. So for
-$x < 10$, the bound 10 also covers $\tilde{x}$ to any number of places from 0 up.
+The product, quotient and power rules below come from error formulas that mix
+$x$ and $\tilde{x}$, so they need bounds that also cover $|\tilde{x}|$. The
+square root, exponential and logarithm rules in
+[Input places for functions](../2026-11-02%203%20Input%20places%20for%20functions/README.md) fix the true $x$, so they don't.
+
+You don't know $\tilde{x}$ yet when you choose the places, but it will be
+within $\varepsilon_x$ of $x$. So widening the bounds by a margin covers it
+too:
+
+$$\bar{U}_x = 1.01U_x, \qquad \bar{L}_x = 0.99L_x.$$
+
+These cover $\tilde{x}$ as long as $\varepsilon_x$ is under 1% of the bound.
+That holds if $x$ has at least
+
+$$3 - \mathrm{siz}(M)$$
+
+places, where $M$ is $U_x$ for $\bar{U}_x$ and $L_x$ for $\bar{L}_x$. Call
+these the *minimum places* of $x$. The product, quotient and power rules give
+each input whose barred bound they use at least its minimum places. If both
+bounds of an input are used, the minimum for $L_x$ is the larger, since
+$L_x \le U_x$.
+
+**Why.** With $d_x$ places, the error is at most $0.6 \cdot 10^{-d_x}$. With
+$d_x \ge 3 - \mathrm{siz}(M)$, that is at most
+$0.6 \cdot 10^{\mathrm{siz}(M) - 3}$, and since
+$M \ge 10^{\mathrm{siz}(M) - 1}$, it is under $0.01M$. Then
+$|\tilde{x}| \le 1.01U_x = \bar{U}_x$ and $|\tilde{x}| \ge 0.99L_x = \bar{L}_x$.
+
+The margin matters when $x$ is close to its bound. For $x \le 9.9997$,
+$U_x = 9.9997$ is valid, but with 3 places $\tilde{x}$ might come out as
+$10.000$, which is above it. $\bar{U}_x = 10.0997$ covers that.
+
+**Choosing the margin.** The 1% is a choice. The same argument with a margin
+of $10^{-m}$ gives $m + 1 - \mathrm{siz}(M)$ minimum places, so a wider
+margin needs fewer. But it also changes the sizes of the bounds more often,
+and the rules use those sizes:
+
+| Margin | $\bar{U}$ and $\bar{L}$ | Minimum places | Sizes change when $U$ or $L$ is |
+|---|---|---|---|
+| 10% | $1.1U$ and $0.9L$ | $2 - \mathrm{siz}(M)$ | within about 10% of a power of 10 |
+| 1% | $1.01U$ and $0.99L$ | $3 - \mathrm{siz}(M)$ | within about 1% of a power of 10 |
+| 0.1% | $1.001U$ and $0.999L$ | $4 - \mathrm{siz}(M)$ | within about 0.1% of a power of 10 |
+
+$U$ is affected just below a power of 10, and $L$ just above one. The two
+costs aren't equal. The minimum rarely matters, because the rules usually ask
+for more places anyway. A change of size goes straight into the rules, and
+for a divisor it costs 2 places, through $-2\mathrm{siz}(\bar{L}_y)$. A small
+margin like 1% keeps that rare, while the minimum stays low.
 
 ### The error budget
 
@@ -200,6 +229,11 @@ of can take a smaller share of the error.
 | $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 
+Here $\bar{U} = 1.01U$ and $\bar{L} = 0.99L$. The factors of a product, the
+base of a power and the divisor of a quotient also get at least their
+[minimum places](#covering-the-approximation): $3 - \mathrm{siz}(U)$, or
+$3 - \mathrm{siz}(L)$ for the divisor.
+
 ### Sums
 
 **Rule.** Each of $n$ terms needs
@@ -228,15 +262,18 @@ table.
 
 ### Products
 
-**Rule.** With upper bounds $\bar{U}_x$ on both $|x|$ and $|\tilde{x}|$, and
-$\bar{U}_y$ on both $|y|$ and $|\tilde{y}|$,
+**Rule.** With upper bounds $U_x$ and $U_y$, and
+$\bar{U} = 1.01U$ as in [Covering the approximation](#covering-the-approximation),
 
-$$d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y), \qquad d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x).$$
+$$d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y), \qquad d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x),$$
+
+and each input gets at least its minimum places, $3 - \mathrm{siz}(U)$.
 
 Each input's places depend on the size of the *other* input.
 
 **Example.** For $\pi e$ good to $d = 3$ places, with $k = 2$: $\pi < 4$ and
-$e < 3$, both of size 1, so each needs $3 + 2 + 1 + 1 = 7$ places.
+$e < 3$, so $\bar{U}$ is $4.04$ and $3.03$, both of size 1, and each needs
+$3 + 2 + 1 + 1 = 7$ places. The minimum, $3 - 1 = 2$, is well below that.
 [Examples](#examples) works this through.
 
 **Why.** From the proof of Theorem 3,
@@ -251,19 +288,20 @@ $$d_x = \lceil d + k + \log(2c \bar{U}_y) \rceil, \qquad d_y = \lceil d + k + \l
 Since $\log(2c) \le \log 1.2 < 1$ and
 $\log \bar{U}_y < \mathrm{siz}(\bar{U}_y)$, the rule is enough.
 
-With $k = 2$ and $\bar{U}_y = 10^{\mathrm{siz}(y)}$, the rule is the 2015 rule
-$d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the assumption that $r_1 r_2$
-is negligible.
+With $k = 2$ and a tight bound, where $\mathrm{siz}(\bar{U}_y) = \mathrm{siz}(y)$,
+the rule is the 2015 rule $d_1 \ge d + 3 + \mathrm{siz}(y)$, now without the
+assumption that $r_1 r_2$ is negligible.
 
 #### Products of more than two factors
 
-**Rule.** For a product $x_1 x_2 \cdots x_n$, with upper bounds $\bar{U}_j$ on
-both $|x_j|$ and $|\tilde{x}_j|$, factor $i$ needs
+**Rule.** For a product $x_1 x_2 \cdots x_n$, with upper bounds $U_j$ and
+$\bar{U}_j = 1.01U_j$, factor $i$ needs
 
 $$d_i = d + k + \mathrm{siz}(n) + \sum_{j \ne i} \mathrm{siz}(\bar{U}_j)$$
 
 places: $d + k + \mathrm{siz}(n)$, plus the sizes of the bounds on all the
-*other* factors. For $n = 2$, this is the rule above.
+*other* factors. Each factor also gets at least its minimum places. For
+$n = 2$, this is the rule above.
 
 Treat the product as one node, rather than as nested pairs. Nested pairs pay
 $k + 1$ extra places at every level.
@@ -274,7 +312,8 @@ product has too many places to carry, so round it as you go, as for
 places, and use $\mathrm{siz}(2n)$ in place of $\mathrm{siz}(n)$.
 
 **Example.** For $\pi e \sqrt{2}$ good to $d = 3$ places, with $k = 2$: take
-$\bar{U} = 4$ for $\pi$, $3$ for $e$ and $1.5$ for $\sqrt{2}$, all of size 1.
+$U = 4$ for $\pi$, $3$ for $e$ and $1.5$ for $\sqrt{2}$, so $\bar{U}$ is $4.04$,
+$3.03$ and $1.515$, all of size 1.
 Each factor needs $3 + 2 + \mathrm{siz}(3) + 1 + 1 = 8$ places:
 $3.14159265$, $2.71828183$ and $1.41421356$. Their product is exactly
 $12.077007929547305081711220$, which rounds to $12.077$. The true value is
@@ -301,14 +340,22 @@ $\log \bar{U}_j < \mathrm{siz}(\bar{U}_j)$ for each $j$, the rule is enough.
 
 ### Quotients
 
-**Rule.** With an upper bound $U_x \ge |x|$ and a lower bound $\bar{L}_y$ on
-both $|y|$ and $|\tilde{y}|$,
+**Rule.** With an upper bound $U_x$, a lower bound $L_y$, and
+$\bar{L}_y = 0.99L_y$ as in [Covering the approximation](#covering-the-approximation),
 
-$$d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y), \qquad d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y).$$
+$$d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y), \qquad d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y),$$
+
+and $y$ gets at least its minimum places, $3 - \mathrm{siz}(L_y)$.
 
 **Example.** For $\pi / e$ good to $d = 3$ places, with $k = 2$: $\pi < 4$ and
-$e > 2$, both of size 1. So $\pi$ needs $3 + 2 + 2 - 1 = 6$ places, and $e$
-needs $3 + 2 + 3 + 1 - 2 = 7$.
+$e > 2$, so $U_x = 4$ and $\bar{L}_y = 1.98$, both of size 1. So $\pi$ needs
+$3 + 2 + 2 - 1 = 6$ places, and $e$ needs $3 + 2 + 3 + 1 - 2 = 7$.
+
+The minimum matters when the dividend is very small. For $10^{-20} / y$ with
+$y$ in $[0.9 \cdot 10^{-5}, 1.1 \cdot 10^{-5}]$ and $d = 2$, $L_y$ and
+$\bar{L}_y$ both have size $-5$, and the rule asks $y$ for
+$2 + 2 + 3 - 19 + 10 = -2$ places, which would round $y$ to 0. The minimum
+asks for $3 - (-5) = 8$.
 
 **Why.** For $x / y$,
 
@@ -325,8 +372,9 @@ $$d_x = \lceil d + k + \log(4c) - \log \bar{L}_y \rceil, \qquad d_y = \lceil d +
 Since $\log(4c) \le \log 2.4 < 1$, $\log U_x < \mathrm{siz}(U_x)$ and
 $-\log \bar{L}_y \le 1 - \mathrm{siz}(\bar{L}_y)$, the rule is enough.
 
-With $k = 2$, $U_x = 10^{\mathrm{siz}(x)}$ and $\bar{L}_y = 10^{\mathrm{siz}(y) - 1}$,
-and since $\mathrm{nsiz} = \mathrm{siz} - 1$, the rule is the 2015 rules
+With $k = 2$ and tight bounds, where $\mathrm{siz}(U_x) = \mathrm{siz}(x)$ and
+$\mathrm{siz}(\bar{L}_y) = \mathrm{siz}(y)$, and since
+$\mathrm{nsiz} = \mathrm{siz} - 1$, the rule is the 2015 rules
 $d_1 \ge d + 3 - \mathrm{nsiz}(y)$ and
 $d_2 \ge d + 3 + \mathrm{siz}(x) - 2\mathrm{nsiz}(y)$, now with nothing
 assumed negligible.
@@ -378,15 +426,16 @@ applies when no rounding is needed.
 
 ### Powers
 
-**Rule.** For $x^n$ with $n \ge 2$ a whole number, and an upper bound
-$\bar{U}_x$ on both $|x|$ and $|\tilde{x}|$,
+**Rule.** For $x^n$ with $n \ge 2$ a whole number, an upper bound $U_x$, and
+$\bar{U}_x = 1.01U_x$,
 
 $$d_x = d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x) \quad \text{for } n \le 8, \qquad d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x) \quad \text{for any } n.$$
 
-Then compute $\tilde{x}^n$ to $d + k + 1$ places.
+$x$ also gets at least its minimum places, $3 - \mathrm{siz}(U_x)$. Then
+compute $\tilde{x}^n$ to $d + k + 1$ places.
 
-**Example.** For $\pi^5$ good to $d = 2$ places, with $k = 2$: $\pi < 4$, of
-size 1, so $\pi$ needs $2 + 2 + 1 + 4 = 9$ places.
+**Example.** For $\pi^5$ good to $d = 2$ places, with $k = 2$: $\pi < 4$, so
+$\bar{U}_x = 4.04$, of size 1, and $\pi$ needs $2 + 2 + 1 + 4 = 9$ places.
 
 **Why.** $\tilde{x}^n$ is exact in principle, but it has $n$ times as many
 decimal places as $\tilde{x}$, which is too many to carry for all but small
@@ -424,8 +473,8 @@ line with the 2015 table: $20 \le n \le 196$ needs $d + 4$.
 To get $\pi e$ good to $d = 3$ places, with $k = 2$, the target propagated
 error is $T = 10^{-5}$.
 
-**Places.** $\pi < 4$ and $e < 3$, with plenty of room, so take
-$\bar{U}_x = 4$ for $x = \pi$ and $\bar{U}_y = 3$ for $y = e$, both of size 1. The product rule gives each input
+**Places.** $\pi < 4$ and $e < 3$, so $\bar{U}_x = 4.04$ for $x = \pi$ and
+$\bar{U}_y = 3.03$ for $y = e$, both of size 1. The product rule gives each input
 $3 + 2 + 1 + 1 = 7$ places. Rounding both exactly gives $\tilde{x} = 3.1415927$
 and $\tilde{y} = 2.7182818$.
 
