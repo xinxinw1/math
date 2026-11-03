@@ -329,11 +329,8 @@ failure is $x = 18$, where $n = -242 = -2 \cdot 11^2$.
 `CubicIdentities.lean` formalizes the main theorem and the squarefree theorem
 using Mathlib.
 
-> **Status:** not yet checked. An earlier version, without
-> `int_params_of_cube_roots` and `cube_of_root`, was checked with no errors or
-> warnings on <https://live.lean-lang.org> using its stable release (Lean
-> v4.35.0 with Mathlib). The current version hasn't been checked since those
-> were added.
+> **Status:** checked with no errors or warnings on <https://live.lean-lang.org>
+> using its stable release (Lean v4.35.0 with Mathlib).
 
 | Theorem | Statement |
 |---|---|
