@@ -1,4 +1,4 @@
-# Cube root sum generator
+# Cubic formula identities
 
 A generator of numbers of the form
 
@@ -6,9 +6,10 @@ $$\sqrt[3]{a + b\sqrt{c}} + \sqrt[3]{a - b\sqrt{c}}$$
 
 that equal a chosen number $x$.
 
-*Xin-Xin* — handwritten notes from March 15, 2015, typed up.
+*Xin-Xin*
 
-The original pages: [page 1](handwritten-notes-page-1.jpg) and
+The derivation below is typed up from handwritten notes:
+[page 1](handwritten-notes-page-1.jpg) and
 [page 2](handwritten-notes-page-2.jpg).
 
 ## Building the cubic
