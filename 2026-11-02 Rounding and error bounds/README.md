@@ -338,9 +338,12 @@ $$\delta^{+} = f^{-1}(f(x) + \eta) - x, \qquad \delta^{-} = x - f^{-1}(f(x) - \e
 taking $\delta^{+} = \infty$ if $f(x) + \eta$ is above every value of $f$ on
 $J$, and $\delta^{-} = \infty$ if $f(x) - \eta$ is below every value. Then
 $|f(\tilde{x}) - f(x)| \le \eta$ for every $\tilde{x}$ in $J$ with
-$|\tilde{x} - x| \le \delta$ exactly when
+$|\tilde{x} - x| \le \delta$ if
 
 $$\delta \le \min(\delta^{+}, \delta^{-}).$$
+
+If $J$ reaches past $x + \delta^{+}$ and $x - \delta^{-}$, no larger $\delta$
+works.
 
 For a strictly decreasing $f$, swap $f(x) + \eta$ and $f(x) - \eta$ in the
 definitions of $\delta^{+}$ and $\delta^{-}$.
@@ -350,7 +353,8 @@ $|f(\tilde{x}) - f(x)| = f(\tilde{x}) - f(x)$, and this is at most $\eta$
 exactly when $\tilde{x} \le x + \delta^{+}$. That is automatic if
 $\delta^{+} = \infty$. If not, it holds because $f^{-1}$ is increasing too,
 and it fails for every $\tilde{x}$ just above $x + \delta^{+}$. So the inputs
-above $x$ are all fine exactly when $\delta \le \delta^{+}$. The inputs below
+above $x$ are all fine when $\delta \le \delta^{+}$, and, if $J$ has inputs
+just above $x + \delta^{+}$, only then. The inputs below
 $x$ work the same way with $\delta^{-}$. For a decreasing $f$, apply this to
 $-f$, which is increasing. ∎
 
@@ -390,10 +394,15 @@ $\pi > 3$ gives a lower bound of 3, with $\mathrm{siz}(3) = 1$.
 You don't know $\tilde{x}$ yet when you choose the bounds, but it is within
 $\varepsilon_x$ of $x$, which is tiny next to a rough bound. So a bound on $x$
 with a little room also covers $\tilde{x}$. It only matters when $x$ is within
-$\varepsilon_x$ of the bound. For $x \approx 9.9996$, $\tilde{x}$ might round
-up to $10.000$, so 10 is a valid $U_x$, but take $\bar{U}_x = 11$, with
-$\mathrm{siz} = 2$. Any valid bound works. A looser one costs at most a digit
-or so.
+$\varepsilon_x$ of the bound. For $x \le 9.9997$, $U_x = 9.9997$ is valid,
+but with 3 places $\tilde{x}$ might come out as $10.000$, which is above it.
+So take $\bar{U}_x = 10.1$, with $\mathrm{siz} = 2$. Any valid bound works. A
+looser one costs at most a digit or so.
+
+A round bound needs no room. If $U_x$ is a multiple of $10^{-p}$ and
+$\tilde{x}$ has $p$ places with an error below $10^{-p}$, then $\tilde{x}$
+can't pass $U_x$, since the next multiple up is too far from $x$. So for
+$x < 10$, the bound 10 also covers $\tilde{x}$ to any number of places from 0 up.
 
 ### The error budget
 
@@ -407,8 +416,8 @@ where $\eta$ is the budget for the propagated error.
 
 - **Exact evaluation.** Sums, differences and products of terminating
   decimals have no evaluation error, so $\eta = T$.
-- **Everything else.** For division, powers, square roots, exponentials and
-  logarithms, take $\eta = T/2$, and compute $f(\tilde{x})$ to $d + k + 1$
+- **Everything else.** For division, powers, square roots, exponentials,
+  logarithms, sines and cosines, take $\eta = T/2$, and compute $f(\tilde{x})$ to $d + k + 1$
   places, rounded or cut off. That has an error of at most
   $10^{-(d+k+1)} = T/10$, well within the other half.
 
@@ -453,14 +462,14 @@ of can take a smaller share of the error.
 | $xy$ | $d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y)$, and $d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x)$ |
 | $x_1 \cdots x_n$ | factor $i$: $d + k + \mathrm{siz}(n)$, plus the sizes of the other factors' $\bar{U}$ |
 | $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
-| $x + a$ | $d$ |
+| $x + a$, $a$ with at most $d$ places | $d$ |
 | $ax$ | $d + k + \mathrm{siz}(a)$ |
 | $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
 | $e^x$ | $d + k + 2 + \lfloor 0.44 U_x \rfloor$ for $x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 L_x \rceil)$ for $x < 0$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
-| $\sin x$, $\cos x$ | $d + k + 1$, and $\pi$ to $d + k + 1 + \mathrm{siz}(j)$ places when reducing by $j$ quarter turns |
+| $\sin x$, $\cos x$ | $d + k + 1$, and $\pi$ to $d + k + 1 + \mathrm{siz}(j)$ places when reducing by $j \ne 0$ quarter turns |
 | Series term $n$ | $p_n = d + k + 2\mathrm{siz}(n)$ places |
 | $\ln x$ by series | terms to $d + k + 1 + 2\mathrm{siz}(n)$ places, $z$ to $d + k + 2$, and $\ln 2$ to $d + k + 1 + \mathrm{siz}(j)$ |
 
@@ -542,8 +551,7 @@ $\bar{U} = 4$ for $\pi$, $3$ for $e$ and $1.5$ for $\sqrt{2}$, all of size 1.
 Each factor needs $3 + 2 + \mathrm{siz}(3) + 1 + 1 = 8$ places:
 $3.14159265$, $2.71828183$ and $1.41421356$. Their product is exactly
 $12.077007929547305081711220$, which rounds to $12.077$. The true value is
-$12.0770079568\ldots$, and the nearest rounding boundary is about
-$5 \times 10^{-4}$ away, so this is correctly rounded.
+$12.0770079568\ldots$
 
 The exact counts are 6, 6 and 7 places. As nested pairs, $(\pi e)\sqrt{2}$, the
 product node would ask $\pi e$ for $3 + 2 + 1 + 1 = 7$ places, which would ask
@@ -606,43 +614,15 @@ $$q \le \frac{x}{y} < q + 10^{-p}.$$
 
 For negative inputs, divide $|x|$ by $|y|$ and attach the sign at the end.
 
-**Exact inputs.** If $x$ and $y$ are exact, for example integers or decimals
-given exactly, truncating to $d + 1$ places and then rounding is already
-correct, with no guard digits.
-
-**Lemma 4.** Let $x, y > 0$, and let $q$ be $x / y$ truncated to $d + 1$
-places. Then $\mathrm{rnd}(q, d) = \mathrm{rnd}(x / y, d)$.
-
-**Proof.** The rounding boundaries for $d$ places, $(n + \frac{1}{2}) \cdot 10^{-d}$,
-are multiples of $10^{-(d+1)}$, and so is $q$. Since
-$q \le x / y < q + 10^{-(d+1)}$, no boundary lies strictly between $q$ and
-$x / y$, and a boundary at or below $x / y$ is also at or below $q$. So $q$ and
-$x / y$ are on the same side of every boundary, including when $x / y$ is
-exactly on one, where both round away from zero. ∎
-
-For example, $22 / 7$ truncated to 4 places is $3.1428$, which rounds to
-$3.143$. The true value, $3.142857\ldots$, also rounds to $3.143$.
-
-The lemma relies on ties going away from zero. With round-half-to-even, a
-truncated digit 5 in place $d + 1$ can't be rounded correctly without also
-knowing whether the remainder is zero.
-
-**Approximate inputs.** If $x$ and $y$ are themselves rounded results, use the
-rule above for the input places, then truncate the quotient to $d + k + 1$
-places and round it to $d$ places. The truncation error is below
+For a quotient of approximations, use the rule above for the input places,
+then truncate the quotient to $d + k + 1$ places and round it to $d$ places. The truncation error is below
 $10^{-(d+k+1)} = T/10$, inside the half of the budget kept for evaluation, so
 the result is good to $d$ places.
 
-It isn't always the correctly rounded value. To check, use Lemma 3 with
-$\eta = T$: if the truncated quotient is more than $T = 10^{-(d+k)}$ from the
-nearest rounding boundary, the result is $x / y$ correctly rounded.
-
 For example, for $\pi / e$ to $d = 3$ places, with $k = 2$, the rule above
 gives $\tilde{x} = 3.141593$ and $\tilde{y} = 2.7182818$. Their quotient
-truncated to 6 places is $1.155727$, which rounds to $1.156$. The nearest
-boundary, $1.1555$, is about $2.3 \times 10^{-4}$ away, more than $10^{-5}$, so
-$1.156$ is $\pi / e$ correctly rounded. (The true value is
-$1.1557273\ldots$)
+truncated to 6 places is $1.155727$, which rounds to $1.156$. (The true value
+is $1.1557273\ldots$)
 
 ### Adding and multiplying by a constant
 
@@ -728,10 +708,8 @@ So $\tilde{x} = 3.141593$. Its square root to $d + k + 1 = 7$ places is
 $1.7724539$. The budget is $T = 10^{-6}$ and $\eta = 5 \times 10^{-7}$, so the
 total error is at most
 $\eta + \frac{1}{2} \cdot 10^{-7} = 5.5 \times 10^{-7} \le T$. By Lemma 1,
-$\mathrm{rnd}(1.7724539, 4) = 1.7725$ is good to 4 places. The nearest
-rounding boundary, $1.77245$, is about $3.9 \times 10^{-6}$ away, more than
-$5.5 \times 10^{-7}$, so by Lemma 3 this is $\sqrt{\pi}$ correctly rounded.
-(The true value is $1.7724538509\ldots$)
+$\mathrm{rnd}(1.7724539, 4) = 1.7725$ is good to 4 places. (The true value is
+$1.7724538509\ldots$)
 
 **Why.** For $f(x) = \sqrt{x}$, which is increasing on $[0, \infty)$,
 Theorem 5 gives
@@ -796,10 +774,8 @@ So $\tilde{x} = \mathrm{rnd}(3\pi, 11) = 9.42477796077$. Its exponential to
 $d + k + 1 = 6$ places is $12391.647808$. The budget is $T = 10^{-5}$ and
 $\eta = 5 \times 10^{-6}$, so the total error is at most
 $\eta + \frac{1}{2} \cdot 10^{-6} = 5.5 \times 10^{-6} \le T$. By Lemma 1,
-$\mathrm{rnd}(12391.647808, 3) = 12391.648$ is good to 3 places. The nearest
-rounding boundary, $12391.6475$, is about $3.1 \times 10^{-4}$ away, so by
-Lemma 3 this is $e^{3\pi}$ correctly rounded. (The true value is
-$12391.6478079\ldots$)
+$\mathrm{rnd}(12391.647808, 3) = 12391.648$ is good to 3 places. (The true
+value is $12391.6478079\ldots$)
 
 **Why.** For $f(x) = e^x$, Theorem 5 gives
 
@@ -906,7 +882,8 @@ The reduction uses an approximation to $\pi$, whose error is multiplied by
 $|j|/2$. So with reduction:
 
 - **x** needs $d + k + 1$ places, as before.
-- **π** needs $d + k + 1 + \mathrm{siz}(j)$ places.
+- **π** needs $d + k + 1 + \mathrm{siz}(j)$ places. With $j = 0$ there is no
+  reduction, and $\pi$ isn't needed.
 
 Then compute $\tilde{r} = \tilde{x} - j\tilde{\pi}/2$ exactly. It has the
 accuracy the rule asks of the input, so evaluate $\sin \tilde{r}$ or
@@ -927,9 +904,7 @@ $$\tilde{r} = 100 - 32\tilde{\pi} = -0.53096491488.$$
 
 The sine series at $\tilde{r}$, computed as in [Series](#series), sums to
 $-0.50636564118$, which rounds to $-0.506366$. The true value is
-$\sin 100 = -0.5063656411\ldots$, and the nearest rounding boundary,
-$-0.5063655$, is about $1.4 \times 10^{-7}$ away, more than $T = 10^{-8}$, so
-by Lemma 3 this is correctly rounded.
+$\sin 100 = -0.5063656411\ldots$
 
 **Why.** The derivatives of $\sin$ and $\cos$ are $\cos$ and $-\sin$, which are
 at most 1 in size, so Theorem 4 gives $A = 1$. Neither can be computed exactly,
@@ -1022,10 +997,8 @@ it.
 **Sum.** $2.193280050786$, which rounds to $2.193280$.
 
 The true value is $2.1932800507\ldots$, so the sum is off by about
-$5 \times 10^{-11}$, well within $T$. The nearest rounding boundary,
-$2.1932805$, is about $4.5 \times 10^{-7}$ away, more than $T$, so by Lemma 3,
-$2.193280$ is correctly rounded. Truncating the divisions instead of rounding
-them gives $2.193280050176$, which rounds the same way.
+$5 \times 10^{-11}$, well within $T$. Truncating the divisions instead of
+rounding them gives $2.193280050176$, which rounds the same way.
 
 **Example: sin(π/4).** To get $\sin(\pi/4)$ good to $d = 6$ places, with
 $k = 2$, the budget is again $T = 10^{-8}$.
@@ -1056,9 +1029,8 @@ to 0, so stop after it.
 **Sum.** $0.7071067809$, which rounds to $0.707107$.
 
 The true value is $\sqrt{2}/2 = 0.7071067811\ldots$, so the sum is off by
-about $3 \times 10^{-10}$, within $T$. The nearest rounding boundary,
-$0.7071065$, is about $2.8 \times 10^{-7}$ away, more than $T$, so by Lemma 3,
-$0.707107$ is correctly rounded. Truncating the divisions gives the same sum.
+about $3 \times 10^{-10}$, within $T$. Truncating the divisions gives the same
+sum.
 
 **Why.** Let $e_n = \tilde{t}_n - t_n$ be the error in term $n$, where $t_n$ is
 the exact term at $\tilde{x}$. Each step multiplies the previous error by
@@ -1088,7 +1060,9 @@ For the tail:
   so the tail is at most $|t_N|(1/2 + 1/6 + \cdots) = (e - 2)|t_N| < 0.72|t_N|$.
 - **sin x.** The terms alternate in sign and shrink, so the tail is at most
   the first term left off, which is at most
-  $|t_N| x^2 / ((2N+2)(2N+3)) \le 0.3|t_N|$ for $|x| \le 2.4$.
+  $|t_N| x^2 / ((2N+2)(2N+3)) \le 0.3|t_N|$ for $|x| \le 2.4$ and
+  $N \ge 1$. The test can't stop at $N = 0$ unless $|x| < T/10$, and then the
+  tail is tiny anyway.
 
 Either way, the stopping test gives $|\tilde{t}_N| < T/10$, which leaves a
 tail well under $T/4$, even allowing for the error in $\tilde{t}_N$.
@@ -1175,9 +1149,7 @@ $-0.14384103627$.
 which rounds to $1.098612$.
 
 The true value is $\ln 3 = 1.0986122887\ldots$, so the result is off by about
-$8 \times 10^{-12}$. The nearest rounding boundary, $1.0986125$, is about
-$2.1 \times 10^{-7}$ away, more than $T$, so by Lemma 3, $1.098612$ is
-correctly rounded.
+$8 \times 10^{-12}$.
 
 **Why.** The evaluation half of the budget, $T/2$, is split four ways, about
 $T/8$ each:
@@ -1199,60 +1171,6 @@ $T/8$ each:
 - **Tail.** The terms after $t_N$ shrink by at least $z^2$ each, so the tail is
   at most $|t_N| z^2/(1 - z^2) < 0.04|t_N|$. Doubled and with
   $|\tilde{t}_N| < T/10$, it is well under $T/8$.
-
-## Relative error and significant figures
-
-The *relative error* of an approximation is $\rho_x = \varepsilon_x / |\tilde{x}|$.
-Dividing the bounds in Theorem 3 by $|\tilde{x}\tilde{y}|$ and
-$|\tilde{x}/\tilde{y}|$ gives
-
-$$\rho_{xy} \le \rho_x + \rho_y + \rho_x \rho_y, \qquad \rho_{x/y} \le \frac{\rho_x + \rho_y}{1 - \rho_y}.$$
-
-So for products and quotients, relative errors roughly add, the same way
-absolute errors add for sums.
-
-Relative error is what significant figures measure. If $\tilde{x}$ is $x$
-rounded to $p$ places, then
-
-$$\rho_x \le \frac{\frac{1}{2} \cdot 10^{-p}}{10^{\mathrm{siz}(\tilde{x}) - 1}} = \tfrac{1}{2} \cdot 10^{1 - s},$$
-
-where $s = p + \mathrm{siz}(\tilde{x})$ is the number of digits
-$\tilde{x}$ is written with, counted from its leading digit.
-
-This explains the shape of the results:
-
-- **Sums:** the decimal places of the output depend on the decimal places of
-  the inputs, and magnitudes don't matter.
-- **Products and quotients:** what carries over is significant figures, so
-  the rules for decimal places have $\mathrm{siz}$ terms in them. In the
-  product rule with $k = 2$, $\tilde{x}$ is written with
-  $d_x + \mathrm{siz}(x) = d + \mathrm{siz}(x) + \mathrm{siz}(y) + 3$
-  digits. The output has $d + \mathrm{siz}(xy)$ digits, and
-  $\mathrm{siz}(xy)$ is $\mathrm{siz}(x) + \mathrm{siz}(y)$ or one less. So
-  each input needs 3 or 4 more significant figures than the output has.
-
-## Correct rounding
-
-An error bound never guarantees that the output is $\mathrm{rnd}(f, d)$, the
-true value correctly rounded. In the 2015 example, $f = 0.4499999$ and
-$\tilde{f} = 0.45$ are within $10^{-6}$ of each other, but round to $0.4$ and
-$0.5$. This is known as the *table maker's dilemma*.
-
-It can still be checked after the fact. The rounding boundaries for $d$ places
-are the midpoints $(n + \frac{1}{2}) \cdot 10^{-d}$ for integers $n$.
-
-**Lemma 3.** If $|\tilde{f} - f| \le \eta$, and $\tilde{f}$ is more than $\eta$
-away from every rounding boundary, then
-$\mathrm{rnd}(\tilde{f}, d) = \mathrm{rnd}(f, d)$.
-
-**Proof.** No boundary lies in $[\tilde{f} - \eta, \tilde{f} + \eta]$, which
-contains $f$. So $f$ and $\tilde{f}$ lie strictly between the same two
-boundaries, and they round to the same multiple of $10^{-d}$. ∎
-
-If the check fails, recompute $\tilde{f}$ with a smaller $\eta$ and try again.
-This finishes unless $f$ is exactly on a boundary, like $f = 0.45$ with
-$d = 1$. Then no error bound short of $0$ can settle which way it rounds, and
-only an exact computation can.
 
 ## Examples
 
@@ -1285,9 +1203,6 @@ $$2.7182818 \cdot \varepsilon_x + 3.1415927 \cdot \varepsilon_y + \varepsilon_x 
 **Rounding.** By Lemma 1, $\mathrm{rnd}(\tilde{f}, 3) = 8.540$ is good to 3
 places.
 
-**Correct rounding.** The nearest rounding boundary to $\tilde{f}$ is
-$8.5395$, which is about $2.3 \times 10^{-4}$ away. That is more than
-$2.93 \times 10^{-7}$, so by Lemma 3, $8.540$ is $\pi e$ correctly rounded.
 (The true value is $8.5397342\ldots$)
 
 The exact counts are 6 places each, so the rule asked for one more than
@@ -1318,16 +1233,12 @@ needed here.
   roots, exponentials and logarithms are worked through, without assuming
   $\varepsilon^2$ is negligible.
 - **Evaluation error is budgeted.** Division, powers, square roots,
-  exponentials and logarithms can't be computed exactly, or not in practice,
+  exponentials, logarithms, sines and cosines can't be computed exactly, or not in practice,
   so half of the error budget is set aside for computing them.
 - **Whole-number rules.** Each operation has a rule for the input places in
   whole numbers, using the sizes of rough bounds instead of logarithms, so the
   places can be chosen before the inputs are computed.
 - **The place counts use a ceiling**, since they have to be whole numbers.
-- **Relative error** connects significant figures to products and quotients.
-- **Correct rounding** has a test (Lemma 3) instead of only a counterexample.
 - **Series.** Taylor series are evaluated term by term at a slowly growing
   precision, without recomputing earlier terms or knowing how many there will
   be, with $e^x$, $\sin x$ and $\ln x$ worked through.
-- **Division by truncation.** Lemma 4 shows that for exact inputs, truncating
-  the quotient to one extra place and then rounding is correctly rounded.

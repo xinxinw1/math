@@ -10,9 +10,10 @@ This builds on the rules in
 [Rounding and error bounds](../2026-11-02%20Rounding%20and%20error%20bounds/README.md),
 which say how many places the inputs of one operation need. Here they are
 applied to every operation in an expression at once. Notation is as there:
-$d$ is the output places, $k$ the guard digits, $\mathrm{siz}$ the size of a
-number, and a value is *good to $d$ places* if its error is at most
-$c \cdot 10^{-d}$ with $c \le 0.6$.
+$d$ is the output places, $k$ the guard digits, and $\mathrm{siz}$ the size of
+a number. A value is **good to d places** if its error is at most
+$c \cdot 10^{-d}$ with $c \le 0.6$. Unlike in the rules doc, it may have more
+than $d$ places: extra places only make it more accurate.
 
 ## Overview
 
@@ -103,8 +104,17 @@ multiply:
   $\mathrm{siz}(h) \ge 0$ and $2.30$ otherwise.
 
 The bounds for $e^x$ and $\ln x$ are crude: they can be off by a factor of 10
-or more. That is fine for upper bounds, where a looser $U$ only costs a place or so, through
-$\mathrm{siz}$. It only matters for lower bounds.
+or more. Most rules use an upper bound only through $\mathrm{siz}$, so there
+a looser $U$ costs a place or so. Two things are more sensitive:
+
+- **Lower bounds,** which can contain 0. See
+  [Tightening by evaluation](#tightening-by-evaluation).
+- **Exponents.** The exponential rule uses $h_x$ itself, not its size, so a
+  loose upper bound on an exponent costs places in proportion. In $e^{e^x}$
+  with $x$ in $[20.600, 20.601]$, the inner exponential's cheap interval is
+  $[10^8, 10^{10}]$, and the outer rule asks for about $0.44 \cdot 10^{10}$
+  places, 10 times more than needed. When an exponent's interval is wide,
+  evaluate it to a few places first to narrow it.
 
 ### Tightening by evaluation
 
@@ -145,7 +155,7 @@ From each node's interval $[\ell, h]$:
   $\bar{L} = 0.99L$.
 
 The barred bounds have 1% of room for the node's own error, so pass 2 has to
-keep that error under 1% of its size. See
+keep that error under 1% of $L$ or $U$. See
 [Minimum places](#minimum-places).
 
 ## Pass 2: places
@@ -162,45 +172,72 @@ node with $D$ places asks its children for:
 
 | Node | Places for its children |
 |---|---|
-| Sum or difference of $n$ terms | each: $D + k + \mathrm{siz}(n)$ |
+| Sum or difference with $n \ge 2$ inexact terms | each inexact term: $D + k + \mathrm{siz}(n)$ |
+| Sum or difference with 1 inexact term | $D$ |
 | Product of $n$ inexact factors | factor $i$: $D + k + \mathrm{siz}(n)$ plus the sizes of the other factors' $\bar{U}$ |
 | $x / y$ | $x$: $D + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $y$: $D + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
 | $x^n$, $n \le 8$ | $D + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
+| $x^n$, any $n$ | $D + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
 | $\sqrt{x}$ | $D + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$, or $2(D + k) + 1$ if $\ell_x \le 0$ or $\mathrm{siz}(L_x) < 3 - 2(D + k)$ |
 | $e^x$ | $D + k + 2 + \lfloor 0.44 h_x \rfloor$ if $h_x \ge 0$, and $\max(1, D + k + 2 - \lceil 0.43 \lvert h_x \rvert \rceil)$ if $h_x < 0$ |
 | $\ln x$ | $D + k + 2 - \mathrm{siz}(\ell_x)$ |
-| $\sin x$, $\cos x$ | $x$: $D + k + 1$, and $\pi$: $D + k + 1 + \mathrm{siz}(j)$, reducing by $j$ quarter turns |
+| $\sin x$, $\cos x$ | $x$: $D + k + 1$, and $\pi$: $D + k + 1 + \mathrm{siz}(j)$, reducing by $j \ne 0$ quarter turns |
 
 Notes:
 
 - **Exact children** need nothing. An exact number with more places than asked
-  for is rounded to those places, with $c = \frac{1}{2}$.
+  for is rounded to those places, with $c = \frac{1}{2}$, but never to fewer
+  than its [minimum places](#minimum-places).
+- **Sums with exact terms** count only the inexact terms in $n$. Exact terms
+  with at most $D$ places add no error and need no rounding. An exact term
+  with more places counts as inexact, since it gets rounded.
+- **A sum with one inexact term** passes that term's error straight through,
+  as for $x + a$ in the rules doc, so it needs no guard digits. Pass 3 leaves
+  it unrounded. The top node is the exception: it asks for $D + k + 1$, the
+  general sum rule with $n = 1$, so that the
+  [correct-rounding check](#correct-rounding) has its guard digits.
 - **Products with one inexact factor,** such as $3x$, can use one place fewer:
   $D + k$ plus the sizes of the exact factors.
 - **Exponentials** use the upper end $h_x$ of the interval, since that is where
   $e^x$ is largest.
 - **Sine and cosine** take $j$ from the interval of $x / (\pi/2)$: the largest
-  $|j|$ the reduction might use.
+  $|j|$ the reduction might use. If $j$ can only be 0, there is no reduction
+  and no $\pi$.
 
 ### Minimum places
 
-A child whose $\bar{U}$ or $\bar{L}$ is used by its parent also needs its error
-to stay within the 1% of room those bounds leave. That holds if it has at
-least
+Some rules use a child's barred bound, $\bar{U}$ or $\bar{L}$:
+
+- **Products** use the $\bar{U}$ of every factor but one.
+- **Powers** use the $\bar{U}$ of the base.
+- **Quotients** use the $\bar{L}$ of the divisor. The dividend's bound, $U_x$,
+  isn't barred.
+
+The square root, exponential and logarithm rules use unbarred bounds, so they
+don't need this.
+
+A child whose barred bound is used also needs its error to stay within the 1%
+of room the bound leaves. That holds if it has at least
 
 $$3 - \mathrm{siz}(M)$$
 
-places, where $M$ is $L$ for a lower bound and $U$ for an upper bound. If the
-rule asks for fewer, use this instead.
+places, where $M$ is $L$ for a lower bound and $U$ for an upper bound. The
+parent asks for the larger of this and its rule's count. If both bounds of a
+node are used, by different parents, the minimum for $L$ is the larger one,
+since $L \le U$. This applies to exact children too: an exact divisor rounded
+to too few places could become 0.
 
 Why: with $D$ places, the error is at most $0.6 \cdot 10^{-D}$. With
 $D \ge 3 - \mathrm{siz}(M)$, that is at most $0.6 \cdot 10^{\mathrm{siz}(M) - 3}$,
-and since $M \ge 10^{\mathrm{siz}(M) - 1}$, it is under $0.01M$.
+and since $M \ge 10^{\mathrm{siz}(M) - 1}$, it is under $0.01M$. Then
+$|\tilde{x}| \ge 0.99L = \bar{L}$ and $|\tilde{x}| \le 1.01U = \bar{U}$.
 
 Usually the rule already asks for more. The minimum matters when the other
-operand is very small. For example, in $10^{-20} / y$ with $y \approx 10^{-5}$
-and $D = 2$, the quotient rule asks $y$ for $2 + 2 + 3 - 19 + 10 = -2$ places,
-which would round $y$ to 0. The minimum asks for $3 + 5 = 8$.
+operand is very small. For example, take $10^{-20} / y$ with $y$ in
+$[0.9 \cdot 10^{-5}, 1.1 \cdot 10^{-5}]$ and $D = 2$. Then $L_y$ and
+$\bar{L}_y$ both have size $-5$, and the quotient rule asks $y$ for
+$2 + 2 + 3 - 19 + 10 = -2$ places, which would round $y$ to 0. The minimum
+asks for $3 - (-5) = 8$.
 
 ## Pass 3: evaluate
 
@@ -208,11 +245,16 @@ Go through the nodes from the bottom up. Each node computes its value from its
 children's values, and rounds it to its own places $D$:
 
 - **Exact operations,** sums, differences and products, are computed exactly
-  and then rounded.
+  and then rounded. A sum with one inexact term, other than the top, isn't
+  rounded.
 - **Other operations** are computed to $D + k + 1$ places, rounded or cut off,
   and then rounded to $D$. This covers division by the usual truncating
   algorithm, and functions by
   [series](../2026-11-02%20Rounding%20and%20error%20bounds/README.md#series).
+  The series need small arguments, so reduce first: by quarter turns for sine
+  and cosine, and with $e^x = (e^{x/2^m})^{2^m}$ for exponentials. The
+  repeated squaring is a chain of products, which needs its own guard
+  digits.
 
 Keeping more places than a node was given is always safe, so an implementation
 can skip the rounding of inner nodes if that is easier. Only the top node must
@@ -221,21 +263,24 @@ be rounded to $d$.
 Why it works: the leaves are good to their places. If a node's children are
 good to the places it asked for, its rule guarantees that its computed value
 is within $10^{-(D+k)}$ of the true value, and rounding to $D$ places then
-makes it good to $D$ places. So by induction, from the leaves up, the top node
-is good to $d$ places.
+makes it good to $D$ places. A sum with one inexact term is the exception: it
+isn't rounded, so its error is the term's, at most $0.6 \cdot 10^{-D}$. So by
+induction, from the leaves up, the top node is good to $d$ places.
 
 ### Correct rounding
 
 The result is good to $d$ places, but that doesn't make it the correctly
-rounded value. Check with
-[Lemma 3](../2026-11-02%20Rounding%20and%20error%20bounds/README.md#correct-rounding)
+rounded value. Check it as in
+[Correct rounding](../2026-11-03%20Correct%20rounding/README.md#the-check),
 before the final rounding: if the top node's computed value is more than
 $10^{-(d+k)}$ from the nearest rounding boundary, rounding it to $d$ places is
 correct.
 
-If the check fails, which is rare, run passes 2 and 3 again with a few more
-places at the top. Cap the retries, because a result exactly on a boundary
-never passes. See [Exact ties](#exact-ties).
+If the check fails, which is rare, run passes 2 and 3 again with one more
+guard digit for the top node only. Most rules ask for $D$ plus a constant,
+so this adds about one place to every node below the top. Raising $k$
+everywhere would instead add one place per level. Cap the retries, because a
+result exactly on a boundary never passes. See [Exact ties](#exact-ties).
 
 ## Examples
 
@@ -291,20 +336,23 @@ $j = 2$.
 | $1/\sin(\ldots)$, with 4 places | $4 + 2 + 3 + 1 + 10 = 20$ | the sine |
 | $\sin(\ldots)$, with 20 places | $20 + 2 + 1 = 23$ | its argument |
 | | $23 + \mathrm{siz}(2) = 24$ | $\pi$, for the reduction |
-| $\pi - 0.00001$, with 23 places | $23 + 2 + 1 = 26$ | $\pi$ |
+| $\pi - 0.00001$, with 23 places | $23$, since $0.00001$ is exact | $\pi$ |
 
-$\pi$ has two parents, asking for 24 and 26 places, so it gets 26. The extra
+$\pi$ has two parents, asking for 24 and 23 places, so it gets 24. The extra
 10 places at the top come from $-2\mathrm{siz}(\bar{L})$: the derivative of
 $1/y$ is $-1/y^2$, about $10^{10}$ here, so the rules are charging for how
 sensitive the expression really is.
 
-**Evaluate.** The argument is $\tilde{\pi} - 0.00001$. The reduction by
+**Evaluate.** The argument is $\tilde{\pi} - 0.00001$, with 24 places. It has
+one inexact term, so it isn't rounded to 23. The reduction by
 $j = 2$ quarter turns gives $r \approx -0.00001$, and since $j$ is 2 more than a
 multiple of 4, $\sin x = -\sin r \approx 0.0000099999999998333$. The quotient
 rounds to $100000.0000$. The true value is $100000.0000016667\ldots$
 
 Because $\pi$ is one shared node, both uses get the same $\tilde{\pi}$, and they
-cancel exactly in the reduction: $r$ comes out as exactly $-0.00001$. The rules
+cancel exactly in the reduction: $r$ comes out as exactly $-0.00001$. Had the
+argument been rounded to 23 places, $r$ would be off by about
+$3 \times 10^{-24}$, still well within what the sine asked for. The rules
 don't know about that cancellation, so they ask for more places than needed,
 but never fewer.
 
@@ -336,16 +384,19 @@ $\sqrt{43}$ and $\bar{U} = 3.17$ for $\pi$:
 | Node | Asks | For |
 |---|---|---|
 | $1/y$, with 4 places | $4 + 2 + 3 + 1 + 6 = 16$ | $y$ |
-| $y$, with 16 places | $16 + 2 + 1 = 19$ | $E$ |
-| $E$, with 19 places | $19 + 2 + 2 + \lfloor 0.44 \cdot 20.601 \rfloor = 32$ | $x$ |
-| $x$, with 32 places | $32 + 2 + 1 + 1 = 36$ | each of $\pi$ and $\sqrt{43}$ |
+| $y$, with 16 places | $16$, since $884736744$ is exact | $E$ |
+| $E$, with 16 places | $16 + 2 + 2 + \lfloor 0.44 \cdot 20.601 \rfloor = 29$ | $x$ |
+| $x$, with 29 places | $29 + 2 + 1 + 1 = 33$ | each of $\pi$ and $\sqrt{43}$ |
 
-**Evaluate.** $E$ comes out as $884736743.9997774660\ldots$, $y$ as
-$-0.0002225339650933\ldots$, and the quotient as $-4493.6960503\ldots$ That
-rounds to $-4493.6961$, which is correct, but it is only about
-$3.1 \times 10^{-7}$ from the rounding boundary $-4493.69605$, less than
-$10^{-6}$, so the correct-rounding check fails. Running passes 2 and 3 again
-with $k = 3$ adds a place everywhere, and then the check passes.
+**Evaluate.** $E$ comes out as $884736743.9997774660349067$, $y$ as
+$-0.0002225339650933$, and the quotient as $-4493.6960503\ldots$ That rounds
+to $-4493.6961$, which is correct, but it is only about $3.1 \times 10^{-7}$
+from the rounding boundary $-4493.69605$, less than $10^{-6}$, so the
+correct-rounding check fails.
+
+Running passes 2 and 3 again with $k = 3$ for the top node asks $y$ for 17
+places, $E$ for 17, $x$ for 30, and $\pi$ and $\sqrt{43}$ for 34: one more
+place each. The check then needs a distance above $10^{-7}$, and passes.
 
 ## Corner cases
 
@@ -360,9 +411,15 @@ cases, such as $\sin(\pi) = 0$, before the passes start.
 
 If the true result is exactly on a rounding boundary, such as $0.45$ to 1
 place, the correct-rounding check never passes. Cap the retries. With exact
-inputs, exact arithmetic can settle it. For example,
-[division by truncation](../2026-11-02%20Rounding%20and%20error%20bounds/README.md#division-by-truncation)
-handles exact quotients. Otherwise, report the result as good to $d$ places.
+inputs, exact arithmetic can settle it: see
+[Exact ties](../2026-11-03%20Correct%20rounding/README.md#exact-ties) in
+Correct rounding. Otherwise, report the result as good to $d$ places.
+
+### Zero bounds
+
+A node whose interval is $[0, 0]$, such as a product with an exact factor 0,
+has $U = 0$, and $\mathrm{siz}(0)$ is undefined. When pass 1 finds such a node,
+replace it with an exact 0.
 
 ### Deep expressions
 
@@ -382,9 +439,11 @@ extra work.
 ## Outline of an implementation
 
 ```python
-def precision_for(expr, d, k=2):
-    graph = flatten_and_share(expr)          # flatten sums/products, merge repeats
+from decimal import Decimal
 
+
+def precision_for(expr, d, k=2, retries=5):
+    graph = flatten_and_share(expr)          # flatten sums/products, merge repeats
     intervals, best = {}, {}                 # best: most precise value per node
 
     # Pass 1: cheap bounds, tightening where a lower bound is needed
@@ -393,45 +452,63 @@ def precision_for(expr, d, k=2):
             if contains_zero(intervals[child]):
                 intervals[child] = tighten(child, intervals, best, k)
         intervals[node] = cheap_bounds(node, intervals)  # 5 figures, outward
+        if intervals[node] == (0, 0):
+            node.replace_with_exact_zero()
 
-    value = evaluate(graph.root, d, intervals, best, k)
-    correct = distance_to_boundary(value, d) > 10 ** -(d + k)
-    return rnd(value, d), correct
+    # Passes 2 and 3, with one more guard digit at the top on each retry
+    for k_top in range(k, k + retries + 1):
+        value = evaluate(graph.root, d, intervals, best, k, k_top)
+        if distance_to_boundary(value, d) > Decimal(10) ** -(d + k_top):
+            return rnd(value, d), True       # correctly rounded
+    return rnd(value, d), False              # good to d places only
 
 
 def tighten(node, intervals, best, k):
     p = 5
     while p <= 80:
-        v = evaluate(node, p, intervals, best, k)
-        lo, hi = v - 6 * 10 ** -(p + 1), v + 6 * 10 ** -(p + 1)
-        if lo > 0 or hi < 0:
-            return (lo, hi)
+        v = evaluate(node, p, intervals, best, k, k)
+        w = Decimal(6).scaleb(-(p + 1))      # 0.6 * 10^-p
+        if v - w > 0 or v + w < 0:
+            return (v - w, v + w)
         p *= 2
     raise ValueError(f"can't bound {node} away from 0")
 
 
-def evaluate(top, d, intervals, best, k):
+def evaluate(top, d, intervals, best, k, k_top):
     # Pass 2: places, parents before children
     places = {top: d}
     for node in top.top_down():
         D = places[node]
-        for child, wanted in rule_for(node).child_places(D, k, intervals):
+        is_top = node is top
+        rule = rule_for(node, is_top)        # a sum with one inexact term uses
+                                             # the n = 1 sum rule at the top
+        for child, wanted in rule.child_places(D, k_top if is_top else k, intervals):
             wanted = max(wanted, minimum_places(node, child, intervals))
             places[child] = max(places.get(child, wanted), wanted)
 
     # Pass 3: evaluate, children before parents
     for node in top.bottom_up():
         D = places[node]
-        if node in best and best[node].places >= D:
+        is_top = node is top
+        # Inner nodes must be good to D places. The top must be within
+        # 10^-(D + k_top) for the check, which being good to D + k_top ensures.
+        needed = D + k_top if is_top else D
+        if node in best and best[node].places >= needed:
             continue                                   # reuse a better value
         if node.is_exact_op():
             v = node.compute_exactly(best)
         else:
-            v = node.compute_to(best, D + k + 1)       # truncating is fine
-        best[node] = Value(v if node is top else rnd(v, D), places=D)
+            v = node.compute_to(best, D + (k_top if is_top else k) + 1)  # truncating is fine
+        if is_top:
+            good_to = D + k_top - 1      # within 10^-(D + k_top) = 0.1 * 10^-(D + k_top - 1)
+        else:
+            good_to = D
+            if not node.is_sum_with_one_inexact_term():
+                v = rnd(v, D)
+        best[node] = Value(v, places=good_to)
     return best[top].value
 ```
 
-`rule_for(node).child_places` is the table in
+`rule_for(node, is_top).child_places` is the table in
 [Rules for each operation](#rules-for-each-operation), and `minimum_places`
 is the rule in [Minimum places](#minimum-places).
