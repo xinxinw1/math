@@ -102,15 +102,100 @@ $[\ell, h]$ for a function of one argument.
 | $\ln x$ | $[a(\mathrm{siz}(\ell) - 1), b \cdot \mathrm{siz}(h)]$, after tightening $x$ if $\ell \le 0$ |
 | $\sin x$, $\cos x$ | $[-1, 1]$ |
 
-The factors $a$ and $b$ are rounded the safe way for the sign of what they
-multiply:
+The $a$ and $b$ in the exponential and logarithm rows are explained in their
+sections below.
 
-- **For e to the x,** they are $\log e \approx 0.4343$ rounded: $a = 0.43$ if
-  $\ell \ge 0$ and $0.44$ if $\ell < 0$, and $b = 0.44$ if $h \ge 0$ and $0.43$
-  if $h < 0$.
-- **For ln x,** they are $\ln 10 \approx 2.3026$ rounded: $a = 2.30$ if
-  $\mathrm{siz}(\ell) \ge 1$ and $2.31$ otherwise, and $b = 2.31$ if
-  $\mathrm{siz}(h) \ge 0$ and $2.30$ otherwise.
+#### Exact numbers and constants
+
+An exact number has no error, so its interval is a single point. A constant
+such as $\pi$, computed to 5 places, is good to 5 places, so the true value is
+within $0.6 \cdot 10^{-5}$ of it. The endpoints already have only 6 places, so
+there is nothing to round.
+
+#### Sums and differences
+
+$x + y$ is smallest when both $x$ and $y$ are, and largest when both are. $x - y$
+is smallest when $x$ is smallest and $y$ is largest, and largest the other way
+round.
+
+#### Products and quotients
+
+With $y$ fixed, $xy$ is a straight-line function of $x$, so it is largest and
+smallest at the ends of $x$'s interval, and the same holds with $x$ fixed. So
+the extremes over the box $[\ell_x, h_x] \times [\ell_y, h_y]$ are at its
+corners, and the interval is the smallest and largest of the four corner
+products.
+
+The same holds for $x / y$ as long as $y$ keeps one sign: then $x / y$ only
+goes up or only goes down in each of $x$ and $y$. If $y$'s interval contains
+0, $x / y$ can be arbitrarily large, so the divisor has to be
+[tightened](#tightening-by-evaluation) first.
+
+#### Powers
+
+For odd $n$, $x^n$ is increasing, so the ends of the interval go to the ends.
+For even $n$, $x^n$ decreases for negative $x$ and increases for positive $x$.
+If the interval doesn't contain 0, $x^n$ is monotonic on it, and taking the
+smaller and larger of $\ell^n$ and $h^n$ handles either sign. If it contains 0,
+the smallest value is $0^n = 0$, and the largest is at whichever end is
+further from 0.
+
+#### Square roots
+
+$\sqrt{x}$ is increasing, so the interval is $[\sqrt{\ell}, \sqrt{h}]$. Its ends
+are computed to 5 places, so each is within $0.6 \cdot 10^{-5}$ of the true
+root, and widening each end by that much keeps the true value inside. A square
+root is never negative, so the lower end is at least 0. If $\ell \le 0$, the
+true $x$ can be as small as 0, so $s_1 = 0$.
+
+#### Exponentials
+
+$e^x$ is increasing, so the true value is in $[e^\ell, e^h]$. Instead of
+computing these, write $e^x = 10^{x \log e}$ and round the exponent to a whole
+number, outward. That gives a power of 10, which is all the rules need, since
+they mostly use sizes.
+
+$\log e \approx 0.4343$ has to be rounded the safe way for the sign of what it
+multiplies:
+
+- **Lower end.** $10^{\lfloor a\ell \rfloor} \le e^\ell$ needs
+  $a\ell \le \ell \log e$. For $\ell \ge 0$ that means $a \le \log e$, so
+  $a = 0.43$. For $\ell < 0$ it means $a \ge \log e$, so $a = 0.44$.
+- **Upper end.** $10^{\lceil bh \rceil} \ge e^h$ needs $bh \ge h \log e$. So
+  $b = 0.44$ if $h \ge 0$ and $b = 0.43$ if $h < 0$.
+
+The floor and ceiling can each lose a factor of 10, and the rounding of
+$\log e$ loses a little more when $|x|$ is large.
+
+#### Logarithms
+
+$\ln x$ is increasing, so the true value is in $[\ln \ell, \ln h]$, which needs
+$\ell > 0$. If $\ell \le 0$, tighten $x$ first. Instead of computing the
+logarithms, write $\ln x = \ln 10 \cdot \log x$ and use the sizes:
+$\log \ell \ge \mathrm{siz}(\ell) - 1$ and $\log h < \mathrm{siz}(h)$.
+
+$\ln 10 \approx 2.3026$ is rounded the safe way for the sign of the size it
+multiplies:
+
+- **Lower end.** $a(\mathrm{siz}(\ell) - 1) \le \ln \ell$ holds if
+  $a(\mathrm{siz}(\ell) - 1) \le \ln 10 \cdot (\mathrm{siz}(\ell) - 1)$. So
+  $a = 2.30$ if $\mathrm{siz}(\ell) \ge 1$, and $a = 2.31$ otherwise.
+- **Upper end.** $b \cdot \mathrm{siz}(h) \ge \ln h$ holds if
+  $b \cdot \mathrm{siz}(h) \ge \ln 10 \cdot \mathrm{siz}(h)$. So $b = 2.31$ if
+  $\mathrm{siz}(h) \ge 0$, and $b = 2.30$ otherwise.
+
+Using sizes in place of logarithms loses up to $\ln 10 \approx 2.3$ at each
+end.
+
+#### Sine and cosine
+
+Sines and cosines are always between $-1$ and 1. A narrower interval is
+possible when $x$'s interval is short, but $[-1, 1]$ is usually enough: as
+an upper bound it has size 1. A sine or cosine used as a divisor or a
+logarithm argument contains 0, so it gets
+[tightened](#tightening-by-evaluation) anyway.
+
+#### How crude the bounds are
 
 The bounds for $e^x$ and $\ln x$ are crude: they can be off by a factor of 10
 or more. Most rules use an upper bound only through $\mathrm{siz}$, so there
