@@ -77,14 +77,16 @@ theorem sq_rat_iff {a b : ℤ} (hb : 0 ≤ b) (ha : Real.sqrt b ≤ a) :
       apply hirr.ne_rat ((q - 2 * a) / 2)
       have h : Real.sqrt ((a : ℝ) ^ 2 - b) = ((q : ℝ) - 2 * a) / 2 := by linarith
       rw [h]
-      push_cast <;> ring
+      push_cast
+      ring
   · rintro ⟨c, hc0, hc⟩
     refine ⟨2 * a + 2 * c, ?_⟩
     have h : Real.sqrt ((a : ℝ) ^ 2 - b) = c := by
       rw [show (a : ℝ) ^ 2 - b = (c : ℝ) ^ 2 by exact_mod_cast hc]
       exact Real.sqrt_sq (by exact_mod_cast hc0)
     rw [hS, h]
-    push_cast <;> ring
+    push_cast
+    ring
 
 /-- For integers with `b` squarefree, `S a b` is never rational. -/
 theorem S_ne_rat {a b : ℤ} (hb : 0 ≤ b) (hsf : Squarefree b)
@@ -97,7 +99,8 @@ theorem S_ne_rat {a b : ℤ} (hb : 0 ≤ b) (hsf : Squarefree b)
   have hsq : S a b ^ 2 = ((2 * (a + c) : ℤ) : ℝ) := by
     rw [S_sq hb' ha, show (a : ℝ) ^ 2 - b = (c : ℝ) ^ 2 by exact_mod_cast hc,
       Real.sqrt_sq (by exact_mod_cast hc0)]
-    push_cast <;> ring
+    push_cast
+    ring
   -- A rational square root of an integer is an integer, so `S = m`.
   have hint : ∃ m : ℤ, S a b = m := by
     by_contra hnot
