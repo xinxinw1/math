@@ -31,6 +31,23 @@ example `2026-11-01 Cubic formula identities`.
 - Shared material, such as the Lean install instructions, goes in the root
   `README.md`. Topic READMEs link to it with `../README.md`.
 
+## Checking Lean proofs
+
+**Don't try to install Lean when running in the claude.ai cloud environment**
+(Claude Code on the web, where `CLAUDE_CODE_REMOTE` is `true`). The network
+policy there blocks GitHub and the Mathlib cache hosts, so elan can't download
+a toolchain and `lake exe cache get` fails. Building Mathlib from source isn't
+practical either.
+
+Instead:
+
+- Keep changes to a proof small and easy to review.
+- Set the status note in the README to say the current version hasn't been
+  checked.
+- Ask the user to check the file on <https://live.lean-lang.org> using its
+  stable release. Once they confirm there are no errors or warnings, update the
+  status note to say so.
+
 ## Writing math in GitHub Markdown
 
 The notes in this repo are Markdown files rendered by GitHub, which displays
