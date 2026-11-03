@@ -68,7 +68,7 @@ upper ends up, so that the true value stays inside.
 | $x + y$, $x - y$ | add or subtract the matching ends |
 | $xy$ | the smallest and largest of the four products of ends |
 | $x / y$ | $x$ times $[1/h_y, 1/\ell_y]$, if $0$ is not in $y$'s interval |
-| $x^n$ | the ends to the $n$th power, and $0$ if $n$ is even and the interval contains $0$ |
+| $x^n$ | each end raised to the power $n$, and $0$ if $n$ is even and the interval contains $0$ |
 | $\sqrt{x}$, $e^x$, $\ln x$ | the function at the two ends, since these only go up |
 | $\sin x$, $\cos x$ | see [Sine and cosine](#sine-and-cosine) below |
 | Constants | the value rounded down and up, such as $[3.1415, 3.1416]$ for $\pi$ |

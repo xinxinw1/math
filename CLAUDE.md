@@ -75,6 +75,11 @@ something that rendered wrong in this repo.
   risky pattern. Avoid the `}` before the first subscript, for example
   `\tilde t_n` instead of `\tilde{t}_n`, which displays the same.
 
+- **Don't run letters straight on after inline math.** In `the $n$th power`,
+  GitHub didn't treat the second `$` as closing the math, because a letter
+  follows it, and showed `$n$th` as plain text. Reword instead, for example
+  `the power $n$`.
+
 - **Long display equations scroll sideways on phones.** Split very wide
   equations across lines, or accept the horizontal scroll.
 
@@ -108,6 +113,12 @@ Find math where an underscore could open and close italics:
 
 ```bash
 grep -n '\$[^$]*[})]_[A-Za-z0-9][^$]*_{[^$]*\$' path/to/README.md
+```
+
+Find inline math followed directly by a letter or digit:
+
+```bash
+grep -n '\$[^$ ]*\$[A-Za-z0-9]' path/to/README.md
 ```
 
 Find math inside italic or bold text:
