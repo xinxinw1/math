@@ -78,7 +78,8 @@ computed, without rounding them again.
 |---|---|
 | Exact numbers | the number itself |
 | Constants | the constant evaluated to 5 places, widened by $0.6 \cdot 10^{-5}$, such as $[3.141584, 3.141596]$ for $\pi$ |
-| $x + y$, $x - y$ | add or subtract the matching ends |
+| $x + y$ | $[\ell_x + \ell_y, h_x + h_y]$: add the matching ends |
+| $x - y$ | $[\ell_x - h_y, h_x - \ell_y]$: subtract the opposite ends |
 | $xy$ | the smallest and largest of the four products of ends |
 | $x / y$ | $x$ times $[1/h_y, 1/\ell_y]$, after [tightening](#tightening-by-evaluation) $y$ if its interval contains 0 |
 | $x^n$ | each end raised to the power $n$, and $0$ if $n$ is even and the interval contains $0$ |
