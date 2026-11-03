@@ -162,3 +162,5 @@ too.
   are $1 - \log(1 + \frac{1}{\varepsilon x})$ and
   $1 - \log(1 + \varepsilon x)$, and both are less than 1.
 - Like the other bounds, this one uses the true $x$.
+
+Next: [Cosine](../2015-03-17%206%20Cosine/README.md).
