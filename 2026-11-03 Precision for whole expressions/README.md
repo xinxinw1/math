@@ -202,7 +202,8 @@ a looser $U$ costs a place or so. Two things are more sensitive:
 
 The rules need a lower bound above 0 for:
 
-- **Divisors.** The quotient rule uses a lower bound $L_y$.
+- **Divisors.** The quotient and reciprocal rules use a lower bound on the
+  divisor.
 - **Logarithm arguments.** The logarithm rule uses $L_x$.
 
 Square root arguments aren't tightened. If one's interval contains 0, the
@@ -264,6 +265,7 @@ the sign of $x$ matters there. A node with $d$ places asks its children for:
 | Sum or difference with 1 inexact term | $d$ |
 | Product of $n$ inexact factors | factor $i$: $\max\left(d + k + \mathrm{siz}(n) + \sum_{j \ne i} \mathrm{siz}(1.01U_j), 3 - \mathrm{siz}(U_i)\right)$ |
 | $x / y$ | $x$: $d + k + 2 - \mathrm{siz}(0.99L_y)$, and $y$: $\max(d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(0.99L_y), 3 - \mathrm{siz}(L_y))$ |
+| $1/x$ | $\max(d + k + 3 - 2\mathrm{siz}(L_x), 2 - \mathrm{siz}(L_x))$ |
 | $x^n$, $n \le 8$ | $\max(d + k + 1 + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
 | $x^n$, any $n$ | $\max(d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
 | $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ if there is no $L_x$ |
@@ -286,6 +288,8 @@ Notes:
   it unrounded. The top node is the exception: it asks for $d + k + 1$, the
   general sum rule with $n = 1$, so that the
   [correct-rounding check](#correct-rounding) has its guard digits.
+- **A quotient whose dividend is exactly 1** uses the reciprocal rule, which
+  asks for one place fewer.
 - **Products with one inexact factor,** such as $3x$, can use one place fewer:
   $d + k$ plus the sizes of the exact factors.
 - **Exponentials** use the upper end $h_x$ of the interval, since that is where
@@ -374,23 +378,23 @@ Take $d = 4$ and $k = 2$.
 **Bounds.** The cheap bound for the sine is $[-1, 1]$. It contains 0, and the
 sine is a divisor, so tighten it: evaluate $\sin(\pi - 0.00001)$ to 5 places.
 That gives $0.00001$, so the sine is in $[0.000004, 0.000016]$, which excludes
-0 at the first try. So $0.99L = 0.99 \cdot 0.000004$, of size $-5$.
+0 at the first try. So $L = 0.000004$, of size $-5$.
 
 **Places.**
 
 | Node | Asks | For |
 |---|---|---|
-| $1/\sin(\ldots)$, with 4 places | $4 + 2 + 3 + 1 + 10 = 20$ | the sine |
-| $\sin(\ldots)$, with 20 places | $20 + 2 + 1 = 23$ | its argument |
-| $\pi - 0.00001$, with 23 places | $23$, since $0.00001$ is exact | $\pi$ |
+| $1/\sin(\ldots)$, with 4 places | $\max(4 + 2 + 3 + 10, 2 + 5) = 19$ | the sine |
+| $\sin(\ldots)$, with 19 places | $19 + 2 + 1 = 22$ | its argument |
+| $\pi - 0.00001$, with 22 places | $22$, since $0.00001$ is exact | $\pi$ |
 
-The extra 10 places at the top come from $-2\mathrm{siz}(0.99L)$: the derivative of
+The extra 10 places at the top come from $-2\mathrm{siz}(L)$: the derivative of
 $1/y$ is $-1/y^2$, about $10^{10}$ here, so the rules are charging for how
 sensitive the expression really is.
 
-**Evaluate.** The argument is $\tilde{\pi} - 0.00001$, with $\pi$ to 23 places.
-Its sine, to $20 + 2 + 1 = 23$ places, is $0.00000999999999983333334$, and
-rounded to 20 places it is $0.00000999999999983333$. The quotient, cut off at
+**Evaluate.** The argument is $\tilde{\pi} - 0.00001$, with $\pi$ to 22 places.
+Its sine, to $19 + 2 + 1 = 22$ places, is $0.0000099999999998333334$, and
+rounded to 19 places it is $0.0000099999999998333$. The reciprocal, cut off at
 $4 + 2 + 1 = 7$ places, is $100000.0000016$, which rounds to $100000.0000$.
 The true value is $100000.0000016667\ldots$
 
@@ -414,27 +418,29 @@ $y$ is a divisor, so tighten it. Evaluating $y$ to 5 places needs no bounds on
 the terms of the difference, and the rest of its place counts come from the
 cheap bounds below it. That gives $-0.00022$, so $y$ is in
 $[-0.000226, -0.000214]$, which excludes 0 at the first try. So
-$0.99L = 0.99 \cdot 0.000214$, of size $-3$.
+$L = 0.000214$, of size $-3$.
 
 **Places.** Using the upper bounds $h_x = 20.601$, $1.01U = 6.62$ for
 $\sqrt{43}$ and $1.01U = 3.17$ for $\pi$:
 
 | Node | Asks | For |
 |---|---|---|
-| $1/y$, with 4 places | $4 + 2 + 3 + 1 + 6 = 16$ | $y$ |
-| $y$, with 16 places | $16$, since $884736744$ is exact | $E$ |
-| $E$, with 16 places | $16 + 2 + 2 + \lfloor 0.44 \cdot 20.601 \rfloor = 29$ | $x$ |
-| $x$, with 29 places | $29 + 2 + 1 + 1 = 33$ | each of $\pi$ and $\sqrt{43}$ |
+| $1/y$, with 4 places | $\max(4 + 2 + 3 + 6, 2 + 3) = 15$ | $y$ |
+| $y$, with 15 places | $15$, since $884736744$ is exact | $E$ |
+| $E$, with 15 places | $15 + 2 + 2 + \lfloor 0.44 \cdot 20.601 \rfloor = 28$ | $x$ |
+| $x$, with 28 places | $28 + 2 + 1 + 1 = 32$ | each of $\pi$ and $\sqrt{43}$ |
 
-**Evaluate.** $E$ comes out as $884736743.9997774660349067$, $y$ as
-$-0.0002225339650933$, and the quotient as $-4493.6960503\ldots$ That rounds
-to $-4493.6961$, which is correct, but it is only about $3.1 \times 10^{-7}$
-from the rounding boundary $-4493.69605$, less than $10^{-6}$, so the
-correct-rounding check fails.
+**Evaluate.** $E$ comes out as $884736743.999777466034907$, $y$ as
+$-0.000222533965093$, and the reciprocal, cut off at 7 places, as
+$-4493.6960503$. That rounds to $-4493.6961$, which is correct, but it is only
+about $3 \times 10^{-7}$ from the rounding boundary $-4493.69605$, less than
+$10^{-6}$, so the correct-rounding check fails.
 
-Running passes 2 and 3 again with $k = 3$ for the top node asks $y$ for 17
-places, $E$ for 17, $x$ for 30, and $\pi$ and $\sqrt{43}$ for 34: one more
-place each. The check then needs a distance above $10^{-7}$, and passes.
+Running passes 2 and 3 again with $k = 3$ for the top node asks $y$ for 16
+places, $E$ for 16, $x$ for 29, and $\pi$ and $\sqrt{43}$ for 33: one more
+place each. The reciprocal, cut off at 8 places, is $-4493.69605031$, about
+$3.1 \times 10^{-7}$ from the boundary. The check now needs a distance above
+$10^{-7}$, so it passes.
 
 ## Corner cases
 

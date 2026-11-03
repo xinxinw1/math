@@ -1,7 +1,7 @@
 # Input places for functions
 
-How many decimal places the input to a square root, exponential, logarithm,
-sine or cosine needs so that the output, rounded to $d$ places, is accurate.
+How many decimal places the input to a reciprocal, square root, exponential,
+logarithm, sine or cosine needs so that the output, rounded to $d$ places, is accurate.
 
 *Xin-Xin*
 
@@ -59,10 +59,58 @@ cover $\tilde{x}$.
 
 | Operation | Input places |
 |---|---|
+| $1/x$ | $\max(d + k + 3 - 2\mathrm{siz}(L_x), 2 - \mathrm{siz}(L_x))$ |
 | $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ with no lower bound |
 | $e^x$ | $d + k + 2 + \lfloor 0.44 U_x \rfloor$ for $x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 L_x \rceil)$ for $x < 0$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
 | $\sin x$, $\cos x$ | $d + k + 1$ |
+
+## Reciprocals
+
+**Rule.** With a lower bound $L_x \le |x|$ on the true value,
+
+$$d_x = \max(d + k + 3 - 2\mathrm{siz}(L_x), 2 - \mathrm{siz}(L_x)).$$
+
+Then compute $1/\tilde{x}$ to $d + k + 1$ places, for example by
+[truncating division](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#division-by-truncation).
+For negative $x$, work with $|x|$ and attach the sign at the end.
+
+The second part only takes over when $|x|$ is so large that $1/x$ is below
+about $10^{-(d+k)}$. This asks for one place fewer than the quotient rule with
+an exact numerator 1, which has to cover $\tilde{x}$ with $0.99L_x$.
+
+**Example.** For $1/\pi$ good to $d = 4$ places, with $k = 2$: $\pi > 3$, of
+size 1, so $\pi$ needs $\max(4 + 2 + 3 - 2, 2 - 1) = 7$ places. So
+$\tilde{x} = 3.1415927$, and $1/\tilde{x}$ cut off at $4 + 2 + 1 = 7$ places is
+$0.3183098$, which rounds to $0.3183$. (The true value is
+$0.3183098861\ldots$)
+
+**Why.** For $f(x) = 1/x$, which is decreasing on $(0, \infty)$ with inverse
+$1/y$, Theorem 5 gives
+
+$$\delta^{+} = \frac{1}{1/x - \eta} - x = \frac{\eta x^2}{1 - \eta x}, \qquad \delta^{-} = x - \frac{1}{1/x + \eta} = \frac{\eta x^2}{1 + \eta x},$$
+
+where $\delta^{+}$ is for $\eta x < 1$, and is $\infty$ otherwise. $\delta^{-}$ is
+the smaller, so $\delta(x) = \eta x^2 / (1 + \eta x)$. It grows with $x$, so
+the worst case is the lower bound. Since $\delta(L_x) < L_x$, $\tilde{x}$ is
+automatically positive. The exact count is
+
+$$d_x = \left\lceil \log c - \log\frac{\eta L_x^2}{1 + \eta L_x} \right\rceil.$$
+
+The division can't be computed exactly, so $\eta = T/2$ and
+$-\log \eta = d + k + \log 2$. There are two cases:
+
+- **If ηL is at most 1,** then $1 + \eta L_x \le 2$, and the count is at most
+  $d + k + \log(4c) - 2\log L_x$. Since $\log(4c) \le \log 2.4 < 1$ and
+  $-2\log L_x \le 2 - 2\mathrm{siz}(L_x)$, the first part is enough.
+- **If ηL is above 1,** then $1 + \eta L_x < 2\eta L_x$, and the count is
+  less than $\log(2c) - \log L_x$. Since $\log(2c) < 1$ and
+  $-\log L_x \le 1 - \mathrm{siz}(L_x)$, the second part is enough.
+
+With $k = 2$ and $\mathrm{nsiz} = \mathrm{siz} - 1$, this is the 2015 rule
+$d_1 \ge \max(1 - \mathrm{nsiz}(x), d + 3 - 2\mathrm{nsiz}(x))$ from the
+[2015 notes on reciprocals](../2015-03-17%205%20Reciprocals/README.md), which used the same
+two cases.
 
 ## Square roots
 

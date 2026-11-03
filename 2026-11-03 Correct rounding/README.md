@@ -135,7 +135,7 @@ rounded.
 
 For a check that fails, see
 [1/(e^(π√43) − 884736744)](../2026-11-03%20Precision%20for%20whole%20expressions/README.md#1eπ43--884736744-to-4-places)
-in Precision for whole expressions. There $\tilde{f} = -4493.6960503\ldots$
-is only $3.1 \times 10^{-7}$ from the boundary $-4493.69605$, less than
+in Precision for whole expressions. There $\tilde{f} = -4493.6960503$ is only
+about $3 \times 10^{-7}$ from the boundary $-4493.69605$, less than
 $T = 10^{-6}$. One more guard digit makes $\eta = 10^{-7}$, and the check
 then passes.

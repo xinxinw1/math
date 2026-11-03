@@ -119,7 +119,7 @@ bound works, and a looser one costs at most a digit or so.
 
 The product, quotient and power rules below come from error formulas that mix
 $x$ and $\tilde{x}$, so they need bounds that also cover $|\tilde{x}|$. The
-square root, exponential and logarithm rules in
+reciprocal, square root, exponential and logarithm rules in
 [Input places for functions](../2026-11-02%203%20Input%20places%20for%20functions/README.md) fix the true $x$, so they don't.
 
 You don't know $\tilde{x}$ yet when you choose the places, but it will be
@@ -354,6 +354,9 @@ $y$ in $[0.9 \cdot 10^{-5}, 1.1 \cdot 10^{-5}]$ and $d = 2$, $L_y$ and
 $\bar{L}_y$ both have size $-5$, and the rule asks $y$ for
 $2 + 2 + 3 - 19 + 10 = -2$ places, which would round $y$ to 0. The minimum
 asks for $3 - (-5) = 8$.
+
+For $1/y$, use the [reciprocal rule](../2026-11-02%203%20Input%20places%20for%20functions/README.md#reciprocals) instead. It
+asks for one place fewer, because there is no dividend error to budget for.
 
 **Why.** For $x / y$,
 
