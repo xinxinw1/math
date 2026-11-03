@@ -118,7 +118,7 @@ grep -n '\$[^$]*[})]_[A-Za-z0-9][^$]*_{[^$]*\$' path/to/README.md
 Find inline math followed directly by a letter or digit:
 
 ```bash
-grep -n '\$[^$ ]*\$[A-Za-z0-9]' path/to/README.md
+grep -n '\(^\|[^$]\)\$[^$ ]\+\$[A-Za-z0-9]' path/to/README.md
 ```
 
 Find math inside italic or bold text:
