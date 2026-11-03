@@ -69,19 +69,20 @@ evaluation that is needed anyway.
 
 ### Cheap bounds
 
-Go through the nodes from the bottom up. Use interval arithmetic rounded
+Go through the nodes from the bottom up. Round the results of arithmetic
 outward to 5 significant figures: lower ends down and upper ends up, so that
-the true value stays inside.
+the true value stays inside. Use constants and function values exactly as
+computed, without rounding them again.
 
 | Node | Cheap interval |
 |---|---|
 | Exact numbers | the number itself |
-| Constants | the constant evaluated to 5 places, widened by $0.6 \cdot 10^{-5}$, such as $[3.1415, 3.1416]$ for $\pi$ |
+| Constants | the constant evaluated to 5 places, widened by $0.6 \cdot 10^{-5}$, such as $[3.141584, 3.141596]$ for $\pi$ |
 | $x + y$, $x - y$ | add or subtract the matching ends |
 | $xy$ | the smallest and largest of the four products of ends |
 | $x / y$ | $x$ times $[1/h_y, 1/\ell_y]$, after [tightening](#tightening-by-evaluation) $y$ if its interval contains 0 |
 | $x^n$ | each end raised to the power $n$, and $0$ if $n$ is even and the interval contains $0$ |
-| $\sqrt{x}$ | $[10^{\lfloor (\mathrm{siz}(\ell) - 1)/2 \rfloor}, 10^{\lceil \mathrm{siz}(h)/2 \rceil}]$, with lower end $0$ if $\ell \le 0$ |
+| $\sqrt{x}$ | $\sqrt{\ell}$ and $\sqrt{h}$, each evaluated to 5 places and widened by $0.6 \cdot 10^{-5}$, with lower end $0$ if $\ell \le 0$ |
 | $e^x$ | lower end $10^{\lfloor a\ell \rfloor}$, upper end $10^{\lceil bh \rceil}$ |
 | $\ln x$ | $\ln 10$ times $[\mathrm{siz}(\ell) - 1, \mathrm{siz}(h)]$, after tightening $x$ if $\ell \le 0$ |
 | $\sin x$, $\cos x$ | $[-1, 1]$ |
@@ -91,8 +92,8 @@ $\ell \ge 0$ and $0.44$ if $\ell < 0$, and $b = 0.44$ if $h \ge 0$ and $0.43$
 if $h < 0$. For $\ln x$, use $2.30 < \ln 10 < 2.31$, again rounded the safe way
 for the sign of each end.
 
-The function bounds are crude: they can be off by a factor of 10 or more. That
-is fine for upper bounds, where a looser $U$ only costs a place or so, through
+The bounds for $e^x$ and $\ln x$ are crude: they can be off by a factor of 10
+or more. That is fine for upper bounds, where a looser $U$ only costs a place or so, through
 $\mathrm{siz}$. It only matters for lower bounds.
 
 ### Tightening by evaluation
@@ -232,30 +233,30 @@ never passes. See [Exact ties](#exact-ties).
 
 Take $d = 4$ and $k = 2$.
 
-**Bounds.** $\pi$ is in $[3.1415, 3.1416]$ and $e$ in $[2.7182, 2.7183]$, so
-$\pi + e$ is in $[5.8597, 5.8599]$. The cheap bound for $\sqrt{2}$, with
-$\mathrm{siz}(2) = 1$, is $[10^0, 10^1] = [1, 10]$. No divisor's interval
-contains 0, so nothing needs tightening. The bounds used are $U = 5.8599$ for
-$\pi + e$, of size 1, and $\bar{L} = 0.99$ for $\sqrt{2}$, of size 0.
+**Bounds.** $\pi$ is in $[3.141584, 3.141596]$ and $e$ in
+$[2.718274, 2.718286]$, so $\pi + e$ is in $[5.8598, 5.8599]$. $\sqrt{2}$ to 5
+places is $1.41421$, so $\sqrt{2}$ is in $[1.414204, 1.414216]$. No divisor's
+interval contains 0, so nothing needs tightening. The bounds used are
+$U = 5.8599$ for $\pi + e$, of size 1, and
+$\bar{L} = 0.99 \cdot 1.414204 = 1.40006\ldots$ for $\sqrt{2}$, also of size 1.
 
 **Places.**
 
 | Node | Asks | For |
 |---|---|---|
-| $(\pi + e)/\sqrt{2}$, with 4 places | $4 + 2 + 2 - 0 = 8$ | $\pi + e$ |
-| | $4 + 2 + 3 + 1 - 0 = 10$ | $\sqrt{2}$ |
-| $\pi + e$, with 8 places | $8 + 2 + 1 = 11$ | each of $\pi$ and $e$ |
-| $\sqrt{2}$, with 10 places | $10 + 2 - 0 = 12$ | $2$, which is exact |
+| $(\pi + e)/\sqrt{2}$, with 4 places | $4 + 2 + 2 - 1 = 7$ | $\pi + e$ |
+| | $4 + 2 + 3 + 1 - 2 = 8$ | $\sqrt{2}$ |
+| $\pi + e$, with 7 places | $7 + 2 + 1 = 10$ | each of $\pi$ and $e$ |
+| $\sqrt{2}$, with 8 places | $8 + 2 - 0 = 10$ | $2$, which is exact |
 
-The crude bound for $\sqrt{2}$ costs a place or two compared with a tight one,
-which would give 7 and 8 places at the top.
+The minimum places for $\sqrt{2}$, $3 - 1 = 2$, are well below 8.
 
 **Evaluate.**
 
-- $\pi + e$: $3.14159265359 + 2.71828182846 = 5.85987448205$, rounded to 8
-  places: $5.85987448$.
-- $\sqrt{2}$ to $10 + 2 + 1 = 13$ places, rounded to 10: $1.4142135624$.
-- The quotient cut off at $4 + 2 + 1 = 7$ places: $4.1435569$.
+- $\pi + e$: $3.1415926536 + 2.7182818285 = 5.8598744821$, rounded to 7 places:
+  $5.8598745$.
+- $\sqrt{2}$ to $8 + 2 + 1 = 11$ places, rounded to 8: $1.41421356$.
+- The quotient cut off at $4 + 2 + 1 = 7$ places: $4.1435570$.
 
 It is about $7 \times 10^{-6}$ from the nearest rounding boundary, $4.14355$,
 more than $10^{-(4+2)} = 10^{-6}$, so rounding it gives the correctly rounded
@@ -270,7 +271,7 @@ Take $d = 4$ and $k = 2$.
 sine is a divisor, so tighten it: evaluate $\sin(\pi - 0.00001)$ to 5 places.
 That gives $0.00001$, so the sine is in $[0.000004, 0.000016]$, which excludes
 0 at the first try. So $\bar{L} = 0.99 \cdot 0.000004$, of size $-5$. The
-argument's cheap interval is about $[3.1415, 3.1416]$, about 2 quarter turns, so
+argument's cheap interval is $[3.141574, 3.141586]$, about 2 quarter turns, so
 $j = 2$.
 
 **Places.**
@@ -307,10 +308,10 @@ Take $d = 4$ and $k = 2$.
 
 | Node | Cheap interval |
 |---|---|
-| $\pi$ | $[3.1415, 3.1416]$ |
-| $\sqrt{43}$, with $\mathrm{siz}(43) = 2$ | $[10^0, 10^1] = [1, 10]$ |
-| $x = \pi\sqrt{43}$ | $[3.1415, 31.416]$ |
-| $E = e^x$ | $[10^{\lfloor 0.43 \cdot 3.1415 \rfloor}, 10^{\lceil 0.44 \cdot 31.416 \rceil}] = [10, 10^{14}]$ |
+| $\pi$ | $[3.141584, 3.141596]$ |
+| $\sqrt{43}$, which is $6.55744$ to 5 places | $[6.557434, 6.557446]$ |
+| $x = \pi\sqrt{43}$ | $[20.600, 20.601]$ |
+| $E = e^x$ | $[10^{\lfloor 0.43 \cdot 20.600 \rfloor}, 10^{\lceil 0.44 \cdot 20.601 \rceil}] = [10^8, 10^{10}]$ |
 | $y = E - 884736744$ | contains 0 |
 
 $y$ is a divisor, so tighten it. Evaluating $y$ to 5 places needs no bounds on
@@ -319,19 +320,15 @@ cheap bounds below it. That gives $-0.00022$, so $y$ is in
 $[-0.000226, -0.000214]$, which excludes 0 at the first try. So
 $\bar{L} = 0.99 \cdot 0.000214$, of size $-3$.
 
-**Places.** Using the cheap upper bounds $h_x = 31.416$, $\bar{U} = 10.1$ for
+**Places.** Using the upper bounds $h_x = 20.601$, $\bar{U} = 6.62$ for
 $\sqrt{43}$ and $\bar{U} = 3.17$ for $\pi$:
 
 | Node | Asks | For |
 |---|---|---|
 | $1/y$, with 4 places | $4 + 2 + 3 + 1 + 6 = 16$ | $y$ |
 | $y$, with 16 places | $16 + 2 + 1 = 19$ | $E$ |
-| $E$, with 19 places | $19 + 2 + 2 + \lfloor 0.44 \cdot 31.416 \rfloor = 36$ | $x$ |
-| $x$, with 36 places | $36 + 2 + 1 + 2 = 41$ | $\pi$ |
-| | $36 + 2 + 1 + 1 = 40$ | $\sqrt{43}$ |
-
-The crude bounds cost a few places: with $x$'s tight upper bound of about
-$20.6$, $x$ would need 32 places instead of 36.
+| $E$, with 19 places | $19 + 2 + 2 + \lfloor 0.44 \cdot 20.601 \rfloor = 32$ | $x$ |
+| $x$, with 32 places | $32 + 2 + 1 + 1 = 36$ | each of $\pi$ and $\sqrt{43}$ |
 
 **Evaluate.** $E$ comes out as $884736743.9997774660\ldots$, $y$ as
 $-0.0002225339650933\ldots$, and the quotient as $-4493.6960503\ldots$ That
