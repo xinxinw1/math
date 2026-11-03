@@ -74,24 +74,33 @@ outward to 5 significant figures: lower ends down and upper ends up, so that
 the true value stays inside. Use constants and function values exactly as
 computed, without rounding them again.
 
+Here $x$ is in $[\ell_x, h_x]$ and $y$ in $[\ell_y, h_y]$, or $x$ is in
+$[\ell, h]$ for a function of one argument.
+
 | Node | Cheap interval |
 |---|---|
-| Exact numbers | the number itself |
-| Constants | the constant evaluated to 5 places, widened by $0.6 \cdot 10^{-5}$, such as $[3.141584, 3.141596]$ for $\pi$ |
-| $x + y$ | $[\ell_x + \ell_y, h_x + h_y]$: add the matching ends |
-| $x - y$ | $[\ell_x - h_y, h_x - \ell_y]$: subtract the opposite ends |
-| $xy$ | the smallest and largest of the four products of ends |
-| $x / y$ | $x$ times $[1/h_y, 1/\ell_y]$, after [tightening](#tightening-by-evaluation) $y$ if its interval contains 0 |
-| $x^n$ | each end raised to the power $n$, and $0$ if $n$ is even and the interval contains $0$ |
-| $\sqrt{x}$ | $\sqrt{\ell}$ and $\sqrt{h}$, each evaluated to 5 places and widened by $0.6 \cdot 10^{-5}$, with lower end $0$ if $\ell \le 0$ |
-| $e^x$ | lower end $10^{\lfloor a\ell \rfloor}$, upper end $10^{\lceil bh \rceil}$ |
-| $\ln x$ | $\ln 10$ times $[\mathrm{siz}(\ell) - 1, \mathrm{siz}(h)]$, after tightening $x$ if $\ell \le 0$ |
+| Exact number $a$ | $[a, a]$ |
+| Constant | $[c - 0.6 \cdot 10^{-5}, c + 0.6 \cdot 10^{-5}]$, where $c$ is the constant to 5 places |
+| $x + y$ | $[\ell_x + \ell_y, h_x + h_y]$ |
+| $x - y$ | $[\ell_x - h_y, h_x - \ell_y]$ |
+| $xy$ | $[\min(\ell_x \ell_y, \ell_x h_y, h_x \ell_y, h_x h_y), \max(\ell_x \ell_y, \ell_x h_y, h_x \ell_y, h_x h_y)]$ |
+| $x / y$ | $[\min(\ell_x / \ell_y, \ell_x / h_y, h_x / \ell_y, h_x / h_y), \max(\ell_x / \ell_y, \ell_x / h_y, h_x / \ell_y, h_x / h_y)]$, after [tightening](#tightening-by-evaluation) $y$ if $\ell_y \le 0 \le h_y$ |
+| $x^n$, $n$ odd | $[\ell^n, h^n]$ |
+| $x^n$, $n$ even | $[\min(\ell^n, h^n), \max(\ell^n, h^n)]$, or $[0, \max(\ell^n, h^n)]$ if $\ell \le 0 \le h$ |
+| $\sqrt{x}$ | $[\max(0, s_1 - 0.6 \cdot 10^{-5}), s_2 + 0.6 \cdot 10^{-5}]$, where $s_1$ and $s_2$ are $\sqrt{\ell}$ and $\sqrt{h}$ to 5 places, and $s_1 = 0$ if $\ell \le 0$ |
+| $e^x$ | $[10^{\lfloor a\ell \rfloor}, 10^{\lceil bh \rceil}]$ |
+| $\ln x$ | $[a(\mathrm{siz}(\ell) - 1), b \cdot \mathrm{siz}(h)]$, after tightening $x$ if $\ell \le 0$ |
 | $\sin x$, $\cos x$ | $[-1, 1]$ |
 
-For $e^x$, the factors are $\log e$ rounded the safe way: $a = 0.43$ if
-$\ell \ge 0$ and $0.44$ if $\ell < 0$, and $b = 0.44$ if $h \ge 0$ and $0.43$
-if $h < 0$. For $\ln x$, use $2.30 < \ln 10 < 2.31$, again rounded the safe way
-for the sign of each end.
+The factors $a$ and $b$ are rounded the safe way for the sign of what they
+multiply:
+
+- **For e to the x,** they are $\log e \approx 0.4343$ rounded: $a = 0.43$ if
+  $\ell \ge 0$ and $0.44$ if $\ell < 0$, and $b = 0.44$ if $h \ge 0$ and $0.43$
+  if $h < 0$.
+- **For ln x,** they are $\ln 10 \approx 2.3026$ rounded: $a = 2.30$ if
+  $\mathrm{siz}(\ell) \ge 1$ and $2.31$ otherwise, and $b = 2.31$ if
+  $\mathrm{siz}(h) \ge 0$ and $2.30$ otherwise.
 
 The bounds for $e^x$ and $\ln x$ are crude: they can be off by a factor of 10
 or more. That is fine for upper bounds, where a looser $U$ only costs a place or so, through
