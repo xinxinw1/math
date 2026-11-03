@@ -247,8 +247,7 @@ $$d_x = d + k + 1.$$
 No bounds are needed. If $x$ is exactly rounded, $d + k$ places are enough.
 
 **Example.** For $\sin(\pi/4)$ good to $d = 6$ places, with $k = 2$, $\pi/4$
-needs $6 + 2 + 1 = 9$ places: $\tilde{x} = 0.785398163$.
-[Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md) works this through.
+needs $6 + 2 + 1 = 9$ places.
 
 **Why.** The derivatives of $\sin$ and $\cos$ are $\cos$ and $-\sin$, which are
 at most 1 in size, so Theorem 4 gives $A = 1$. Neither can be computed exactly,
