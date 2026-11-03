@@ -134,8 +134,8 @@ That holds if $x$ has at least
 $$3 - \mathrm{siz}(M)$$
 
 places, where $M$ is $U_x$ for $\bar{U}_x$ and $L_x$ for $\bar{L}_x$. Call
-these the *minimum places* of $x$. The product, quotient and power rules give
-each input whose barred bound they use at least its minimum places. If both
+these the *minimum places* of $x$. The product, quotient and power rules
+include them, as a maximum with the rest of the rule. If both
 bounds of an input are used, the minimum for $L_x$ is the larger, since
 $L_x \le U_x$.
 
@@ -221,18 +221,13 @@ of can take a smaller share of the error.
 | Operation | Input places |
 |---|---|
 | Sum of $n$ terms | $d + k + \mathrm{siz}(n)$ |
-| $xy$ | $d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y)$, and $d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x)$ |
-| $x_1 \cdots x_n$ | factor $i$: $d + k + \mathrm{siz}(n)$, plus the sizes of the other factors' $\bar{U}$ |
-| $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
+| $xy$ | $d_x = \max(d + k + 1 + \mathrm{siz}(1.01U_y), 3 - \mathrm{siz}(U_x))$, and the same with $x$ and $y$ swapped |
+| $x_1 \cdots x_n$ | factor $i$: $\max\left(d + k + \mathrm{siz}(n) + \sum_{j \ne i} \mathrm{siz}(1.01U_j), 3 - \mathrm{siz}(U_i)\right)$ |
+| $x / y$ | $d_x = d + k + 2 - \mathrm{siz}(0.99L_y)$, and $d_y = \max(d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(0.99L_y), 3 - \mathrm{siz}(L_y))$ |
 | $x + a$, $a$ with at most $d$ places | $d$ |
 | $ax$ | $d + k + \mathrm{siz}(a)$ |
-| $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
-| $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
-
-Here $\bar{U} = 1.01U$ and $\bar{L} = 0.99L$. The factors of a product, the
-base of a power and the divisor of a quotient also get at least their
-[minimum places](#covering-the-approximation): $3 - \mathrm{siz}(U)$, or
-$3 - \mathrm{siz}(L)$ for the divisor.
+| $x^n$, $n \le 8$ | $\max(d + k + 1 + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
+| $x^n$, any $n$ | $\max(d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
 
 ### Sums
 
@@ -262,12 +257,12 @@ table.
 
 ### Products
 
-**Rule.** With upper bounds $U_x$ and $U_y$, and
-$\bar{U} = 1.01U$ as in [Covering the approximation](#covering-the-approximation),
+**Rule.** With upper bounds $U_x$ and $U_y$,
 
-$$d_x = d + k + 1 + \mathrm{siz}(\bar{U}_y), \qquad d_y = d + k + 1 + \mathrm{siz}(\bar{U}_x),$$
+$$d_x = \max(d + k + 1 + \mathrm{siz}(1.01U_y), 3 - \mathrm{siz}(U_x)),$$
 
-and each input gets at least its minimum places, $3 - \mathrm{siz}(U)$.
+and the same for $d_y$ with $x$ and $y$ swapped. The second part is the
+[minimum places](#covering-the-approximation) of the input.
 
 Each input's places depend on the size of the *other* input.
 
@@ -294,14 +289,14 @@ assumption that $r_1 r_2$ is negligible.
 
 #### Products of more than two factors
 
-**Rule.** For a product $x_1 x_2 \cdots x_n$, with upper bounds $U_j$ and
-$\bar{U}_j = 1.01U_j$, factor $i$ needs
+**Rule.** For a product $x_1 x_2 \cdots x_n$, with upper bounds $U_j$, factor
+$i$ needs
 
-$$d_i = d + k + \mathrm{siz}(n) + \sum_{j \ne i} \mathrm{siz}(\bar{U}_j)$$
+$$d_i = \max\left(d + k + \mathrm{siz}(n) + \sum_{j \ne i} \mathrm{siz}(1.01U_j), 3 - \mathrm{siz}(U_i)\right)$$
 
 places: $d + k + \mathrm{siz}(n)$, plus the sizes of the bounds on all the
-*other* factors. Each factor also gets at least its minimum places. For
-$n = 2$, this is the rule above.
+*other* factors, but at least the factor's minimum places. For $n = 2$, this
+is the rule above.
 
 Treat the product as one node, rather than as nested pairs. Nested pairs pay
 $k + 1$ extra places at every level.
@@ -340,12 +335,15 @@ $\log \bar{U}_j < \mathrm{siz}(\bar{U}_j)$ for each $j$, the rule is enough.
 
 ### Quotients
 
-**Rule.** With an upper bound $U_x$, a lower bound $L_y$, and
-$\bar{L}_y = 0.99L_y$ as in [Covering the approximation](#covering-the-approximation),
+**Rule.** With an upper bound $U_x$ and a lower bound $L_y$,
 
-$$d_x = d + k + 2 - \mathrm{siz}(\bar{L}_y), \qquad d_y = d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y),$$
+$$d_x = d + k + 2 - \mathrm{siz}(0.99L_y),$$
 
-and $y$ gets at least its minimum places, $3 - \mathrm{siz}(L_y)$.
+$$d_y = \max(d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(0.99L_y), 3 - \mathrm{siz}(L_y)).$$
+
+The second part of $d_y$ is the
+[minimum places](#covering-the-approximation) of $y$. $x$ needs no minimum,
+because the rule only uses a bound on its true value.
 
 **Example.** For $\pi / e$ good to $d = 3$ places, with $k = 2$: $\pi < 4$ and
 $e > 2$, so $U_x = 4$ and $\bar{L}_y = 1.98$, both of size 1. So $\pi$ needs
@@ -426,13 +424,14 @@ applies when no rounding is needed.
 
 ### Powers
 
-**Rule.** For $x^n$ with $n \ge 2$ a whole number, an upper bound $U_x$, and
-$\bar{U}_x = 1.01U_x$,
+**Rule.** For $x^n$ with $n \ge 2$ a whole number and an upper bound $U_x$,
 
-$$d_x = d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x) \quad \text{for } n \le 8, \qquad d_x = d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x) \quad \text{for any } n.$$
+$$d_x = \max(d + k + 1 + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x)) \quad \text{for } n \le 8,$$
 
-$x$ also gets at least its minimum places, $3 - \mathrm{siz}(U_x)$. Then
-compute $\tilde{x}^n$ to $d + k + 1$ places.
+$$d_x = \max(d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x)) \quad \text{for any } n.$$
+
+The second part is the [minimum places](#covering-the-approximation) of $x$.
+Then compute $\tilde{x}^n$ to $d + k + 1$ places.
 
 **Example.** For $\pi^5$ good to $d = 2$ places, with $k = 2$: $\pi < 4$, so
 $\bar{U}_x = 4.04$, of size 1, and $\pi$ needs $2 + 2 + 1 + 4 = 9$ places.

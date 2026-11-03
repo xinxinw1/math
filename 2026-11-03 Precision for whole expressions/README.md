@@ -202,7 +202,7 @@ a looser $U$ costs a place or so. Two things are more sensitive:
 
 The rules need a lower bound above 0 for:
 
-- **Divisors.** The quotient rule uses $\bar{L}_y$.
+- **Divisors.** The quotient rule uses a lower bound $L_y$.
 - **Logarithm arguments.** The logarithm rule uses $L_x$.
 
 Square root arguments aren't tightened. If one's interval contains 0, the
@@ -236,9 +236,9 @@ less than the last one again, and starting at 5 means most succeed at once.
 
 From each node's interval $[\ell, h]$, take the upper bound
 $U = \max(|\ell|, |h|)$, and, if $0$ is not in the interval, the lower bound
-$L = \min(|\ell|, |h|)$. These bound the true value. The
-product, quotient and power rules also use $\bar{U} = 1.01U$ and
-$\bar{L} = 0.99L$, which cover the computed value too, as explained in
+$L = \min(|\ell|, |h|)$. These bound the true value. The product, quotient and
+power rules widen them to $1.01U$ and $0.99L$ to cover the computed value
+too, and add a minimum number of places, as explained in
 [Covering the approximation](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#covering-the-approximation).
 
 ## Pass 2: places
@@ -258,10 +258,10 @@ pass 1. A node with $d$ places asks its children for:
 |---|---|
 | Sum or difference with $n \ge 2$ inexact terms | each inexact term: $d + k + \mathrm{siz}(n)$ |
 | Sum or difference with 1 inexact term | $d$ |
-| Product of $n$ inexact factors | factor $i$: $d + k + \mathrm{siz}(n)$ plus the sizes of the other factors' $\bar{U}$ |
-| $x / y$ | $x$: $d + k + 2 - \mathrm{siz}(\bar{L}_y)$, and $y$: $d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(\bar{L}_y)$ |
-| $x^n$, $n \le 8$ | $d + k + 1 + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
-| $x^n$, any $n$ | $d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(\bar{U}_x)$ |
+| Product of $n$ inexact factors | factor $i$: $\max\left(d + k + \mathrm{siz}(n) + \sum_{j \ne i} \mathrm{siz}(1.01U_j), 3 - \mathrm{siz}(U_i)\right)$ |
+| $x / y$ | $x$: $d + k + 2 - \mathrm{siz}(0.99L_y)$, and $y$: $\max(d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(0.99L_y), 3 - \mathrm{siz}(L_y))$ |
+| $x^n$, $n \le 8$ | $\max(d + k + 1 + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
+| $x^n$, any $n$ | $\max(d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
 | $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ if $\ell_x \le 0$ |
 | $e^x$ | $d + k + 2 + \lfloor 0.44 h_x \rfloor$ if $h_x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 \lvert h_x \rvert \rceil)$ if $h_x < 0$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(\ell_x)$ |
@@ -269,13 +269,11 @@ pass 1. A node with $d$ places asks its children for:
 
 Notes:
 
-- **Minimum places.** The factors of a product, the base of a power and the
-  divisor of a quotient also get at least their
-  [minimum places](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#covering-the-approximation): $3 - \mathrm{siz}(U)$, or
-  $3 - \mathrm{siz}(L)$ for a divisor. This applies to exact children too: an
-  exact divisor rounded to too few places could become 0.
-- **Exact children** need nothing else. An exact number with more places than
-  asked for is rounded to those places, with $c = \frac{1}{2}$.
+- **Exact children** need nothing, except the
+  [minimum places](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#covering-the-approximation) in the product,
+  quotient and power rules: an exact divisor rounded to too few places could
+  become 0. An exact number with more places than asked for is rounded to
+  those places, with $c = \frac{1}{2}$.
 - **Sums with exact terms** count only the inexact terms in $n$. Exact terms
   with at most $d$ places add no error and need no rounding. An exact term
   with more places counts as inexact, since it gets rounded.
@@ -345,7 +343,7 @@ $[2.718274, 2.718286]$, so $\pi + e$ is in $[5.8598, 5.8599]$. $\sqrt{2}$ to 5
 places is $1.41421$, so $\sqrt{2}$ is in $[1.414204, 1.414216]$. No divisor's
 interval contains 0, so nothing needs tightening. The bounds used are
 $U = 5.8599$ for $\pi + e$, of size 1, and
-$\bar{L} = 0.99 \cdot 1.414204 = 1.40006\ldots$ for $\sqrt{2}$, also of size 1.
+$0.99L = 0.99 \cdot 1.414204 = 1.40006\ldots$ for $\sqrt{2}$, also of size 1.
 
 **Places.**
 
@@ -378,7 +376,7 @@ Take $d = 4$ and $k = 2$.
 **Bounds.** The cheap bound for the sine is $[-1, 1]$. It contains 0, and the
 sine is a divisor, so tighten it: evaluate $\sin(\pi - 0.00001)$ to 5 places.
 That gives $0.00001$, so the sine is in $[0.000004, 0.000016]$, which excludes
-0 at the first try. So $\bar{L} = 0.99 \cdot 0.000004$, of size $-5$. The
+0 at the first try. So $0.99L = 0.99 \cdot 0.000004$, of size $-5$. The
 argument's cheap interval is $[3.141574, 3.141586]$, about 2 quarter turns, so
 $j = 2$.
 
@@ -392,7 +390,7 @@ $j = 2$.
 | $\pi - 0.00001$, with 23 places | $23$, since $0.00001$ is exact | $\pi$ |
 
 $\pi$ has two parents, asking for 24 and 23 places, so it gets 24. The extra
-10 places at the top come from $-2\mathrm{siz}(\bar{L})$: the derivative of
+10 places at the top come from $-2\mathrm{siz}(0.99L)$: the derivative of
 $1/y$ is $-1/y^2$, about $10^{10}$ here, so the rules are charging for how
 sensitive the expression really is.
 
@@ -429,10 +427,10 @@ $y$ is a divisor, so tighten it. Evaluating $y$ to 5 places needs no bounds on
 the terms of the difference, and the rest of its place counts come from the
 cheap bounds below it. That gives $-0.00022$, so $y$ is in
 $[-0.000226, -0.000214]$, which excludes 0 at the first try. So
-$\bar{L} = 0.99 \cdot 0.000214$, of size $-3$.
+$0.99L = 0.99 \cdot 0.000214$, of size $-3$.
 
-**Places.** Using the upper bounds $h_x = 20.601$, $\bar{U} = 6.62$ for
-$\sqrt{43}$ and $\bar{U} = 3.17$ for $\pi$:
+**Places.** Using the upper bounds $h_x = 20.601$, $1.01U = 6.62$ for
+$\sqrt{43}$ and $1.01U = 3.17$ for $\pi$:
 
 | Node | Asks | For |
 |---|---|---|
