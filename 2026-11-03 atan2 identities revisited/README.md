@@ -337,3 +337,5 @@ lake exe cache get
 ```bash
 lake build
 ```
+
+Next: [Input places for atan and atan2](../2026-11-03%20Input%20places%20for%20atan%20and%20atan2/README.md) works out how many places the inputs need for a given output accuracy.
