@@ -41,8 +41,8 @@ The number of significant figures in $x$ is
 
 $$\mathrm{fig}(x) = \mathrm{prec}(x) + \mathrm{siz}(x).$$
 
-For example, $\mathrm{fig}(0.005) = 3 + (-2) = 1$ and
-$\mathrm{fig}(1200) = -2 + 4 = 2$.
+For example (these examples are not in the notes),
+$\mathrm{fig}(0.005) = 3 + (-2) = 1$ and $\mathrm{fig}(1200) = -2 + 4 = 2$.
 
 Rounding interacts with these as follows:
 
@@ -115,6 +115,8 @@ Comparing the two,
 
 $$d_{1a} - d_1 \ge -\log 2 - \log\frac{51}{100},$$
 
+$$d_{1a} \ge d_1 - \log\frac{51}{100} - \log 2,$$
+
 $$d_{1a} \ge d_1 + \log\frac{50}{51}.$$
 
 ## Sums
@@ -138,7 +140,11 @@ $$d_k \ge \log\frac{51}{100} - \log\frac{1}{n \cdot 10^{d + 2}} = \log\frac{51}{
 
 If the inputs are exactly rounded values,
 
-$$d_{ka} \ge d_k + \log\frac{50}{51} = d + 2 + \log\frac{51n}{100} + \log\frac{50}{51} = d + 2 + \log\frac{n}{2}.$$
+$$d_{ka} \ge d_k + \log\frac{50}{51}$$
+
+$$= d + 2 + \log\frac{51n}{100} + \log\frac{50}{51}$$
+
+$$= d + 2 + \log\frac{n}{2}.$$
 
 | Number of terms | Places needed |
 |---|---|
@@ -177,7 +183,11 @@ and since $\log|x| \le \mathrm{siz}(x)$, it is enough that
 
 $$d_2 \ge d + 3 + \mathrm{siz}(x).$$
 
-By symmetry,
+In the same way, from the condition on $r_1$,
+
+$$d_1 \ge d + 3 + \log|y|,$$
+
+so it is enough that
 
 $$d_1 \ge d + 3 + \mathrm{siz}(y).$$
 
