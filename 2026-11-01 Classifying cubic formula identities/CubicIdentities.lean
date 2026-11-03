@@ -1,27 +1,33 @@
 import Mathlib
 
 /-!
-# The only squarefree identity `∛(a + √b) + ∛(a - √b) = x`
+# Classifying identities `∛(a + s) + ∛(a - s) = x`
 
-We prove that if `a` and `b` are nonzero integers with `b > 0` squarefree, and
+Let `a ≠ 0` and `N` be integers, `s` a square root of `N`, and `u`, `v` any cube
+roots of `a + s` and `a - s`. The main theorem `int_params_of_cube_roots` says
+that if `u + v = x` is rational, then `x` and `m = u * v` are integers with
 
-  ∛(a + √b) + ∛(a - √b) = x
+  x ^ 3 = 2a + 3mx   and   4N = (x ^ 2 - 4m) (x ^ 2 - m) ^ 2.
 
-with `x` rational, then `(a, b, x)` is `(2, 5, 1)` or `(-2, 5, -1)`.
+It is stated over any field of characteristic zero, since the argument never
+uses that the cube roots are real.
 
-The argument never uses that the cube roots are real, so the main theorem
-`eq_of_cube_roots` is stated for any field of characteristic zero: `s` plays the
-role of `√b`, and `u`, `v` are any elements with `u ^ 3 = a + s` and
-`v ^ 3 = a - s`. The real-number statement `real_cube_roots` is a corollary.
+As a corollary (`eq_of_cube_roots`, `real_cube_roots`), if `N > 0` is
+squarefree then `(a, N, x)` is `(2, 5, 1)` or `(-2, 5, -1)`: the only such
+identity is `∛(2 + √5) + ∛(2 - √5) = 1`.
 
 Proof outline (matching the README):
 
 1. With `m = u * v`, cubing `u + v = x` gives `x ^ 3 = 2a + 3mx`, and
-   `m ^ 3 = a ^ 2 - b`. So `m` is rational, hence an integer, and then `x` is an
+   `m ^ 3 = a ^ 2 - N`. So `m` is rational, hence an integer, and then `x` is an
    integer (`exists_int_of_cubic`).
-2. `(u ^ 3 - v ^ 3) ^ 2 = 4b` gives `4b = (x ^ 2 - 4m) (x ^ 2 - m) ^ 2`.
-3. Squarefreeness forces `x ^ 2 - m ∈ {±1, ±2}`, and positivity of `b` leaves
-   only `x = ±1` (`int_classification`).
+2. `(u ^ 3 - v ^ 3) ^ 2 = 4N` gives `4N = (x ^ 2 - 4m) (x ^ 2 - m) ^ 2`.
+3. For the corollary, squarefreeness forces `x ^ 2 - m ∈ {±1, ±2}`, and
+   positivity of `N` leaves only `x = ±1` (`int_classification`).
+
+`cube_of_root` is the converse direction: the identity
+`((x + r) / 2) ^ 3 = x (x ^ 2 - 3m) / 2 + (x ^ 2 - m) / 2 * r` when
+`r ^ 2 = x ^ 2 - 4m`.
 -/
 
 namespace CubicIdentities
@@ -80,18 +86,21 @@ theorem int_classification {a b k n : ℤ} (ha : a ≠ 0) (hb : 0 < b) (hsq : Sq
     interval_cases k <;> omega
   · exfalso; nlinarith [mul_self_nonneg k]
 
-/-- **Main theorem**, over any field of characteristic zero. Here `s` stands for
-`√b`, and `u`, `v` for any cube roots of `a + s` and `a - s`. -/
-theorem eq_of_cube_roots {K : Type*} [Field K] [CharZero K] {a b : ℤ} {x : ℚ} {s u v : K}
-    (ha : a ≠ 0) (hb : 0 < b) (hsq : Squarefree b)
-    (hs : s ^ 2 = b) (hu : u ^ 3 = a + s) (hv : v ^ 3 = a - s) (hx : u + v = x) :
-    (a = 2 ∧ b = 5 ∧ x = 1) ∨ (a = -2 ∧ b = 5 ∧ x = -1) := by
+/-- **Main theorem**, over any field of characteristic zero. Here `s` is any
+square root of the integer `N`, and `u`, `v` are any cube roots of `a + s` and
+`a - s`. If `u + v` is rational, it is an integer `k`, `u * v` is an integer
+`n`, and `k`, `n` satisfy the two equations of the classification. -/
+theorem int_params_of_cube_roots {K : Type*} [Field K] [CharZero K] {a N : ℤ} {x : ℚ}
+    {s u v : K} (ha : a ≠ 0) (hs : s ^ 2 = N) (hu : u ^ 3 = a + s) (hv : v ^ 3 = a - s)
+    (hx : u + v = x) :
+    ∃ k n : ℤ, x = k ∧ u * v = n ∧ k ^ 3 = 2 * a + 3 * n * k ∧
+      4 * N = (k ^ 2 - 4 * n) * (k ^ 2 - n) ^ 2 := by
   -- Polynomial identities in `K`.
   have h1 : (x : K) ^ 3 = 2 * a + 3 * (u * v) * x := by
     rw [← hx]; linear_combination hu + hv
-  have h2 : (u * v) ^ 3 = (a : K) ^ 2 - b := by
+  have h2 : (u * v) ^ 3 = (a : K) ^ 2 - N := by
     linear_combination v ^ 3 * hu + (a + s) * hv - hs
-  have h3 : 4 * (b : K) = ((u + v) ^ 2 - 4 * (u * v)) * ((u + v) ^ 2 - u * v) ^ 2 := by
+  have h3 : 4 * (N : K) = ((u + v) ^ 2 - 4 * (u * v)) * ((u + v) ^ 2 - u * v) ^ 2 := by
     linear_combination -4 * hs - (u ^ 3 - v ^ 3 + 2 * s) * hu + (u ^ 3 - v ^ 3 + 2 * s) * hv
   -- `x ≠ 0`, since otherwise `a = 0`.
   have hx0 : x ≠ 0 := by
@@ -107,12 +116,12 @@ theorem eq_of_cube_roots {K : Type*} [Field K] [CharZero K] {a b : ℤ} {x : ℚ
     rw [eq_div_iff (mul_ne_zero (by norm_num) hxK)]
     linear_combination -h1
   obtain ⟨m, hm⟩ : ∃ m : ℚ, u * v = m := ⟨_, hm'⟩
-  have hm3 : m ^ 3 = (a : ℚ) ^ 2 - b := by
-    have : ((m ^ 3 : ℚ) : K) = (((a : ℚ) ^ 2 - b : ℚ) : K) := by
+  have hm3 : m ^ 3 = (a : ℚ) ^ 2 - N := by
+    have : ((m ^ 3 : ℚ) : K) = (((a : ℚ) ^ 2 - N : ℚ) : K) := by
       push_cast; rw [← hm]; exact h2
     exact_mod_cast this
   -- ... and its cube is an integer, so it is an integer.
-  obtain ⟨n, rfl⟩ := exists_int_of_cubic (q := m) (c := 0) (d := b - a ^ 2)
+  obtain ⟨n, rfl⟩ := exists_int_of_cubic (q := m) (c := 0) (d := N - a ^ 2)
     (by push_cast; linear_combination hm3)
   push_cast at hm
   -- Then `x` is a rational root of `t ^ 3 - 3 n t - 2 a`, so an integer.
@@ -125,11 +134,19 @@ theorem eq_of_cube_roots {K : Type*} [Field K] [CharZero K] {a b : ℤ} {x : ℚ
   push_cast at hx
   -- Step 2: the integer equations.
   have e1 : k ^ 3 = 2 * a + 3 * n * k := by exact_mod_cast hx3
-  have e3 : 4 * b = (k ^ 2 - 4 * n) * (k ^ 2 - n) ^ 2 := by
-    have : ((4 * b : ℤ) : K) = (((k ^ 2 - 4 * n) * (k ^ 2 - n) ^ 2 : ℤ) : K) := by
+  have e3 : 4 * N = (k ^ 2 - 4 * n) * (k ^ 2 - n) ^ 2 := by
+    have : ((4 * N : ℤ) : K) = (((k ^ 2 - 4 * n) * (k ^ 2 - n) ^ 2 : ℤ) : K) := by
       push_cast; rw [← hx, ← hm]; exact h3
     exact_mod_cast this
-  -- Steps 3 and 4.
+  exact ⟨k, n, rfl, hm, e1, e3⟩
+
+/-- **Squarefree case**, over any field of characteristic zero. Here `s` stands
+for `√b`, and `u`, `v` for any cube roots of `a + s` and `a - s`. -/
+theorem eq_of_cube_roots {K : Type*} [Field K] [CharZero K] {a b : ℤ} {x : ℚ} {s u v : K}
+    (ha : a ≠ 0) (hb : 0 < b) (hsq : Squarefree b)
+    (hs : s ^ 2 = b) (hu : u ^ 3 = a + s) (hv : v ^ 3 = a - s) (hx : u + v = x) :
+    (a = 2 ∧ b = 5 ∧ x = 1) ∨ (a = -2 ∧ b = 5 ∧ x = -1) := by
+  obtain ⟨k, n, rfl, -, e1, e3⟩ := int_params_of_cube_roots ha hs hu hv hx
   rcases int_classification ha hb hsq e1 e3 with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
   · left; norm_num
   · right; norm_num
@@ -142,6 +159,14 @@ theorem real_cube_roots {a b : ℤ} {x : ℚ} {u v : ℝ}
     (hu : u ^ 3 = a + Real.sqrt b) (hv : v ^ 3 = a - Real.sqrt b) (hx : u + v = x) :
     (a = 2 ∧ b = 5 ∧ x = 1) ∨ (a = -2 ∧ b = 5 ∧ x = -1) :=
   eq_of_cube_roots ha hb hsq (Real.sq_sqrt (by exact_mod_cast hb.le)) hu hv hx
+
+/-- The converse: if `r ^ 2 = x ^ 2 - 4m`, then `(x + r) / 2` is a cube root of
+`x (x ^ 2 - 3m) / 2 + (x ^ 2 - m) / 2 * r`. With `r = ±√(x ^ 2 - 4m)` this
+checks the integer form of the generator. -/
+theorem cube_of_root {K : Type*} [Field K] [CharZero K] {x m r : K}
+    (hr : r ^ 2 = x ^ 2 - 4 * m) :
+    ((x + r) / 2) ^ 3 = x * (x ^ 2 - 3 * m) / 2 + (x ^ 2 - m) / 2 * r := by
+  linear_combination (3 * x + r) / 8 * hr
 
 /-- The identity itself: `∛(2 + √5) + ∛(2 - √5) = 1`, with cube roots
 `(1 + √5) / 2` and `(1 - √5) / 2`. -/

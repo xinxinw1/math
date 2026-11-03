@@ -82,3 +82,10 @@ $$
 
 The handwritten version of this last line has $+$ in the second cube root, a
 slip for the $-$ in $v$ above.
+
+## Follow-up
+
+[Classifying cubic formula identities](../2026-11-01%20Classifying%20cubic%20formula%20identities/README.md)
+rewrites the generator with integer coefficients, proves that it gives every
+identity of this form, and works out the squarefree and complex cases, with a
+Lean proof.
