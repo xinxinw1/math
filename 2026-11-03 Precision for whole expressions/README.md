@@ -7,19 +7,21 @@ places.
 *Xin-Xin*
 
 This builds on the rules in
-[Rounding and error bounds](../2026-11-02%20Rounding%20and%20error%20bounds/README.md),
+[Input places for arithmetic](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md)
+and [Input places for functions](../2026-11-02%203%20Input%20places%20for%20functions/README.md),
 which say how many places the inputs of one operation need. Here they are
-applied to every operation in an expression at once. Notation is as there:
+applied to every operation in an expression at once. Notation is as in
+[Rounding and error bounds](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md):
 $d$ is the output places, $k$ the guard digits, and $\mathrm{siz}$ the size of
 a number. A value is **good to d places** if its error is at most
-$c \cdot 10^{-d}$ with $c \le 0.6$. Unlike in the rules doc, it may have more
+$c \cdot 10^{-d}$ with $c \le 0.6$. Unlike there, it may have more
 than $d$ places: extra places only make it more accurate.
 
 ## Overview
 
 The rules compose because of the
-[invariant](../2026-11-02%20Rounding%20and%20error%20bounds/README.md#the-invariant)
-from the rules doc. Each operation rounds its own result to the places its
+[invariant](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md#the-invariant)
+from Rounding and error bounds. Each operation rounds its own result to the places its
 parent asked for, so its output is good to those places, which is exactly what
 the parent's rule assumes of its inputs.
 
@@ -167,7 +169,7 @@ parents takes the most places any of them asks for.
 
 ### Rules for each operation
 
-These are the rules from the rules doc, written with the bounds from pass 1. A
+These are the rules from the input-places docs, written with the bounds from pass 1. A
 node with $D$ places asks its children for:
 
 | Node | Places for its children |
@@ -192,7 +194,7 @@ Notes:
   with at most $D$ places add no error and need no rounding. An exact term
   with more places counts as inexact, since it gets rounded.
 - **A sum with one inexact term** passes that term's error straight through,
-  as for $x + a$ in the rules doc, so it needs no guard digits. Pass 3 leaves
+  as for $x + a$ in Input places for arithmetic, so it needs no guard digits. Pass 3 leaves
   it unrounded. The top node is the exception: it asks for $D + k + 1$, the
   general sum rule with $n = 1$, so that the
   [correct-rounding check](#correct-rounding) has its guard digits.
@@ -250,7 +252,7 @@ children's values, and rounds it to its own places $D$:
 - **Other operations** are computed to $D + k + 1$ places, rounded or cut off,
   and then rounded to $D$. This covers division by the usual truncating
   algorithm, and functions by
-  [series](../2026-11-02%20Rounding%20and%20error%20bounds/README.md#series).
+  [series](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule).
   The series need small arguments, so reduce first: by quarter turns for sine
   and cosine, and with $e^x = (e^{x/2^m})^{2^m}$ for exponentials. The
   repeated squaring is a chain of products, which needs its own guard

@@ -14,6 +14,11 @@ example `2026-11-01 Cubic formula identities`.
 
 - The date is when the topic was started, as given by the user. It can be
   earlier than the commit date.
+- When a topic is split into docs meant to be read in order, put a number
+  between the date and the title, so the directories sort in reading order:
+  `2026-11-02 1 Rounding and error bounds`, `2026-11-02 2 Input places for
+  arithmetic`. Each doc says which one it builds on near the top and links to
+  the next one at the end.
 - The title is in sentence case: only the first word and proper nouns are
   capitalized (`Investigating Antihydra`). Use spaces, not hyphens or
   underscores.
