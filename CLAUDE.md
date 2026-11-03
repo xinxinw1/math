@@ -44,9 +44,10 @@ Instead:
 - Keep changes to a proof small and easy to review.
 - Set the status note in the README to say the current version hasn't been
   checked.
-- Ask the user to check the file on <https://live.lean-lang.org> using its
-  stable release. Once they confirm there are no errors or warnings, update the
-  status note to say so.
+- Ask the user to check the file at
+  <https://live.lean-lang.org/#project=mathlib-stable>, which opens the editor
+  on its stable release with Mathlib. Once they confirm there are no errors or
+  warnings, update the status note to say so.
 
 ## Writing math in GitHub Markdown
 
