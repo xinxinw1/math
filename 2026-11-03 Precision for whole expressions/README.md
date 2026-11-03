@@ -17,6 +17,13 @@ a number. A value is **good to d places** if its error is at most
 $c \cdot 10^{-d}$ with $c \le 0.6$. Unlike there, it may have more
 than $d$ places: extra places only make it more accurate.
 
+The 0.6 comes from the
+[definition](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md#good-to-d-places)
+there: a value rounded after computing it with $k$ guard digits has
+$c_k = \frac{1}{2} + 10^{-k}$, which is at most 0.6 for any $k \ge 1$. Every
+rule only assumes $c \le 0.6$, so the same bound covers exactly rounded
+values, any choice of $k$ at each node, and values with extra places.
+
 ## Overview
 
 The rules compose because of the
