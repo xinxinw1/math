@@ -42,7 +42,7 @@ differs only for $x < 0$, where it is $\mathrm{acot}(x) + \pi$.
 
 | Part | acot x |
 |---|---|
-| Input places | $\max(d + k + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x))$; needs $L_x$ |
+| Input places | $\max(d + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x))$; needs $L_x$ |
 | Cheap interval | from acot of the ends of $x$'s interval, if it excludes 0 |
 | Tightening | $x$, if its interval contains 0 |
 | Evaluation | the atan procedure on $1/\tilde{x}$, or on $\tilde{x}$ with $\pm\frac{\pi}{2}$ |
@@ -51,18 +51,18 @@ differs only for $x < 0$, where it is $\mathrm{acot}(x) + \pi$.
 
 **Rule.** With a lower bound $L_x \le |x|$ on the true value,
 
-$$d_x = \max(d + k + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x)).$$
+$$d_x = \max(d + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x)).$$
 
 This is the atan rule, except that the lower bound isn't optional. Without
 one, no number of places is enough, because $x$ could be on either side of the
 jump. An exact $x$ needs no places.
 
-**Example.** For $\mathrm{acot}(10\pi)$ good to $d = 6$ places, with $k = 2$:
+**Example.** For $\mathrm{acot}(10\pi)$ rounded to 6 places, take $d = 8$:
 $10\pi > 31$, and $\mathrm{siz}(0.99 \cdot 31) = 2$, so $10\pi$ needs
-$6 + 2 + 1 - 2 = 7$ places, the same as for $\mathrm{atan}(10\pi)$.
+$8 + 1 - 2 = 7$ places, the same as for $\mathrm{atan}(10\pi)$.
 
 **Why.** The minimum places, $3 - \mathrm{siz}(L_x)$, keep
-$\varepsilon_x < 0.01L_x$, so $\tilde{x}$ has the same sign as $x$, and every
+$\varepsilon_x \le 0.01L_x$, so $\tilde{x}$ has the same sign as $x$, and every
 $t$ between them has $|t| \ge 0.99L_x$. On that side of 0,
 $\mathrm{acot}(t) = \mathrm{atan}(1/t)$, whose derivative is
 
@@ -83,7 +83,7 @@ rule needs $L_x$.
 
 A new row for the table in
 [Cheap bounds](../2026-11-03%20Precision%20for%20whole%20expressions/README.md#cheap-bounds),
-with $w = 0.6 \cdot 10^{-5}$:
+with $w = 10^{-5}$:
 
 | Node | Cheap interval |
 |---|---|
@@ -124,7 +124,7 @@ A new row for the table in
 
 | Node | Places for its child |
 |---|---|
-| $\mathrm{acot}(x)$ | $\max(d + k + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x))$ |
+| $\mathrm{acot}(x)$ | $\max(d + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x))$ |
 
 After tightening, $L_x$ always exists, so the row always applies.
 
@@ -132,7 +132,7 @@ After tightening, $L_x$ always exists, so the row always applies.
 
 Use the atan procedure from
 [atan and atan2 in whole expressions](../2026-11-03%20atan%20and%20atan2%20in%20whole%20expressions/README.md#pass-3-evaluating-atan),
-with a different first step and last step. As there, $p = d + k + 2$.
+with a different first step and last step. As there, $p = d + 2$.
 
 **Start.** If $|\tilde{x}| \ge 1$, compute $w = 1/\tilde{x}$ to $p$ places.
 Otherwise, $w = \tilde{x}$. Either way $|w| \le 1$.
@@ -150,7 +150,7 @@ $$
 \end{cases}
 $$
 
-with $\frac{\pi}{2}$ to $p$ places. Then round to $d$ places.
+with $\frac{\pi}{2}$ to $p$ places.
 
 **Why.** For $|\tilde{x}| \ge 1$, $\mathrm{acot}(\tilde{x}) = \mathrm{atan}(w)$
 by the convention. For $0 < |\tilde{x}| < 1$, the identity
@@ -161,13 +161,13 @@ $\mathrm{acot}(\tilde{x}) = \mathrm{sgn}(\tilde{x}) \cdot \frac{\pi}{2} - \mathr
 The [error table](../2026-11-03%20atan%20and%20atan2%20in%20whole%20expressions/README.md#pass-3-evaluating-atan)
 for atan carries over row for row. One of $w$ and $\frac{\pi}{2}$ is rounded,
 as there, and the halvings and series are the same. So the result is within
-$0.18T$ of $\mathrm{acot}(\tilde{x})$ before the final rounding, inside the
+$0.18T$ of $\mathrm{acot}(\tilde{x})$, inside the
 $T/2$ left after the input error.
 
 $\tilde{x}$ is never 0 here. Tightening and the minimum places keep it on the
 same side of 0 as $x$, and an exact 0 is handled in pass 1, below.
 
-**Example.** For $\mathrm{acot}(10\pi)$ to 6 places, with $k = 2$,
+**Example.** For $\mathrm{acot}(10\pi)$ rounded to 6 places, with $d = 8$,
 $\tilde{x} = 31.4159265$, so $w = 1/\tilde{x} = 0.0318309887$, to 10 places.
 From there the halvings and series are the same as in
 [the atan example](../2026-11-03%20atan%20and%20atan2%20in%20whole%20expressions/README.md#pass-3-evaluating-atan),
@@ -180,26 +180,26 @@ which rounds to $0.031820$. The true value is $0.0318202446\ldots$
 
 $\sin(\pi + 0.00001) \approx -0.00001$, just left of 0, so the answer is just
 above $-\frac{\pi}{2}$. If the sign of the sine came out wrong, the result
-would be near $+\frac{\pi}{2}$, off by about 3. Take $d = 8$ and $k = 2$.
+would be near $+\frac{\pi}{2}$, off by about 3. Take $d = 10$ for the top node.
 
 **Bounds.** The sine's cheap interval is $[-1, 1]$, which contains 0, so
-tighten it: to 5 places the sine is $-0.00001$, so it is in
-$[-0.000016, -0.000004]$, which excludes 0 at the first try. So
-$L_x = 0.000004$, of size $-5$. The acot's cheap interval is then
-$[-1.570796, -1.570774]$.
+tighten it. To 5 places the sine comes out as $-0.000010$, so it is in
+$[-0.00002, 0]$, which doesn't exclude 0. To 10 places it is
+$-0.00001000000$, so it is in $[-0.0000100001, -0.0000099999]$. So
+$L_x = 0.0000099999$, of size $-5$. The acot's cheap interval is then
+$[-1.5708, -1.57078]$.
 
-**Places.** $\mathrm{siz}(0.99 \cdot 0.000004) = -5$, so the first part of the
-rule is $8 + 2 + 1 - 0 = 11$, and the minimum places are $3 + 5 = 8$.
+**Places.** $\mathrm{siz}(0.99 \cdot 0.0000099999) = -5$, so the first part of
+the rule is $10 + 1 - 0 = 11$, and the minimum places are $3 + 5 = 8$.
 
 | Node | Asks | For |
 |---|---|---|
-| acot, with 8 places | $\max(11, 8) = 11$ | the sine |
-| $\sin(\ldots)$, with 11 places | $11 + 2 + 1 = 14$ | its argument |
-| $\pi + 0.00001$, with 14 places | $14$, since $0.00001$ is exact | $\pi$ |
+| acot, with 10 places | $\max(11, 8) = 11$ | the sine |
+| $\sin(\ldots)$, with 11 places | $11 + 1 = 12$ | its argument |
+| $\pi + 0.00001$, with 12 places | $12$, since $0.00001$ is exact | $\pi$ |
 
-**Evaluate.** $\pi$ to 14 places is $3.14159265358979$, so the argument is
-$3.14160265358979$. Its sine to 14 places is $-0.00001000000000$, which
-rounds to $\tilde{x} = -0.00001000000$ at 11 places.
+**Evaluate.** $\pi$ to 12 places is $3.141592653590$, so the argument is
+$3.141602653590$. Its sine to 12 places is $\tilde{x} = -0.000010000000$.
 
 $|\tilde{x}| < 1$, so $w = \tilde{x}$, and the result is
 $-\frac{\pi}{2} - 4S = -1.5707863267950$, which rounds to $-1.57078633$. The
@@ -207,7 +207,7 @@ true value is $-1.5707863267948\ldots$
 
 The correct-rounding check passes: the computed value is about
 $1.8 \times 10^{-9}$ from the boundary $-1.570786325$, more than
-$10^{-(d+k)} = 10^{-10}$.
+$10^{-d} = 10^{-10}$.
 
 ## Corner cases
 

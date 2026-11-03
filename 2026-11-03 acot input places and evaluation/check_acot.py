@@ -14,7 +14,7 @@ getcontext().prec = 60
 random.seed(7)
 ONE, ZERO = D(1), D(0)
 PI = D('3.14159265358979323846264338327950288419716939937510582097494459')
-W5 = D('0.000006')
+W5 = D('0.00001')
 
 
 def rnd(v, p):
@@ -50,9 +50,9 @@ def acot_ref(x):
     return PI / 2 if x == 0 else atan_ref(ONE / x)
 
 
-def atan_series(w, d, k, trace=None):
+def atan_series(w, d, trace=None):
     """The halvings and series from atan and atan2 in whole expressions: returns S with atan(w) = 4S."""
-    p = d + k + 2
+    p = d + 2
     v = w
     steps = []
     for _ in range(2):
@@ -61,9 +61,9 @@ def atan_series(w, d, k, trace=None):
         steps.append(v)
     v2 = v * v
     P, total, n, terms = v, v, 0, [(0, v, v)]
-    while not (terms[-1][2] == 0 or siz(terms[-1][2]) <= -(d + k + 1)):
+    while not (terms[-1][2] == 0 or siz(terms[-1][2]) <= -(d + 1)):
         n += 1
-        pn = d + k + 1 + 2 * siz(n)
+        pn = d + 1 + 2 * siz(n)
         P = rnd(P * v2, pn)
         t = rnd((-1) ** n * P / (2 * n + 1), pn)
         total += t
@@ -73,33 +73,33 @@ def atan_series(w, d, k, trace=None):
     return total
 
 
-def acot_eval(x, d, k, trace=None):
-    """acot(x) for a nonzero decimal x, within 0.18 * 10^-(d+k), before the final rounding."""
+def acot_eval(x, d, trace=None):
+    """acot(x) for a nonzero decimal x, within 0.18 * 10^-d."""
     x = D(x)
-    p = d + k + 2
+    p = d + 2
     if abs(x) >= 1:
         w = rnd(ONE / x, p)
-        S = atan_series(w, d, k, trace)
+        S = atan_series(w, d, trace)
         result = 4 * S
     else:
         w = x
-        S = atan_series(w, d, k, trace)
+        S = atan_series(w, d, trace)
         result = sgn(x) * rnd(PI / 2, p) - 4 * S
     if trace is not None:
         trace.update(w=w, result=result)
     return result
 
 
-def acot_places(d, k, L):
-    return max(d + k + 1 - 2 * max(0, siz(D('0.99') * L) - 1), 3 - siz(L))
+def acot_places(d, L):
+    return max(d + 1 - 2 * max(0, siz(D('0.99') * L) - 1), 3 - siz(L))
 
 
 def acot_cheap(lo, hi):
     """Cheap interval for acot on [lo, hi]; None means it contains 0 and x must be tightened."""
     if lo <= 0 <= hi:
         return None
-    a_hi = rnd(acot_eval(lo, 5, 1), 5) + W5  # acot is decreasing on each side of 0
-    a_lo = rnd(acot_eval(hi, 5, 1), 5) - W5
+    a_hi = rnd(acot_eval(lo, 5), 5) + W5  # acot is decreasing on each side of 0
+    a_lo = rnd(acot_eval(hi, 5), 5) - W5
     if lo > 0:
         a_lo = max(a_lo, min(ONE / hi, ONE) / 2)
         a_hi = min(a_hi, D('1.5708'))
@@ -118,14 +118,13 @@ def check(name, ok, point):
 
 
 for _ in range(2000):
-    d, k = random.randint(0, 10), random.randint(1, 3)
-    T = D(10) ** -(d + k)
-    c = D('0.5') + D(10) ** -k
+    d = random.randint(0, 12)
+    T = D(10) ** -d
 
     # Evaluation error at decimal inputs.
     x = rnd(D(random.choice((-1, 1))) * D(10) ** D(random.uniform(-6, 6)), random.randint(max(d, 0), d + 14))
     if x != 0:
-        check('acot_eval within 0.18T', abs(acot_eval(x, d, k) - acot_ref(x)) <= D('0.18') * T, (x, d, k))
+        check('acot_eval within 0.18T', abs(acot_eval(x, d) - acot_ref(x)) <= D('0.18') * T, (x, d))
 
     # Cheap intervals.
     lo = rnd(D(random.choice((-1, 1))) * D(10) ** D(random.uniform(-6, 3)), 8)
@@ -136,48 +135,53 @@ for _ in range(2000):
             check('cheap interval', iv[0] <= acot_ref(t) <= iv[1], (lo, hi))
         check('cheap interval excludes 0', iv[0] > 0 or iv[1] < 0, (lo, hi))
 
-    # Whole node: true x, input off by up to c * 10^-dx, evaluate, round.
+    # Whole node: true x, input off by the full 10^-dx, evaluate.
     xt = D(random.choice((-1, 1))) * D(10) ** D(random.uniform(-6, 6))
     L = abs(xt) * D(random.uniform(0.2, 1))
-    dx = acot_places(d, k, L)
+    dx = acot_places(d, L)
     for e in (-1, 1):
-        xin = rnd(xt + e * c * D(10) ** -dx, dx)
-        if abs(xin - xt) > c * D(10) ** -dx:
-            continue
-        check('input keeps its sign', sgn(xin) == sgn(xt), (xt, d, k))
-        out = rnd(acot_eval(xin, d, k), d)
-        check('node good to d places', abs(out - acot_ref(xt)) <= c * D(10) ** -d, (xt, d, k))
+        xin = xt + e * D(10) ** -dx
+        check('input keeps its sign', sgn(xin) == sgn(xt), (xt, d))
+        out = acot_eval(xin, d)
+        check('node good to d places', abs(out - acot_ref(xt)) <= D(10) ** -d, (xt, d))
 
 for name, points in fails.items():
     print('FAIL', name, len(points), points[:3])
 
-# Example 1: acot(10 pi) to 6 places, k = 2.
-print('--- acot(10 pi), d = 6, k = 2')
+
+def sin_near_pi(arg):
+    """sin(arg) for arg close to pi, via sin(pi + a) = -sin a."""
+    a = arg - PI
+    return -(a - a ** 3 / 6 + a ** 5 / 120)
+
+
+# Example 1: acot(10 pi) rounded to 6 places, so d = 8.
+print('--- acot(10 pi), d = 8')
 L = D(31)
-print('places', acot_places(6, 2, L))
-xt = rnd(10 * PI, acot_places(6, 2, L))
+print('places', acot_places(8, L))
+xt = rnd(10 * PI, acot_places(8, L))
 tr = {}
-val = acot_eval(xt, 6, 2, tr)
+val = acot_eval(xt, 8, tr)
 print('x~', xt, ' w', tr['w'], ' halvings', tr['steps'])
 for n, P, t in tr['terms']:
     print('  n', n, 'P', P, 't', t, 'siz', siz(t) if t else None)
 print('  sum', tr['sum'], ' result', val, ' rounded', rnd(val, 6), ' true', rnd(acot_ref(10 * PI), 13))
 
-# Example 2: acot(sin(pi + 0.00001)) to 8 places, k = 2.
-print('--- acot(sin(pi + 0.00001)), d = 8, k = 2')
-s5 = rnd(-D('0.00001'), 5)
-print('tighten: sin to 5 places', s5, ' interval', s5 - W5, s5 + W5)
-L = abs(s5 + W5)
-print('cheap interval', acot_cheap(s5 - W5, s5 + W5))
-dx = acot_places(8, 2, L)
-print('places for the sine', dx, ' for its argument', dx + 2 + 1)
-pi_t = rnd(PI, dx + 3)
+# Example 2: acot(sin(pi + 0.00001)) rounded to 8 places, so d = 10.
+print('--- acot(sin(pi + 0.00001)), d = 10')
+for p in (5, 10):  # tightening: the sine good to p places, computed to p + 1
+    v = rnd(sin_near_pi(rnd(PI, p + 1) + D('0.00001')), p + 1)
+    print('tighten: sin to', p, 'places', v, ' interval', v - D(10) ** -p, v + D(10) ** -p)
+lo, hi = v - D(10) ** -10, v + D(10) ** -10
+L = abs(hi)
+print('cheap interval', acot_cheap(lo, hi))
+dx = acot_places(10, L)
+print('places for the sine', dx, ' for its argument', dx + 1)
+pi_t = rnd(PI, dx + 1)
 arg = pi_t + D('0.00001')
-a = arg - PI
-sin_val = -(a - a ** 3 / 6 + a ** 5 / 120)
-xt = rnd(rnd(sin_val, dx + 3), dx)
-print('pi~', pi_t, ' arg', arg, ' sin to', dx + 3, rnd(sin_val, dx + 3), ' x~', xt)
-val = acot_eval(xt, 8, 2)
+xt = rnd(sin_near_pi(arg), dx + 1)
+print('pi~', pi_t, ' arg', arg, ' x~ = sin(arg) to', dx + 1, 'places', xt)
+val = acot_eval(xt, 10)
 print('acot before rounding', val, ' rounded', rnd(val, 8))
 print('true', rnd(acot_ref(-(D('0.00001') - D('0.00001') ** 3 / 6)), 15))
 print('done')

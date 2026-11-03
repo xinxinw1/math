@@ -8,7 +8,7 @@ by term, without knowing in advance how many terms there will be.
 This builds on
 [Input places for functions](../2026-11-02%203%20Input%20places%20for%20functions/README.md),
 which says how many places the input needs. Throughout, $\log$ means
-$\log_{10}$, and $T = 10^{-(d+k)}$ is the error budget from
+$\log_{10}$, and $T = 10^{-d}$ is the error budget from
 [Input places for arithmetic](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#the-error-budget).
 
 The [series rule](#the-series-rule) works for any series whose terms shrink
@@ -31,17 +31,17 @@ terms satisfy $t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
   places $p_n$ given below.
 - **Sum.** Add the terms as you go. Sums of terminating decimals are exact.
 - **Stop** after the first term with
-  $\mathrm{siz}(\tilde{t}_N) \le -(d + k + 1)$, including that term. A term
-  that rounds to 0 also counts. Then round the sum to $d$ places.
+  $\mathrm{siz}(\tilde{t}_N) \le -(d + 1)$, including that term. A term
+  that rounds to 0 also counts. The sum is then good to $d$ places.
 
 Since $|t| < 10^{\mathrm{siz}(t)}$, the stopping test means
-$|\tilde{t}_N| < 10^{-(d+k+1)} = T/10$.
+$|\tilde{t}_N| < 10^{-(d+1)} = T/10$.
 
 Compute term $n$ to
 
-$$p_n = d + k + 2\mathrm{siz}(n)$$
+$$p_n = d + 2\mathrm{siz}(n)$$
 
-places. That is $d + k + 2$ places for terms 1 to 9, $d + k + 4$ for terms 10
+places. That is $d + 2$ places for terms 1 to 9, $d + 4$ for terms 10
 to 99, and so on. Raising the precision never changes the terms already
 computed.
 
@@ -56,14 +56,14 @@ $$1 + |r_{m+1}| + |r_{m+1} r_{m+2}| + \cdots \le 1 + \frac{1}{2} + \frac{1}{2 \c
 using $|r_n| \le 1/n$. So the total rounding error in the sum is at most
 $1.72 \sum u_n$.
 
-With $p_n = d + k + 2\mathrm{siz}(n)$, $u_n = T \cdot 10^{-2\mathrm{siz}(n)}$.
+With $p_n = d + 2\mathrm{siz}(n)$, $u_n = T \cdot 10^{-2\mathrm{siz}(n)}$.
 Group the terms by size: the 9 terms of size 1 contribute $9 \cdot 10^{-2}$,
 the 90 terms of size 2 contribute $90 \cdot 10^{-4}$, and so on, so
 
 $$\sum u_n = T(0.09 + 0.009 + 0.0009 + \cdots) = 0.1T,$$
 
 and the total rounding error is at most $0.172T$, within $T/4$. A precision
-that grows by only 1 place per size, such as $d + k + 1 + \mathrm{siz}(n)$,
+that grows by only 1 place per size, such as $d + 1 + \mathrm{siz}(n)$,
 wouldn't do: each size would contribute the same amount, and the total would
 grow without limit.
 
@@ -98,13 +98,13 @@ $$e^x = \left(e^{x/2^m}\right)^{2^m}.$$
 
 Use the [power rule](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#powers) to choose the places for $e^{x/2^m}$, and
 the series rule to compute it. Squaring $m$ times is a chain of products, so
-carry guard digits through it, as for powers.
+give each square its places by the product rule, as for powers.
 
-**Example.** To get $e^{\pi/4}$ good to $d = 6$ places,
-with $k = 2$, the budget is $T = 10^{-8}$.
+**Example.** To get $e^{\pi/4}$ rounded to 6 places, compute it good to
+$d = 8$ places. The budget is $T = 10^{-8}$.
 
 **Input.** $\pi/4 < 1$, so the [exponential rule](../2026-11-02%203%20Input%20places%20for%20functions/README.md#exponentials) with $U_x = 1$ gives
-$d_x = 6 + 2 + 2 + \lfloor 0.44 \rfloor = 10$, so
+$d_x = 8 + 2 + \lfloor 0.44 \rfloor = 10$, so
 $\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
 
 **Terms.** Start with $t_0 = 1$, and compute
@@ -112,7 +112,7 @@ $\tilde{x} = \mathrm{rnd}(\pi/4, 10) = 0.7853981634$.
 $$\tilde t_n = \mathrm{rnd}(\tilde t_{n-1} \cdot \tilde{x} / n, p_n),$$
 
 with $p_n = 10$ for $n \le 9$ and $p_n = 12$ for $n \ge 10$. Stop after the
-first term with $\mathrm{siz} \le -(6 + 2 + 1) = -9$.
+first term with $\mathrm{siz} \le -(8 + 1) = -9$.
 
 | $n$ | $p_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
 |---|---|---|---|
@@ -152,10 +152,10 @@ sine, and $|x| \le \sqrt{2} \approx 1.41$ for cosine. Use the
 [sine rule](../2026-11-02%203%20Input%20places%20for%20functions/README.md#sine-and-cosine) for the input places. For larger $|x|$,
 reduce the argument first, as below.
 
-**Example.** To get $\sin(\pi/4)$ good to $d = 6$ places, with
-$k = 2$, the budget is again $T = 10^{-8}$.
+**Example.** To get $\sin(\pi/4)$ rounded to 6 places, compute it good to
+$d = 8$ places. The budget is again $T = 10^{-8}$.
 
-**Input.** The sine rule gives $d_x = 6 + 2 + 1 = 9$, so
+**Input.** The sine rule gives $d_x = 8 + 1 = 9$, so
 $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
 
 **Terms.** Start with $t_0 = \tilde{x}$, and compute
@@ -163,7 +163,7 @@ $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
 $$\tilde t_n = \mathrm{rnd}(-\tilde t_{n-1} \cdot \tilde{x} \cdot \tilde{x} / ((2n)(2n+1)), p_n),$$
 
 with $p_n = 10$. Stop after the first term with
-$\mathrm{siz} \le -(6 + 2 + 1) = -9$, or that rounds to 0.
+$\mathrm{siz} \le -(8 + 1) = -9$, or that rounds to 0.
 
 | $n$ | $p_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
 |---|---|---|---|
@@ -204,19 +204,19 @@ $|r| \le 0.9 \cdot \pi/2 < \sqrt{2}$.
 The reduction uses an approximation to $\pi$, whose error is multiplied by
 $|j|/2$. So with reduction:
 
-- **x** needs $d + k + 1$ places, as in the sine rule, even if it is exactly
+- **x** needs $d + 1$ places, as in the sine rule, even if it is exactly
   rounded.
-- **π** needs $d + k + 1 + \mathrm{siz}(j)$ places. With $j = 0$ there is no
+- **π** needs $d + 1 + \mathrm{siz}(j)$ places. With $j = 0$ there is no
   reduction, and $\pi$ isn't needed.
 
 Then compute $\tilde{r} = \tilde{x} - j\tilde{\pi}/2$ exactly. It has the
 accuracy the sine rule asks of the input, so evaluate $\sin \tilde{r}$ or
 $\cos \tilde{r}$ by its series.
 
-**Example.** For $\sin 100$ good to $d = 6$ places, with $k = 2$:
+**Example.** For $\sin 100$ rounded to 6 places, take $d = 8$:
 $100 / (\pi/2) \approx 63.7$, so $j = 64$. Since 64 mod 4 is 0,
 $\sin 100 = \sin r$. $x = 100$ is exact. $\pi$ needs
-$6 + 2 + 1 + \mathrm{siz}(64) = 11$ places, so $\tilde{\pi} = 3.14159265359$,
+$8 + 1 + \mathrm{siz}(64) = 11$ places, so $\tilde{\pi} = 3.14159265359$,
 and
 
 $$\tilde{r} = 100 - 32\tilde{\pi} = -0.53096491488.$$
@@ -229,10 +229,10 @@ $\varepsilon_x + \frac{|j|}{2}\varepsilon_\pi$. This is a sum of two inputs
 with $A_x = 1$ and $A_\pi = |j|/2$, so with $\eta = T/2$ split between them,
 the exact counts are
 
-$$d_x = \lceil d + k + \log(4c) \rceil, \qquad d_\pi = \lceil d + k + \log(2c|j|) \rceil.$$
+$$d_x = \lceil d + \log(4c) \rceil, \qquad d_\pi = \lceil d + \log(2c|j|) \rceil.$$
 
-Since $\log(4c) \le \log 2.4 < 1$, and
-$\log(2c|j|) \le \log 1.2 + \log|j| < 1 + \mathrm{siz}(j)$, these are enough.
+Since $\log(4c) \le \log 4 < 1$, and
+$\log(2c|j|) \le \log 2 + \log|j| < 1 + \mathrm{siz}(j)$, these are enough.
 
 For $\sin 100$, the error in $\tilde{r}$ is at most
 $32 \cdot \frac{1}{2} \cdot 10^{-11} = 1.6 \times 10^{-10}$, well within
@@ -256,18 +256,18 @@ after reducing $x$ so that $z$ is small.
 - **Reduce.** Write $\tilde{x} = 2^j m$ with $m$ between $0.7$ and $1.4$, so
   that $\ln x = j \ln 2 + \ln m$. Dividing by 2 is exact in decimal: each
   halving adds one place.
-- **ln 2.** Use $\ln 2$ to $d + k + 1 + \mathrm{siz}(j)$ places, like $\pi$ in
+- **ln 2.** Use $\ln 2$ to $d + 1 + \mathrm{siz}(j)$ places, like $\pi$ in
   the [sine reduction](#argument-reduction).
-- **z.** Compute $z = (m - 1)/(m + 1)$ to $d + k + 2$ places, rounded or
+- **z.** Compute $z = (m - 1)/(m + 1)$ to $d + 2$ places, rounded or
   truncated. Then $|z| \le 0.18$, and $z^2 \le 0.032$. Compute $z^2$ exactly.
 - **Terms.** Keep a running power, starting from $P_0 = z$, and for each
   $n \ge 1$ compute the power $P_n$ and the term $t_n$ as below, both rounded
   or truncated to $p_n$ places. Add the terms as you go, starting from
   $t_0 = z$.
 - **Stop** after the first term with
-  $\mathrm{siz}(\tilde{t}_N) \le -(d + k + 1)$, as in the [series](#the-series-rule)
+  $\mathrm{siz}(\tilde{t}_N) \le -(d + 1)$, as in the [series](#the-series-rule)
   rule, including that term.
-- **Combine.** $j \cdot \ln 2 + 2 \cdot (\text{sum})$, then round to $d$
+- **Combine.** $j \cdot \ln 2 + 2 \cdot (\text{sum})$. That is good to $d$
   places.
 
 The power and the term are
@@ -276,23 +276,23 @@ $$P_n = P_{n-1} \cdot z^2, \qquad t_n = \frac{P_n}{2n + 1},$$
 
 each to
 
-$$p_n = d + k + 1 + 2\mathrm{siz}(n)$$
+$$p_n = d + 1 + 2\mathrm{siz}(n)$$
 
 places. That is one place more than the [series](#the-series-rule) rule, because the
 sum is doubled at the end, which doubles its rounding errors.
 
-**Example.** To get $\ln 3$ good to $d = 6$ places, with $k = 2$, the budget is
-$T = 10^{-8}$.
+**Example.** To get $\ln 3$ rounded to 6 places, compute it good to $d = 8$
+places. The budget is $T = 10^{-8}$.
 
 **Reduce.** $3 = 2^2 \cdot 0.75$, so $j = 2$ and $m = 0.75$.
 
-**ln 2.** $\ln 2$ to $6 + 2 + 1 + 1 = 10$ places is $0.6931471806$.
+**ln 2.** $\ln 2$ to $8 + 1 + 1 = 10$ places is $0.6931471806$.
 
 **z.** $z = -0.25/1.75$, which to 10 places is $-0.1428571429$, and
 $z^2 = 0.02040816327755102041$ exactly.
 
 **Terms.** Use $p_n = 11$ places. Stop after the first term with
-$\mathrm{siz} \le -(6 + 2 + 1) = -9$.
+$\mathrm{siz} \le -(8 + 1) = -9$.
 
 | $n$ | $p_n$ | $\tilde{P}_n$ | $\tilde{t}_n$ | $\mathrm{siz}(\tilde{t}_n)$ |
 |---|---|---|---|---|
@@ -316,9 +316,9 @@ $8 \times 10^{-12}$.
 $T/8$ each:
 
 - **ln 2.** Its error is multiplied by $|j|$, and $|j| < 10^{\mathrm{siz}(j)}$,
-  so the error in $j \ln 2$ is under $10^{-(d+k+1)} = T/10$.
+  so the error in $j \ln 2$ is under $10^{-(d+1)} = T/10$.
 - **z.** The derivative of $2(z + z^3/3 + \cdots)$ is $2/(1 - z^2)$, at most
-  $2.07$ for $z^2 \le 0.032$. So an error below $10^{-(d+k+2)}$ in $z$ gives an
+  $2.07$ for $z^2 \le 0.032$. So an error below $10^{-(d+2)}$ in $z$ gives an
   error below $0.021T$.
 - **Rounding.** An error in $P_m$ is multiplied by $z^2$ at each later step, so
   it reaches the later powers with total weight at most

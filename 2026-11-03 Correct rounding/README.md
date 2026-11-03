@@ -1,6 +1,6 @@
 # Correct rounding
 
-How to tell whether a computed value, rounded to $d$ places, is the true value
+How to tell whether a computed value, rounded to $r$ places, is the true value
 correctly rounded, and what to do when that can't be told.
 
 *Xin-Xin*
@@ -8,13 +8,14 @@ correctly rounded, and what to do when that can't be told.
 This uses the notation of
 [Rounding and error bounds](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md)
 and the input-places docs that follow it:
-$\mathrm{rnd}(x, d)$ rounds to $d$ places with ties away from zero, $k$ is the
-number of guard digits, and $T = 10^{-(d+k)}$. The rules there produce a value
-$\tilde{f}$ within $T$ of the true value $f$, and then round it to $d$ places.
+$\mathrm{rnd}(x, r)$ rounds to $r$ places with ties away from zero. The rules
+there produce a value $\tilde{f}$ good to $d$ places, within $T = 10^{-d}$ of
+the true value $f$, and then round it to $r < d$ places. The $d - r$ extra
+places are the guard digits.
 
 ## The problem
 
-An error bound never guarantees that the output is $\mathrm{rnd}(f, d)$, the
+An error bound never guarantees that the output is $\mathrm{rnd}(f, r)$, the
 true value correctly rounded. In the example from the
 [2015 notes](../2015-03-17%202%20Error%20bounds%20for%20arithmetic/README.md#correct-rounding-cant-be-guaranteed),
 $f = 0.4499999$ and $\tilde{f} = 0.45$ are within $10^{-6}$ of each other, but
@@ -22,44 +23,44 @@ round to $0.4$ and $0.5$. However small the error, a value close enough to a
 rounding boundary can land on the wrong side of it. This is known as the
 *table maker's dilemma*.
 
-The rounding boundaries for $d$ places are the midpoints
-$(n + \frac{1}{2}) \cdot 10^{-d}$ for integers $n$. Between two neighbouring
-boundaries, $\mathrm{rnd}(x, d)$ is the same for every $x$.
+The rounding boundaries for $r$ places are the midpoints
+$(n + \frac{1}{2}) \cdot 10^{-r}$ for integers $n$. Between two neighbouring
+boundaries, $\mathrm{rnd}(x, r)$ is the same for every $x$.
 
 ## The check
 
 **Lemma 1.** If $|\tilde{f} - f| \le \eta$, and $\tilde{f}$ is more than $\eta$
 away from every rounding boundary, then
-$\mathrm{rnd}(\tilde{f}, d) = \mathrm{rnd}(f, d)$.
+$\mathrm{rnd}(\tilde{f}, r) = \mathrm{rnd}(f, r)$.
 
 **Proof.** No boundary lies in $[\tilde{f} - \eta, \tilde{f} + \eta]$, which
 contains $f$. So $f$ and $\tilde{f}$ lie strictly between the same two
-boundaries, and they round to the same multiple of $10^{-d}$. ∎
+boundaries, and they round to the same multiple of $10^{-r}$. ∎
 
 The check uses $\tilde{f}$ before the final rounding. After it, the value is a
-multiple of $10^{-d}$, which is always exactly $\frac{1}{2} \cdot 10^{-d}$
+multiple of $10^{-r}$, which is always exactly $\frac{1}{2} \cdot 10^{-r}$
 from the nearest boundary, so the check would tell you nothing.
 
 Usually $\eta = T$, since that is what the rules guarantee. If a better bound
 is known, use it. For example, an exact product has no evaluation error, so
 its propagated error bound alone will do.
 
-To find the distance, write $\tilde{f}$ to $d + 1$ places or more and look at
-the digits after place $d$. The nearest boundary is where they would read
-$5000\ldots$ For $\tilde{f} = 1.7724539$ and $d = 4$, the digits after place
+To find the distance, write $\tilde{f}$ to $r + 1$ places or more and look at
+the digits after place $r$. The nearest boundary is where they would read
+$5000\ldots$ For $\tilde{f} = 1.7724539$ and $r = 4$, the digits after place
 4 are $39$, and the nearest boundary is $1.77245$, about
 $3.9 \times 10^{-6}$ away.
 
 ## When the check fails
 
 Compute $\tilde{f}$ again with a smaller $\eta$, and check again. The simplest
-way is one more guard digit, which makes $T$ ten times smaller. Every rule
-asks for $d + k$ plus something, so this adds one place to every input.
+way is one more guard digit: add 1 to $d$, which makes $T$ ten times smaller.
+Every rule asks for $d$ plus something, so this adds one place to every input.
 
 The check fails only when $\tilde{f}$ is within $\eta$ of a boundary.
-Boundaries are $10^{-d}$ apart, so for a value with no reason to be near one,
-that happens about $2\eta \cdot 10^d = 2 \cdot 10^{-k}$ of the time: 2% with
-$k = 2$, and each retry makes it 10 times rarer.
+Boundaries are $10^{-r}$ apart, so for a value with no reason to be near one,
+that happens about $2\eta \cdot 10^r = 2 \cdot 10^{-(d - r)}$ of the time: 2%
+with 2 guard digits, and each retry makes it 10 times rarer.
 
 Retrying finishes unless $f$ is exactly on a boundary. Then $\tilde{f}$ can
 be on either side of it, however small $\eta$ is, so cap the number of
@@ -68,7 +69,7 @@ retries.
 ## Exact ties
 
 A boundary is a terminating decimal, so only a terminating decimal can be
-exactly on one: one with $d + 1$ places, ending in 5, such as $0.45$ to 1
+exactly on one: one with $r + 1$ places, ending in 5, such as $0.45$ to 1
 place. Values like $\pi$, $\sqrt{2}$ or $\ln 3$ never are, so for them the
 retries always finish.
 
@@ -87,14 +88,14 @@ $x, y > 0$, the truncated quotient $q$ satisfies
 $$q \le \frac{x}{y} < q + 10^{-p}.$$
 
 If $x$ and $y$ are exact, for example integers or decimals given exactly,
-truncating to $d + 1$ places and then rounding is already correct, with no
+truncating to $r + 1$ places and then rounding is already correct, with no
 guard digits and no check.
 
-**Lemma 2.** Let $x, y > 0$, and let $q$ be $x / y$ truncated to $d + 1$
-places. Then $\mathrm{rnd}(q, d) = \mathrm{rnd}(x / y, d)$.
+**Lemma 2.** Let $x, y > 0$, and let $q$ be $x / y$ truncated to $r + 1$
+places. Then $\mathrm{rnd}(q, r) = \mathrm{rnd}(x / y, r)$.
 
-**Proof.** The rounding boundaries for $d$ places are multiples of
-$10^{-(d+1)}$, and so is $q$. Since $q \le x / y < q + 10^{-(d+1)}$, no
+**Proof.** The rounding boundaries for $r$ places are multiples of
+$10^{-(r+1)}$, and so is $q$. Since $q \le x / y < q + 10^{-(r+1)}$, no
 boundary lies strictly between $q$ and $x / y$, and a boundary at or below
 $x / y$ is also at or below $q$. So $q$ and $x / y$ are on the same side of
 every boundary, including when $x / y$ is exactly on one, where both round
@@ -108,7 +109,7 @@ $1 / 8$ truncated to 3 places is $0.125$, exactly on a boundary, which rounds
 to $0.13$, the correct result with ties away from zero.
 
 The lemma relies on ties going away from zero. With round-half-to-even, a
-truncated digit 5 in place $d + 1$ can't be rounded correctly without also
+truncated digit 5 in place $r + 1$ can't be rounded correctly without also
 knowing whether the remainder is zero.
 
 ## Examples
@@ -116,9 +117,10 @@ knowing whether the remainder is zero.
 These are the examples from
 [Input places for arithmetic](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md),
 [Input places for functions](../2026-11-02%203%20Input%20places%20for%20functions/README.md) and
-[Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md), all with $k = 2$. Each $\tilde{f}$ is the value before the final rounding.
+[Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md), all with 2 guard digits, so $d = r + 2$. Each $\tilde{f}$ is the value before
+the final rounding.
 
-| Example | $d$ | $\tilde{f}$ | $\eta$ | Nearest boundary | Distance | Result |
+| Example | $r$ | $\tilde{f}$ | $\eta$ | Nearest boundary | Distance | Result |
 |---|---|---|---|---|---|---|
 | [π times e](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#π-times-e) | 3 | $8.53973425942286$ | $2.93 \times 10^{-7}$ | $8.5395$ | $2.3 \times 10^{-4}$ | $8.540$ |
 | [π e √2](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#products-of-more-than-two-factors) | 3 | $12.0770079295\ldots$ | $10^{-5}$ | $12.0775$ | $4.9 \times 10^{-4}$ | $12.077$ |

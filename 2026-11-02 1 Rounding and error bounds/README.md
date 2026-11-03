@@ -197,38 +197,59 @@ contains both $x$ and $\tilde{x}$.
 
 ### Good to d places
 
-Fix a whole number $k \ge 1$ of *guard digits*, and let
+Say $\tilde{x}$ is *good to d places* if
 
-$$c_k = \tfrac{1}{2} + 10^{-k}.$$
+$$|\tilde{x} - x| \le 10^{-d}.$$
 
-Say $\tilde{x}$ is good to $d$ places if $\tilde{x}$ has at most $d$ decimal
-places and
+This says how accurate $\tilde{x}$ is, not how it is written: $\tilde{x}$ can
+have any number of decimal places. If the error is at most $c \cdot 10^{-d}$,
+call $c$ the *error constant*. Every value good to $d$ places has $c \le 1$,
+and an exactly rounded value, $\tilde{x} = \mathrm{rnd}(x, d)$, has
+$c = \frac{1}{2}$. The formulas in the later docs keep track of $c$, because
+$c = \frac{1}{2}$ sometimes saves a place.
 
-$$|\tilde{x} - x| \le c_k \cdot 10^{-d}.$$
-
-The $\frac{1}{2} \cdot 10^{-d}$ part is the error from rounding to $d$ places.
-The $10^{-k} \cdot 10^{-d}$ part is the error left over from computing $x$
-before rounding. The 2015 notes used $k = 2$, so $c_2 = 0.51$.
-
-An exactly rounded value, $\tilde{x} = \mathrm{rnd}(x, d)$, is good to $d$
-places with error $\frac{1}{2} \cdot 10^{-d}$. In the formulas below, an
-exactly rounded input can use $c = \frac{1}{2}$ in place of $c_k$.
+The 2015 notes used a stricter standard. There, a value good to $d$ places
+had at most $d$ places, and an error of at most $0.51 \cdot 10^{-d}$: up to
+$\frac{1}{2} \cdot 10^{-d}$ from rounding to $d$ places, and up to
+$0.01 \cdot 10^{-d}$ from computing it before rounding, with 2 *guard digits*.
+Holding every intermediate value to that standard costs about 2 places at
+every step of a calculation, because each step has to compute its result 2
+places further than it was asked for, just so it can round. Here rounding is
+optional, and only the final result needs guard digits.
 
 ### The invariant
 
-**Lemma 1.** If $|\tilde{f} - f| \le 10^{-(d+k)}$, then $\mathrm{rnd}(\tilde{f}, d)$
-is good to $d$ places as an approximation to $f$.
+**Lemma 1.** If $|\tilde{f} - f| \le \varepsilon$, then
+
+$$|\mathrm{rnd}(\tilde{f}, q) - f| \le \varepsilon + \tfrac{1}{2} \cdot 10^{-q}.$$
 
 **Proof.** By property 2 of rounding,
 
-$$|\mathrm{rnd}(\tilde{f}, d) - f| \le |\mathrm{rnd}(\tilde{f}, d) - \tilde{f}| + |\tilde{f} - f| \le \tfrac{1}{2} \cdot 10^{-d} + 10^{-(d+k)} = c_k \cdot 10^{-d}.$$
+$$|\mathrm{rnd}(\tilde{f}, q) - f| \le |\mathrm{rnd}(\tilde{f}, q) - \tilde{f}| + |\tilde{f} - f| \le \tfrac{1}{2} \cdot 10^{-q} + \varepsilon.$$
 
 ∎
 
-This is the idea that makes the method work. Inputs and outputs meet the same
-standard, so the output of one calculation can be the input to the next. Each
-step has one job: compute $\tilde{f}$ within $T = 10^{-(d+k)}$ of the true
-value, then round to $d$ places.
+So rounding is just another source of error, and it is used in two ways:
+
+- **Along the way.** A value good to $d + 1$ places, rounded to $d$ places, is
+  still good to $d$ places, with error at most
+  $(0.1 + 0.5) \cdot 10^{-d} = 0.6 \cdot 10^{-d}$. To keep the numbers in a
+  calculation short, compute a value one place further than needed and round
+  it.
+- **At the end.** To report a result rounded to $r$ places, compute it good to
+  $d > r$ places, then round it to $r$ places. Its error is then at most
+  $(\frac{1}{2} + 10^{-(d - r)}) \cdot 10^{-r}$. The $d - r$ extra places are
+  the guard digits. One is enough to make the rounded result good to $r$
+  places. More make it more likely that the rounded result is the true value
+  correctly rounded, as
+  [Correct rounding](../2026-11-03%20Correct%20rounding/README.md) explains.
+  The examples use 2, as the 2015 notes did, so $d = r + 2$.
+
+This is the idea that makes the method work. Inputs, intermediate results and
+outputs all meet the same standard, so the output of one calculation can be
+the input to the next, without rounding it first. Each step has one job: given
+the places $d$ its result needs, compute it within $T = 10^{-d}$ of the true
+value.
 
 ### From an error bound to decimal places
 

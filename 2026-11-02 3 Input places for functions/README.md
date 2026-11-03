@@ -1,7 +1,7 @@
 # Input places for functions
 
 How many decimal places the input to a reciprocal, square root, exponential,
-logarithm, sine or cosine needs so that the output, rounded to $d$ places, is accurate.
+logarithm, sine or cosine needs so that the output is good to $d$ places.
 
 *Xin-Xin*
 
@@ -59,29 +59,29 @@ cover $\tilde{x}$.
 
 | Operation | Input places |
 |---|---|
-| $1/x$ | $\max(d + k + 3 - 2\mathrm{siz}(L_x), 2 - \mathrm{siz}(L_x))$ |
-| $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ with no lower bound |
-| $e^x$ | $d + k + 2 + \lfloor 0.44 U_x \rfloor$ for $x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 L_x \rceil)$ for $x < 0$ |
-| $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
-| $\sin x$, $\cos x$ | $d + k + 1$ |
+| $1/x$ | $\max(d + 3 - 2\mathrm{siz}(L_x), 2 - \mathrm{siz}(L_x))$ |
+| $\sqrt{x}$ | $\min(d + 1 - \lfloor \mathrm{siz}(L_x)/2 \rfloor, 2d + 1)$, or $2d + 1$ with no lower bound |
+| $e^x$ | $d + 2 + \lfloor 0.44 U_x \rfloor$ for $x \ge 0$, and $\max(1, d + 2 - \lceil 0.43 L_x \rceil)$ for $x < 0$ |
+| $\ln x$ | $d + 2 - \mathrm{siz}(L_x)$ |
+| $\sin x$, $\cos x$ | $d + 1$ |
 
 ## Reciprocals
 
 **Rule.** With a lower bound $L_x \le |x|$ on the true value,
 
-$$d_x = \max(d + k + 3 - 2\mathrm{siz}(L_x), 2 - \mathrm{siz}(L_x)).$$
+$$d_x = \max(d + 3 - 2\mathrm{siz}(L_x), 2 - \mathrm{siz}(L_x)).$$
 
-Then compute $1/\tilde{x}$ to $d + k + 1$ places, for example by
+Then compute $1/\tilde{x}$ to $d + 1$ places, for example by
 [truncating division](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#division-by-truncation).
 For negative $x$, work with $|x|$ and attach the sign at the end.
 
 The second part only takes over when $|x|$ is so large that $1/x$ is below
-about $10^{-(d+k)}$. This asks for one place fewer than the quotient rule with
+about $10^{-d}$. This asks for one place fewer than the quotient rule with
 an exact numerator 1, which has to cover $\tilde{x}$ with $0.99L_x$.
 
-**Example.** For $1/\pi$ good to $d = 4$ places, with $k = 2$: $\pi > 3$, of
-size 1, so $\pi$ needs $\max(4 + 2 + 3 - 2, 2 - 1) = 7$ places. So
-$\tilde{x} = 3.1415927$, and $1/\tilde{x}$ cut off at $4 + 2 + 1 = 7$ places is
+**Example.** For $1/\pi$ rounded to 4 places, take $d = 6$: $\pi > 3$, of
+size 1, so $\pi$ needs $\max(6 + 3 - 2, 2 - 1) = 7$ places. So
+$\tilde{x} = 3.1415927$, and $1/\tilde{x}$ cut off at $6 + 1 = 7$ places is
 $0.3183098$, which rounds to $0.3183$. (The true value is
 $0.3183098861\ldots$)
 
@@ -98,17 +98,17 @@ automatically positive. The exact count is
 $$d_x = \left\lceil \log c - \log\frac{\eta L_x^2}{1 + \eta L_x} \right\rceil.$$
 
 The division can't be computed exactly, so $\eta = T/2$ and
-$-\log \eta = d + k + \log 2$. There are two cases:
+$-\log \eta = d + \log 2$. There are two cases:
 
 - **If ηL is at most 1,** then $1 + \eta L_x \le 2$, and the count is at most
-  $d + k + \log(4c) - 2\log L_x$. Since $\log(4c) \le \log 2.4 < 1$ and
+  $d + \log(4c) - 2\log L_x$. Since $\log(4c) \le \log 4 < 1$ and
   $-2\log L_x \le 2 - 2\mathrm{siz}(L_x)$, the first part is enough.
 - **If ηL is above 1,** then $1 + \eta L_x < 2\eta L_x$, and the count is
-  less than $\log(2c) - \log L_x$. Since $\log(2c) < 1$ and
+  less than $\log(2c) - \log L_x$. Since $\log(2c) \le \log 2 < 1$ and
   $-\log L_x \le 1 - \mathrm{siz}(L_x)$, the second part is enough.
 
-With $k = 2$ and $\mathrm{nsiz} = \mathrm{siz} - 1$, this is the 2015 rule
-$d_1 \ge \max(1 - \mathrm{nsiz}(x), d + 3 - 2\mathrm{nsiz}(x))$ from the
+With $\mathrm{nsiz} = \mathrm{siz} - 1$, this is the 2015 rule
+$d_1 \ge \max(1 - \mathrm{nsiz}(x), d + 3 - 2\mathrm{nsiz}(x))$ with $d - 2$ in place of $d$, from the
 [2015 notes on reciprocals](../2015-03-17%205%20Reciprocals/README.md), which used the same
 two cases.
 
@@ -116,28 +116,27 @@ two cases.
 
 **Rule.** With a lower bound $L_x \le x$ on the true value,
 
-$$d_x = \min\left(d + k - \left\lfloor \frac{\mathrm{siz}(L_x) - 1}{2} \right\rfloor, 2(d + k) + 1\right).$$
+$$d_x = \min\left(d + 1 - \left\lfloor \frac{\mathrm{siz}(L_x)}{2} \right\rfloor, 2d + 1\right).$$
 
-Without a lower bound, $d_x = 2(d + k) + 1$.
+Without a lower bound, $d_x = 2d + 1$.
 
-The first part subtracts half of $\mathrm{siz}(L_x) - 1$, rounded down, from
-$d + k$. For a negative number, rounding down goes away from zero:
-$\lfloor -1/2 \rfloor = -1$. So $\sqrt{0.5}$, with $L_x = 0.5$ and
-$\mathrm{siz}(0.5) = 0$, needs $d + k + 1$ places. The second part only takes
-over for extremely small $x$, below about $10^{-2(d+k)}$.
+The first part subtracts half of $\mathrm{siz}(L_x)$, rounded down, from
+$d + 1$. For a negative number, rounding down goes away from zero:
+$\lfloor -1/2 \rfloor = -1$. So $\sqrt{0.05}$, with $L_x = 0.05$ and
+$\mathrm{siz}(0.05) = -1$, needs $d + 2$ places. The second part only takes
+over for extremely small $x$, below about $10^{-2d}$.
 
 If $\tilde{x}$ comes out negative, use $0$ instead: since $x \ge 0$, that only
 moves $\tilde{x}$ closer to $x$.
 
-**Example.** To get $\sqrt{\pi}$ good to $d = 4$ places, with $k = 2$: $\pi > 3$,
-and $\mathrm{siz}(3) = 1$, so $\pi$ needs $4 + 2 - 0 = 6$ places.
+**Example.** To get $\sqrt{\pi}$ rounded to 4 places, take $d = 6$: $\pi > 3$,
+and $\mathrm{siz}(3) = 1$, so $\pi$ needs $6 + 1 - 0 = 7$ places.
 
-So $\tilde{x} = 3.141593$. Its square root to $d + k + 1 = 7$ places is
+So $\tilde{x} = 3.1415927$. Its square root to $d + 1 = 7$ places is
 $1.7724539$. The budget is $T = 10^{-6}$ and $\eta = 5 \times 10^{-7}$, so the
 total error is at most
-$\eta + \frac{1}{2} \cdot 10^{-7} = 5.5 \times 10^{-7} \le T$. By [Lemma 1](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md#the-invariant),
-$\mathrm{rnd}(1.7724539, 4) = 1.7725$ is good to 4 places. (The true value is
-$1.7724538509\ldots$)
+$\eta + \frac{1}{2} \cdot 10^{-7} = 5.5 \times 10^{-7} \le T$. Rounded to 4
+places, that is $1.7725$. (The true value is $1.7724538509\ldots$)
 
 **Why.** For $f(x) = \sqrt{x}$, which is increasing on $[0, \infty)$,
 Theorem 5 gives
@@ -159,31 +158,42 @@ count is
 
 $$d_x = \lceil \log c - \log \delta(L_x) \rceil.$$
 
-For $\sqrt{\pi}$, that is $\lceil 5.46 \rceil = 6$, the same as the rule.
+For $\sqrt{\pi}$, that is $\lceil 5.46 \rceil = 6$ with $c = \frac{1}{2}$, since
+$\tilde{x}$ is exactly rounded, and $\lceil 5.76 \rceil = 6$ with $c = 1$. The
+rule asks for one more.
 
 When $\sqrt{L_x} \ge 2\eta$, $\eta^2 \le \frac{1}{2}\eta\sqrt{L_x}$, so
 $\delta(L_x) \ge 1.5\eta\sqrt{L_x}$. With $\eta = T/2$ it is then enough that
 
-$$d_x \ge d + k + \log\frac{c}{0.75} - \tfrac{1}{2}\log L_x.$$
+$$d_x \ge d + \log\frac{c}{0.75} - \tfrac{1}{2}\log L_x.$$
 
-$\log\frac{c}{0.75}$ is negative because $c \le 0.6$, and
-$-\frac{1}{2}\log L_x \le -\frac{1}{2}(\mathrm{siz}(L_x) - 1)$, which gives the
-first part of the rule. The condition $\sqrt{L_x} \ge 2\eta$ says
-$L_x \ge 10^{-2(d+k)}$, which holds when $\mathrm{siz}(L_x) \ge 1 - 2(d + k)$.
+Since $c \le 1$, $\log\frac{c}{0.75} < 0.13$, and
+$-\frac{1}{2}\log L_x \le \frac{1}{2} - \frac{1}{2}\mathrm{siz}(L_x)$, so the
+right side is below $d + 0.63 - \frac{1}{2}\mathrm{siz}(L_x)$. The first part of
+the rule is at least $d + 1 - \frac{1}{2}\mathrm{siz}(L_x)$, so it is enough.
+The condition $\sqrt{L_x} \ge 2\eta$ says $L_x \ge 10^{-2d}$, which holds when
+$\mathrm{siz}(L_x) \ge 1 - 2d$.
+
+The 1 in the first part is needed. For example,
+with $L_x = 1$ the largest allowed error is
+$\delta(1) = 2\eta - \eta^2 = T - T^2/4$, just under $10^{-d}$, so an input
+good to $d$ places isn't quite enough.
 
 For any $x \ge 0$, $\delta = \eta^2$ works, which needs
-$\lceil 2(d + k + \log 2) + \log c \rceil \le 2(d + k) + 1$ places: the
+$\lceil 2(d + \log 2) + \log c \rceil \le 2d + 1$ places: the
 second part. For $x$ near 0 the largest $\delta$ is close to $\eta^2$, so no
 rule can do much better there.
 
-So the minimum is always enough. When $\mathrm{siz}(L_x) \ge 1 - 2(d + k)$, the
-first part is valid. When $\mathrm{siz}(L_x) \le -2(d + k)$, the first part is
-at least $2(d + k) + 1$, so the minimum is the second part, which is always
+So the minimum is always enough. When $\mathrm{siz}(L_x) \ge 1 - 2d$, the
+first part is valid. When $\mathrm{siz}(L_x) \le -2d$, the first part is
+at least $2d + 1$, so the minimum is the second part, which is always
 valid.
 
-The 2015 rule $d_1 \ge d + 2 - \frac{1}{2}\mathrm{nsiz}(x)$ asks for slightly
-more than the exact count with $k = 2$. So it was safe, even though it set
-nothing aside for evaluation error.
+The 2015 rule $d_1 \ge d + 2 - \frac{1}{2}\mathrm{nsiz}(x)$, with $d - 2$ in
+place of $d$, asks for slightly more than the exact count with $c = 0.51$, the
+error constant the 2015 notes used. So it was safe, even though it set nothing
+aside for evaluation error. With $c = 1$ it can fall short by a place, as the
+example with $L_x = 1$ shows.
 
 Theorem 4 gives $A = 1/(2\sqrt{L_x - \varepsilon_x})$, which also gives
 $\delta \approx 2\eta\sqrt{L_x}$. Theorem 5 only makes a real difference near
@@ -193,25 +203,24 @@ $0$, where Theorem 4's $A$ blows up but $\delta = \eta^2$ still works.
 
 **Rule.** For $x \ge 0$, with an upper bound $U_x \ge x$ on the true value,
 
-$$d_x = d + k + 2 + \lfloor 0.44 U_x \rfloor.$$
+$$d_x = d + 2 + \lfloor 0.44 U_x \rfloor.$$
 
 For $x < 0$, with a lower bound $L_x \le |x|$ on the true value,
 
-$$d_x = \max(1, d + k + 2 - \lceil 0.43 L_x \rceil).$$
+$$d_x = \max(1, d + 2 - \lceil 0.43 L_x \rceil).$$
 
 If you don't know the sign of $x$, use the first rule with $U_x \ge |x|$. The
 factors $0.44$ and $0.43$ are $\log e \approx 0.4343$ rounded up and down.
 
-**Example.** To get $e^{3\pi}$ good to $d = 3$ places, with $k = 2$: $3\pi < 9.5$,
+**Example.** To get $e^{3\pi}$ rounded to 3 places, take $d = 5$: $3\pi < 9.5$,
 so take $U_x = 9.5$. Then $\lfloor 0.44 \cdot 9.5 \rfloor = \lfloor 4.18 \rfloor = 4$,
-so $3\pi$ needs $3 + 2 + 2 + 4 = 11$ places.
+so $3\pi$ needs $5 + 2 + 4 = 11$ places.
 
 So $\tilde{x} = \mathrm{rnd}(3\pi, 11) = 9.42477796077$. Its exponential to
-$d + k + 1 = 6$ places is $12391.647808$. The budget is $T = 10^{-5}$ and
+$d + 1 = 6$ places is $12391.647808$. The budget is $T = 10^{-5}$ and
 $\eta = 5 \times 10^{-6}$, so the total error is at most
-$\eta + \frac{1}{2} \cdot 10^{-6} = 5.5 \times 10^{-6} \le T$. By Lemma 1,
-$\mathrm{rnd}(12391.647808, 3) = 12391.648$ is good to 3 places. (The true
-value is $12391.6478079\ldots$)
+$\eta + \frac{1}{2} \cdot 10^{-6} = 5.5 \times 10^{-6} \le T$. Rounded to 3
+places, that is $12391.648$. (The true value is $12391.6478079\ldots$)
 
 **Why.** For $f(x) = e^x$, Theorem 5 gives
 
@@ -233,16 +242,16 @@ rule.
 
 Since $\ln(1 + u) \ge \frac{u}{1 + u}$, it is enough that
 
-$$d_x \ge \log c - \log u + \log(1 + u) = d + k + \log(2c(E + \eta)),$$
+$$d_x \ge \log c - \log u + \log(1 + u) = d + \log(2c(E + \eta)),$$
 
-using $\eta = T/2$, so that $2\eta = 10^{-(d+k)}$.
+using $\eta = T/2$, so that $2\eta = 10^{-d}$.
 
-- **If E is at least η,** then $2c(E + \eta) \le 2.4E < 10^{\mathrm{siz}(E) + 1}$,
-  so $d + k + 1 + \mathrm{siz}(E)$ is enough.
-- **If E is below η,** then $d + k + \log(2c(E + \eta)) = \log(c(E + \eta)/\eta)$,
-  which is less than $\log(2c) < 1$, so 1 place is enough.
+- **If E is at least η,** then $2c(E + \eta) \le 4E < 10^{\mathrm{siz}(E) + 1}$,
+  so $d + 1 + \mathrm{siz}(E)$ is enough.
+- **If E is below η,** then $d + \log(2c(E + \eta)) = \log(c(E + \eta)/\eta)$,
+  which is less than $\log(2c) \le \log 2 < 1$, so 1 place is enough.
 
-So $d_x = \max(1, d + k + 1 + \mathrm{siz}(E))$ is enough for any upper bound
+So $d_x = \max(1, d + 1 + \mathrm{siz}(E))$ is enough for any upper bound
 $E \ge e^x$. To turn this into a rule on $x$, use $\mathrm{siz}(e^a) = \lfloor a \log e \rfloor + 1$:
 
 - **For x at least 0,** take $E = e^{U_x}$. Since $\log e < 0.44$,
@@ -252,13 +261,13 @@ $E \ge e^x$. To turn this into a rule on $x$, use $\mathrm{siz}(e^a) = \lfloor a
   $\log e > 0.43$, $\lfloor -L_x \log e \rfloor \le \lfloor -0.43 L_x \rfloor = -\lceil 0.43 L_x \rceil$,
   which gives the second rule.
 
-For example, $e^{-5}$ to 6 places, with $k = 2$, takes $L_x = 5$, and
+For example, $e^{-5}$ good to 8 places takes $L_x = 5$, and
 $\lceil 0.43 \cdot 5 \rceil = \lceil 2.15 \rceil = 3$, so $x$ needs
-$6 + 2 + 2 - 3 = 7$ places. The exact count is 6.
+$8 + 2 - 3 = 7$ places. With $c = \frac{1}{2}$, the exact count is 6.
 
-With $k = 2$, the 2015 rule
+With $d - 2$ in place of $d$, the 2015 rule
 $d_1 \ge (d + 3 + x/\ln 10) H(d + 3 + x/\ln 10)$, where $H$ is the step
-function, is $d + k + 1 + \log e^x$: the rule with $\log e^x$ in place of
+function, is $d + 1 + \log e^x$: the rule with $\log e^x$ in place of
 $\mathrm{siz}(E)$. The argument above shows that is enough too, so it was
 safe.
 
@@ -272,10 +281,10 @@ output is $0$ to $d$ places anyway.
 
 **Rule.** With a lower bound $L_x \le x$ on the true value,
 
-$$d_x = d + k + 2 - \mathrm{siz}(L_x).$$
+$$d_x = d + 2 - \mathrm{siz}(L_x).$$
 
-**Example.** For $\ln \pi$ good to $d = 4$ places, with $k = 2$: $\pi > 3$, of
-size 1, so $\pi$ needs $4 + 2 + 2 - 1 = 7$ places.
+**Example.** For $\ln \pi$ rounded to 4 places, take $d = 6$: $\pi > 3$, of
+size 1, so $\pi$ needs $6 + 2 - 1 = 7$ places.
 
 **Why.** For $f(x) = \ln x$, which is increasing on $(0, \infty)$ with
 inverse $e^y$, Theorem 5 gives
@@ -290,27 +299,27 @@ automatically positive.
 Since $e^{\eta} \ge 1 + \eta$, $1 - e^{-\eta} \ge \frac{\eta}{1 + \eta}$. With
 $\eta = T/2$, [Lemma 2](../2026-11-02%201%20Rounding%20and%20error%20bounds/README.md#from-an-error-bound-to-decimal-places) gives
 
-$$d_x = \left\lceil d + k + \log(2c) + \log(1 + \eta) - \log L_x \right\rceil.$$
+$$d_x = \left\lceil d + \log(2c) + \log(1 + \eta) - \log L_x \right\rceil.$$
 
-Since $\log(2c) + \log(1 + \eta) \le \log(1.2 \times 1.5) < 1$ and
+Since $\log(2c) + \log(1 + \eta) \le \log(2 \times 1.5) < 1$ for $d \ge 0$, and
 $-\log L_x \le 1 - \mathrm{siz}(L_x)$, the rule is enough.
 
 ## Sine and cosine
 
 **Rule.** For $\sin x$ or $\cos x$,
 
-$$d_x = d + k + 1.$$
+$$d_x = d + 1.$$
 
-No bounds are needed. If $x$ is exactly rounded, $d + k$ places are enough.
+No bounds are needed. If $x$ is exactly rounded, $d$ places are enough.
 
-**Example.** For $\sin(\pi/4)$ good to $d = 6$ places, with $k = 2$, $\pi/4$
-needs $6 + 2 + 1 = 9$ places.
+**Example.** For $\sin(\pi/4)$ rounded to 6 places, take $d = 8$. Then
+$\pi/4$ needs $8 + 1 = 9$ places.
 
 **Why.** The derivatives of $\sin$ and $\cos$ are $\cos$ and $-\sin$, which are
 at most 1 in size, so Theorem 4 gives $A = 1$. Neither can be computed exactly,
-so $\eta = T/2$, and the exact count is $\lceil d + k + \log(2c) \rceil$. Since
-$\log(2c) \le \log 1.2 < 1$, the rule is enough. For an exactly rounded input,
-$c = \frac{1}{2}$ and $\log(2c) = 0$, so $d + k$ is enough.
+so $\eta = T/2$, and the exact count is $\lceil d + \log(2c) \rceil$. Since
+$\log(2c) \le \log 2 < 1$, the rule is enough. For an exactly rounded input,
+$c = \frac{1}{2}$ and $\log(2c) = 0$, so $d$ is enough.
 
 Near the peaks of $\sin$, where $\cos x$ is close to 0, a smaller $A$ would do,
 but the rule doesn't try to use that.

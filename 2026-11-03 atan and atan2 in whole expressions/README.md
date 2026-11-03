@@ -11,8 +11,8 @@ This extends
 without changing it. Each section below says which part of that doc it adds
 to: the cheap bounds of pass 1, the tightening step, the rules of pass 2, and
 the evaluation of pass 3. The notation is the same: $d$ is a node's places,
-$k$ the guard digits, $T = 10^{-(d+k)}$ the budget, and a value is good to
-$d$ places if its error is at most $c \cdot 10^{-d}$ with $c \le 0.6$.
+$T = 10^{-d}$ the budget, and a value is good to $d$ places if it is within
+$10^{-d}$ of the true value.
 
 It also uses:
 
@@ -42,7 +42,7 @@ numbers in the examples.
 
 Two new rows for the table in
 [Cheap bounds](../2026-11-03%20Precision%20for%20whole%20expressions/README.md#cheap-bounds).
-Here $w = 0.6 \cdot 10^{-5}$.
+Here $w = 10^{-5}$.
 
 | Node | Cheap interval |
 |---|---|
@@ -113,8 +113,8 @@ Two new rows for the table in
 
 | Node | Places for its children |
 |---|---|
-| $\mathrm{atan}(x)$ | $d + k + 1$, or with $L_x$: $\max(d + k + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x))$ |
-| $\mathrm{atan2}(y, x)$ | each inexact child: $d + k + 2 - \mathrm{siz}(0.99M)$, at least the minimum places $3 - \mathrm{siz}(L)$ of each lower bound used |
+| $\mathrm{atan}(x)$ | $d + 1$, or with $L_x$: $\max(d + 1 - 2\max(0, \mathrm{siz}(0.99L_x) - 1), 3 - \mathrm{siz}(L_x))$ |
+| $\mathrm{atan2}(y, x)$ | each inexact child: $d + 2 - \mathrm{siz}(0.99M)$, at least the minimum places $3 - \mathrm{siz}(L)$ of each lower bound used |
 
 Here $M$ is the larger of $L_x$ and $L_y$, among those that exist. The atan2
 row applies when $L_y$ exists, or when $\ell_x > 0$, and tightening has made
@@ -139,7 +139,7 @@ to a small one, as in the logarithm section of Functions by series. Use the
 twice.
 
 **Rule.** To evaluate $\mathrm{atan}(\tilde{x})$ for a node with $d$ places,
-with $p = d + k + 2$:
+with $p = d + 2$:
 
 **Reciprocal.** If $|\tilde{x}| > 1$, compute $w = 1/\tilde{x}$ to $p$
 places, and use
@@ -162,23 +162,22 @@ $$
 P_n = P_{n-1} \cdot v^2, \qquad t_n = \frac{(-1)^n P_n}{2n + 1},
 $$
 
-each to $p_n = d + k + 1 + 2\mathrm{siz}(n)$ places, and add the terms as you
+each to $p_n = d + 1 + 2\mathrm{siz}(n)$ places, and add the terms as you
 go.
 
 **Stop** after the first term with
-$\mathrm{siz}(\tilde{t}_N) \le -(d + k + 1)$, including that term, as in the
+$\mathrm{siz}(\tilde{t}_N) \le -(d + 1)$, including that term, as in the
 [series rule](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule).
 
 **Combine.** $4 \cdot (\text{sum})$, or
 $\mathrm{sgn}(\tilde{x}) \cdot \frac{\pi}{2} - 4 \cdot (\text{sum})$ with
-$\frac{\pi}{2}$ to $p$ places. Then round to $d$ places.
+$\frac{\pi}{2}$ to $p$ places.
 
-The result is within $0.18T$ of $\mathrm{atan}(\tilde{x})$ before the final
-rounding. That's more than the $T/10$ of computing to $d + k + 1$ places, but
+The result is within $0.18T$ of $\mathrm{atan}(\tilde{x})$. That's more than the $T/10$ of computing to $d + 1$ places, but
 it is inside the $T/2$ left after the input error, which is all the method
 needs.
 
-**Example.** For $\mathrm{atan}(10\pi)$ to $d = 6$ places, with $k = 2$, the
+**Example.** For $\mathrm{atan}(10\pi)$ rounded to 6 places, take $d = 8$. The
 atan rule gives $10\pi$ to 7 places: $\tilde{x} = 31.4159265$. Then
 $p = 10$.
 
@@ -231,7 +230,7 @@ The series rows follow the
 analysis with $v^2$ in place of $z^2$. Each rounding error of size $u_n$ adds
 at most $(1.048/3 + 1)u_n < 1.35u_n$ to the sum, using
 $\frac{1}{1 - v^2} \le 1.048$, and $\sum u_n = 0.01T$ with
-$p_n = d + k + 1 + 2\mathrm{siz}(n)$. The sum is then multiplied by 4. The
+$p_n = d + 1 + 2\mathrm{siz}(n)$. The sum is then multiplied by 4. The
 terms alternate and shrink, so the tail is at most the next term, which is at
 most $v^2|t_N|$, and $|t_N| < 0.1T + 0.02T$.
 
@@ -250,7 +249,7 @@ Use the stable form from the revisited doc, rearranged so that every division
 is by a number at least $r$.
 
 **Rule.** To evaluate $\mathrm{atan2}(\tilde{y}, \tilde{x})$ for a node with
-$d$ places, with $p = d + k + 2$:
+$d$ places, with $p = d + 2$:
 
 **On the cut.** If $\tilde{y} = 0$ and $\tilde{x} < 0$, the value is $\pi$.
 The places rule makes this happen only when $y$ is exactly 0.
@@ -276,10 +275,8 @@ $$
 with $q$ and $\pi$ to $p$ places, and $\mathrm{atan}(q)$ by the procedure
 above with $d + 1$ in place of $d$.
 
-**Round** to $d$ places.
-
-The result is within $0.1T$ of $\mathrm{atan2}(\tilde{y}, \tilde{x})$ before
-the final rounding, the same as computing to $d + k + 1$ places.
+The result is within $0.1T$ of $\mathrm{atan2}(\tilde{y}, \tilde{x})$, the
+same as computing to $d + 1$ places.
 
 **Where the second case comes from.** The revisited doc gives
 $2\mathrm{atan}\frac{r - x}{y}$ for $x < 0$. Its argument is the reciprocal of
@@ -314,31 +311,34 @@ move $q$ a lot. Scaling by a power of 10 fixes that for free.
 
 This point is $10^{-5}$ above the negative x-axis, so its angle is just below
 $\pi$, and a small error in the sign of the sine would put it near $-\pi$
-instead. Take $d = 8$ and $k = 2$.
+instead. Take $d = 10$ for the top node.
 
 **Bounds.** The $x$ child is the exact number $-1$, so $\ell_x \le 0$. The
-sine's cheap interval is $[-1, 1]$, which contains 0, so tighten it: to 5
-places the sine is $0.00001$, so it is in $[0.000004, 0.000016]$, which
-excludes 0 at the first try. So $L_y = 0.000004$, of size $-5$, and $L_x = 1$.
+sine's cheap interval is $[-1, 1]$, which contains 0, so tighten it. To 5
+places the sine comes out as $0.000010$, so it is in $[0, 0.00002]$, which
+doesn't exclude 0. To 10 places it is $0.00001000000$, so it is in
+$[0.0000099999, 0.0000100001]$. So $L_y = 0.0000099999$, of size $-5$, and
+$L_x = 1$.
 
-The box $[-1, -1] \times [0.000004, 0.000016]$ is in the upper half-plane, so
-the atan2 node's cheap interval comes from its corners: $[3.141574, 3.141596]$.
+The box $[-1, -1] \times [0.0000099999, 0.0000100001]$ is in the upper
+half-plane, so the atan2 node's cheap interval comes from its corners:
+$[3.14157, 3.14159]$.
 
-**Places.** $M = \max(1, 0.000004) = 1$, and $\mathrm{siz}(0.99) = 0$.
+**Places.** $M = \max(1, 0.0000099999) = 1$, and $\mathrm{siz}(0.99) = 0$.
 
 | Node | Asks | For |
 |---|---|---|
-| atan2, with 8 places | $\max(8 + 2 + 2 - 0, 3 + 5) = 12$ | the sine; $-1$ is exact |
-| $\sin(\ldots)$, with 12 places | $12 + 2 + 1 = 15$ | its argument |
-| $\pi - 0.00001$, with 15 places | $15$, since $0.00001$ is exact | $\pi$ |
+| atan2, with 10 places | $\max(10 + 2 - 0, 3 + 5) = 12$ | the sine; $-1$ is exact |
+| $\sin(\ldots)$, with 12 places | $12 + 1 = 13$ | its argument |
+| $\pi - 0.00001$, with 13 places | $13$, since $0.00001$ is exact | $\pi$ |
 
 Being $10^{-5}$ from the cut costs nothing here. $M$ comes from $x$, so the
 sine needs no more places than if the point were far from the cut. Its minimum
 places, 8, are what pin its sign, and the rule asks for 12 anyway.
 
-**Evaluate.** $\pi$ to 15 places is $3.141592653589793$, so the argument is
-$3.141582653589793$. Its sine to 15 places is $0.000010000000000$, which
-rounds to $\tilde{y} = 0.000010000000$ at 12 places.
+**Evaluate.** $\pi$ to 13 places is $3.1415926535898$, so the argument is
+$3.1415826535898$. Its sine to 13 places is
+$\tilde{y} = 0.0000100000000$.
 
 For the atan2, scale by $10^0$, since $|\tilde{x}| = 1$ is already the
 larger. $\tilde{x} < 0$, so the second case applies, and the angle comes out
@@ -347,7 +347,7 @@ $3.1415826535897\ldots$
 
 The correct-rounding check passes: $3.14158265359$ is about
 $1.4 \times 10^{-9}$ from the boundary $3.141582655$, more than
-$10^{-(d+k)} = 10^{-10}$.
+$10^{-d} = 10^{-10}$.
 
 ## Corner cases
 
