@@ -24,8 +24,9 @@ the parent's rule assumes of its inputs.
 
 So the method works on the expression as a tree, in three passes:
 
-1. **Bounds, bottom-up.** Find a rough interval for the value of every part,
-   refining until the intervals are good enough.
+1. **Bounds, bottom-up.** Find a cheap interval for the value of every part.
+   Where a lower bound is needed and the interval contains 0, tighten it by
+   evaluating that part to more places.
 2. **Places, top-down.** Starting from the $d$ wanted at the top, use each
    operation's rule to give its parts their places.
 3. **Evaluate, bottom-up.** Compute every part to its places.
@@ -56,85 +57,72 @@ Two changes to the tree help:
 
 The place rules need rough bounds on the values of the nodes, before anything
 is computed precisely. This pass finds an interval $[\ell, h]$ containing the
-true value of every node, using *interval arithmetic*.
+true value of every node. It uses only two operations:
 
-### Interval arithmetic
+- **Cheap bounds.** A fixed, crude interval for every node, computed once.
+- **Evaluation.** Passes 2 and 3 on a part of the expression, to some number
+  of places $p$, when a cheap bound isn't good enough.
 
-Work to $s$ significant figures, and always round outward: lower ends down and
-upper ends up, so that the true value stays inside.
+A value good to $p$ places is itself an interval: the true value is within
+$0.6 \cdot 10^{-p}$ of it. So the only precise operation needed is the
+evaluation that is needed anyway.
 
-| Operation | Interval |
+### Cheap bounds
+
+Go through the nodes from the bottom up. Use interval arithmetic rounded
+outward to 5 significant figures: lower ends down and upper ends up, so that
+the true value stays inside.
+
+| Node | Cheap interval |
 |---|---|
+| Exact numbers | the number itself |
+| Constants | the constant evaluated to 5 places, widened by $0.6 \cdot 10^{-5}$, such as $[3.1415, 3.1416]$ for $\pi$ |
 | $x + y$, $x - y$ | add or subtract the matching ends |
 | $xy$ | the smallest and largest of the four products of ends |
-| $x / y$ | $x$ times $[1/h_y, 1/\ell_y]$, if $0$ is not in $y$'s interval |
+| $x / y$ | $x$ times $[1/h_y, 1/\ell_y]$, after [tightening](#tightening-by-evaluation) $y$ if its interval contains 0 |
 | $x^n$ | each end raised to the power $n$, and $0$ if $n$ is even and the interval contains $0$ |
-| $\sqrt{x}$, $e^x$, $\ln x$ | the function at the two ends, since these only go up |
-| $\sin x$, $\cos x$ | see [Sine and cosine](#sine-and-cosine) below |
-| Constants | the value rounded down and up, such as $[3.1415, 3.1416]$ for $\pi$ |
+| $\sqrt{x}$ | $[10^{\lfloor (\mathrm{siz}(\ell) - 1)/2 \rfloor}, 10^{\lceil \mathrm{siz}(h)/2 \rceil}]$, with lower end $0$ if $\ell \le 0$ |
+| $e^x$ | lower end $10^{\lfloor a\ell \rfloor}$, upper end $10^{\lceil bh \rceil}$ |
+| $\ln x$ | $\ln 10$ times $[\mathrm{siz}(\ell) - 1, \mathrm{siz}(h)]$, after tightening $x$ if $\ell \le 0$ |
+| $\sin x$, $\cos x$ | $[-1, 1]$ |
 
-For functions, the value at an end isn't known exactly either. Compute it
-with the rules to be good to some number of places $p$, then widen by the
-error bar: the true value is within $0.6 \cdot 10^{-p}$ of the result.
+For $e^x$, the factors are $\log e$ rounded the safe way: $a = 0.43$ if
+$\ell \ge 0$ and $0.44$ if $\ell < 0$, and $b = 0.44$ if $h \ge 0$ and $0.43$
+if $h < 0$. For $\ln x$, use $2.30 < \ln 10 < 2.31$, again rounded the safe way
+for the sign of each end.
 
-### Sine and cosine
+The function bounds are crude: they can be off by a factor of 10 or more. That
+is fine for upper bounds, where a looser $U$ only costs a place or so, through
+$\mathrm{siz}$. It only matters for lower bounds.
 
-There are two ways to bound $\sin x$ for $x$ in $[\ell, h]$.
+### Tightening by evaluation
 
-**Midpoint plus slope.** This is simple, and good for narrow intervals. The
-*midpoint* and *half-width* of the interval are
+The rules need a lower bound above 0 for:
 
-$$m = \frac{\ell + h}{2}, \qquad w = \frac{h - \ell}{2},$$
+- **Divisors.** The quotient rule uses $\bar{L}_y$.
+- **Logarithm arguments.** The logarithm rule uses $L_x$.
+- **Square root arguments,** optionally. Without a lower bound, the square
+  root rule falls back to $2(D + k) + 1$ places.
 
-so every $x$ in the interval is within $w$ of $m$. For example, $[3.141582, 3.141583]$
-has midpoint $3.1415825$ and half-width $0.0000005$.
+If a node's cheap interval contains 0 but its parent needs such a lower bound,
+evaluate the node to $p = 5$ places, then 10, 20, 40, and so on, until the
+interval $[\tilde{x} - 0.6 \cdot 10^{-p}, \tilde{x} + 0.6 \cdot 10^{-p}]$
+excludes 0. Use that interval for the node from then on, and carry on with the
+cheap pass.
 
-Since $|\sin'| = |\cos| \le 1$, $|\sin x - \sin m| \le |x - m| \le w$, so
+Evaluating a node to $p$ places is passes 2 and 3 on the part of the
+expression below it, with $d = p$. Those use the bounds already found for its
+descendants, which were handled first, and tighten them the same way if they
+need to. So the recursion only goes down the tree, and only where a value is
+close to 0.
 
-$$\sin([\ell, h]) \subseteq [\sin m - w, \sin m + w] \cap [-1, 1],$$
+Keep the most precise value found for every node, and reuse it later: having
+more places than needed is always safe. Doubling $p$ means the trials cost
+less than the last one again, and starting at 5 means most succeed at once.
 
-using the enclosure of $\sin m$ from its error bar. It is at most $2w$ wider
-than the true range, and tightest where $\sin x$ is near 0, which is where
-precision matters most.
-
-**Monotone pieces.** This is tighter for wide intervals, or near a peak.
-
-1. **Full turn.** If $h - \ell \ge 2\pi$, the answer is $[-1, 1]$.
-2. **Ends.** Enclose $\sin \ell$ and $\sin h$. The range lies between them,
-   unless the interval contains a peak or a trough.
-3. **Turning points.** In quarter turns, $q = x / (\pi/2)$, the peaks are where
-   $q$ is 1 more than a multiple of 4, and the troughs where it is 3 more.
-   Compute $q$ at the two ends, rounding outward, with whichever end of
-   $\pi$'s interval widens the range.
-4. **Result.** Take the smallest and largest of the end enclosures. If the
-   interval of $q$ contains a peak, the upper end is $1$. If it contains a
-   trough, the lower end is $-1$.
-
-If $\pi$'s uncertainty leaves it unclear whether a turning point is inside,
-count it as inside. That only widens the interval.
-
-For $\cos x$, the peaks are where $q$ is a multiple of 4, and the troughs where
-it is 2 more. Or use $\cos x = \sin(x + \pi/2)$.
-
-Use the midpoint method by default, and monotone pieces when $w > 0.1$, or when
-the result feeds a square root or logarithm where a peak matters.
-
-### Refining
-
-Start with $s = 5$ significant figures, and double $s$ until every interval
-meets these conditions:
-
-- **Divisors** don't contain $0$.
-- **Logarithm arguments** are above $0$.
-- **Square root arguments** aren't entirely below $0$. If the lower end is
-  below 0, treat it as $0$.
-
-If $s$ reaches a cap, such as 50, give up and report that a divisor or
+If $p$ reaches a cap, such as 80, give up and report that the divisor or
 logarithm argument can't be shown to be nonzero. See
 [Exact singularities](#exact-singularities).
-
-Refining only recomputes these rough bounds, never the precise values.
-Starting at a generous $s$, such as 10, means it rarely needs to refine at all.
 
 ### The bounds the rules use
 
@@ -244,29 +232,30 @@ never passes. See [Exact ties](#exact-ties).
 
 Take $d = 4$ and $k = 2$.
 
-**Bounds.** With $s = 5$: $\pi$ is in $[3.1415, 3.1416]$ and $e$ in
-$[2.7182, 2.7183]$, so $\pi + e$ is in $[5.8597, 5.8599]$, and $\sqrt{2}$ is in
-$[1.4142, 1.4143]$. No divisor contains $0$, so one round is enough. The bounds
-used are $U = 5.8599$ for $\pi + e$, of size 1, and
-$\bar{L} = 0.99 \cdot 1.4142 = 1.4000$ for $\sqrt{2}$, also of size 1.
+**Bounds.** $\pi$ is in $[3.1415, 3.1416]$ and $e$ in $[2.7182, 2.7183]$, so
+$\pi + e$ is in $[5.8597, 5.8599]$. The cheap bound for $\sqrt{2}$, with
+$\mathrm{siz}(2) = 1$, is $[10^0, 10^1] = [1, 10]$. No divisor's interval
+contains 0, so nothing needs tightening. The bounds used are $U = 5.8599$ for
+$\pi + e$, of size 1, and $\bar{L} = 0.99$ for $\sqrt{2}$, of size 0.
 
 **Places.**
 
 | Node | Asks | For |
 |---|---|---|
-| $(\pi + e)/\sqrt{2}$, with 4 places | $4 + 2 + 2 - 1 = 7$ | $\pi + e$ |
-| | $4 + 2 + 3 + 1 - 2 = 8$ | $\sqrt{2}$ |
-| $\pi + e$, with 7 places | $7 + 2 + 1 = 10$ | each of $\pi$ and $e$ |
-| $\sqrt{2}$, with 8 places | $8 + 2 - 0 = 10$ | $2$, which is exact |
+| $(\pi + e)/\sqrt{2}$, with 4 places | $4 + 2 + 2 - 0 = 8$ | $\pi + e$ |
+| | $4 + 2 + 3 + 1 - 0 = 10$ | $\sqrt{2}$ |
+| $\pi + e$, with 8 places | $8 + 2 + 1 = 11$ | each of $\pi$ and $e$ |
+| $\sqrt{2}$, with 10 places | $10 + 2 - 0 = 12$ | $2$, which is exact |
 
-The minimum places for $\sqrt{2}$, $3 - 1 = 2$, are well below 8.
+The crude bound for $\sqrt{2}$ costs a place or two compared with a tight one,
+which would give 7 and 8 places at the top.
 
 **Evaluate.**
 
-- $\pi + e$: $3.1415926536 + 2.7182818285 = 5.8598744821$, rounded to 7 places:
-  $5.8598745$.
-- $\sqrt{2}$ to $8 + 2 + 1 = 11$ places, rounded to 8: $1.41421356$.
-- The quotient cut off at $4 + 2 + 1 = 7$ places: $4.1435570$.
+- $\pi + e$: $3.14159265359 + 2.71828182846 = 5.85987448205$, rounded to 8
+  places: $5.85987448$.
+- $\sqrt{2}$ to $10 + 2 + 1 = 13$ places, rounded to 10: $1.4142135624$.
+- The quotient cut off at $4 + 2 + 1 = 7$ places: $4.1435569$.
 
 It is about $7 \times 10^{-6}$ from the nearest rounding boundary, $4.14355$,
 more than $10^{-(4+2)} = 10^{-6}$, so rounding it gives the correctly rounded
@@ -277,13 +266,12 @@ result, $4.1436$. The true value is $4.14355698\ldots$
 This is close to $1/0$, since $\sin(\pi - 0.00001) = \sin(0.00001) \approx 10^{-5}$.
 Take $d = 4$ and $k = 2$.
 
-**Bounds.** With $s = 5$, $\pi$ is in $[3.1415, 3.1416]$, so the argument is in
-$[3.14149, 3.14159]$, and the sine's interval contains 0. That is a divisor, so
-refine. With $s = 10$, $\pi$ is in $[3.141592653, 3.141592654]$, the argument
-is in $[3.141582653, 3.141582654]$, and the midpoint method gives a sine
-interval of about $[0.9999 \cdot 10^{-5}, 1.0001 \cdot 10^{-5}]$. That excludes
-0, so $\bar{L} = 0.99 \cdot 0.9999 \cdot 10^{-5}$, of size $-5$. The argument is
-about 2 quarter turns, so $j = 2$.
+**Bounds.** The cheap bound for the sine is $[-1, 1]$. It contains 0, and the
+sine is a divisor, so tighten it: evaluate $\sin(\pi - 0.00001)$ to 5 places.
+That gives $0.00001$, so the sine is in $[0.000004, 0.000016]$, which excludes
+0 at the first try. So $\bar{L} = 0.99 \cdot 0.000004$, of size $-5$. The
+argument's cheap interval is about $[3.1415, 3.1416]$, about 2 quarter turns, so
+$j = 2$.
 
 **Places.**
 
@@ -309,12 +297,55 @@ cancel exactly in the reduction: $r$ comes out as exactly $-0.00001$. The rules
 don't know about that cancellation, so they ask for more places than needed,
 but never fewer.
 
+### 1/(e^(π√43) − 884736744) to 4 places
+
+$e^{\pi\sqrt{43}} = 884736743.99977746\ldots$ is very close to a whole number,
+so the divisor is about $-0.00022253$, and 12 digits cancel in the subtraction.
+Take $d = 4$ and $k = 2$.
+
+**Bounds.** From the bottom up:
+
+| Node | Cheap interval |
+|---|---|
+| $\pi$ | $[3.1415, 3.1416]$ |
+| $\sqrt{43}$, with $\mathrm{siz}(43) = 2$ | $[10^0, 10^1] = [1, 10]$ |
+| $x = \pi\sqrt{43}$ | $[3.1415, 31.416]$ |
+| $E = e^x$ | $[10^{\lfloor 0.43 \cdot 3.1415 \rfloor}, 10^{\lceil 0.44 \cdot 31.416 \rceil}] = [10, 10^{14}]$ |
+| $y = E - 884736744$ | contains 0 |
+
+$y$ is a divisor, so tighten it. Evaluating $y$ to 5 places needs no bounds on
+the terms of the difference, and the rest of its place counts come from the
+cheap bounds below it. That gives $-0.00022$, so $y$ is in
+$[-0.000226, -0.000214]$, which excludes 0 at the first try. So
+$\bar{L} = 0.99 \cdot 0.000214$, of size $-3$.
+
+**Places.** Using the cheap upper bounds $h_x = 31.416$, $\bar{U} = 10.1$ for
+$\sqrt{43}$ and $\bar{U} = 3.17$ for $\pi$:
+
+| Node | Asks | For |
+|---|---|---|
+| $1/y$, with 4 places | $4 + 2 + 3 + 1 + 6 = 16$ | $y$ |
+| $y$, with 16 places | $16 + 2 + 1 = 19$ | $E$ |
+| $E$, with 19 places | $19 + 2 + 2 + \lfloor 0.44 \cdot 31.416 \rfloor = 36$ | $x$ |
+| $x$, with 36 places | $36 + 2 + 1 + 2 = 41$ | $\pi$ |
+| | $36 + 2 + 1 + 1 = 40$ | $\sqrt{43}$ |
+
+The crude bounds cost a few places: with $x$'s tight upper bound of about
+$20.6$, $x$ would need 32 places instead of 36.
+
+**Evaluate.** $E$ comes out as $884736743.9997774660\ldots$, $y$ as
+$-0.0002225339650933\ldots$, and the quotient as $-4493.6960503\ldots$ That
+rounds to $-4493.6961$, which is correct, but it is only about
+$3.1 \times 10^{-7}$ from the rounding boundary $-4493.69605$, less than
+$10^{-6}$, so the correct-rounding check fails. Running passes 2 and 3 again
+with $k = 3$ adds a place everywhere, and then the check passes.
+
 ## Corner cases
 
 ### Exact singularities
 
-For $1/\sin(\pi)$, refining never excludes 0 from the sine's interval, however
-many figures are used. The cap on $s$ catches this. No numeric method can tell
+For $1/\sin(\pi)$, tightening never excludes 0 from the sine's interval,
+however many places are used. The cap on $p$ catches this. No numeric method can tell
 a true zero from a very small number. Symbolic simplification can catch some
 cases, such as $\sin(\pi) = 0$, before the passes start.
 
@@ -347,38 +378,51 @@ extra work.
 def precision_for(expr, d, k=2):
     graph = flatten_and_share(expr)          # flatten sums/products, merge repeats
 
-    # Pass 1: bounds
-    s = 10
-    while True:
-        intervals = interval_eval(graph, sig_figs=s)   # outward rounding
-        problem = find_problem(graph, intervals)       # divisor or log arg near 0
-        if problem is None:
-            break
-        s *= 2
-        if s > 50:
-            raise ValueError(f"can't bound {problem} away from 0")
+    intervals, best = {}, {}                 # best: most precise value per node
 
+    # Pass 1: cheap bounds, tightening where a lower bound is needed
+    for node in graph.bottom_up():
+        for child in node.children_needing_lower_bound():
+            if contains_zero(intervals[child]):
+                intervals[child] = tighten(child, intervals, best, k)
+        intervals[node] = cheap_bounds(node, intervals)  # 5 figures, outward
+
+    value = evaluate(graph.root, d, intervals, best, k)
+    correct = distance_to_boundary(value, d) > 10 ** -(d + k)
+    return rnd(value, d), correct
+
+
+def tighten(node, intervals, best, k):
+    p = 5
+    while p <= 80:
+        v = evaluate(node, p, intervals, best, k)
+        lo, hi = v - 6 * 10 ** -(p + 1), v + 6 * 10 ** -(p + 1)
+        if lo > 0 or hi < 0:
+            return (lo, hi)
+        p *= 2
+    raise ValueError(f"can't bound {node} away from 0")
+
+
+def evaluate(top, d, intervals, best, k):
     # Pass 2: places, parents before children
-    places = {graph.root: d}
-    for node in graph.top_down():
+    places = {top: d}
+    for node in top.top_down():
         D = places[node]
         for child, wanted in rule_for(node).child_places(D, k, intervals):
             wanted = max(wanted, minimum_places(node, child, intervals))
             places[child] = max(places.get(child, wanted), wanted)
 
     # Pass 3: evaluate, children before parents
-    values = {}
-    for node in graph.bottom_up():
+    for node in top.bottom_up():
         D = places[node]
+        if node in best and best[node].places >= D:
+            continue                                   # reuse a better value
         if node.is_exact_op():
-            v = node.compute_exactly(values)
+            v = node.compute_exactly(best)
         else:
-            v = node.compute_to(values, D + k + 1)     # truncating is fine
-        values[node] = v if node is graph.root else rnd(v, D)
-
-    result = values[graph.root]
-    correct = distance_to_boundary(result, d) > 10 ** -(d + k)
-    return rnd(result, d), correct
+            v = node.compute_to(best, D + k + 1)       # truncating is fine
+        best[node] = Value(v if node is top else rnd(v, D), places=D)
+    return best[top].value
 ```
 
 `rule_for(node).child_places` is the table in
