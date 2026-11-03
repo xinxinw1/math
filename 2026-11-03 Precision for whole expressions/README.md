@@ -252,7 +252,11 @@ any of them asks for.
 ### Rules for each operation
 
 These are the rules from the input-places docs, written with the bounds from
-pass 1. A node with $d$ places asks its children for:
+pass 1. For a child $x$, $U_x$ and $L_x$ are its bounds from
+[The bounds the rules use](#the-bounds-the-rules-use): $U_x \ge |x|$, and
+$L_x \le |x|$, which exists only when $x$'s interval doesn't contain 0. The
+exponential rule uses $h_x$, the upper end of $x$'s interval, instead, since
+the sign of $x$ matters there. A node with $d$ places asks its children for:
 
 | Node | Places for its children |
 |---|---|
@@ -262,10 +266,10 @@ pass 1. A node with $d$ places asks its children for:
 | $x / y$ | $x$: $d + k + 2 - \mathrm{siz}(0.99L_y)$, and $y$: $\max(d + k + 3 + \mathrm{siz}(U_x) - 2\mathrm{siz}(0.99L_y), 3 - \mathrm{siz}(L_y))$ |
 | $x^n$, $n \le 8$ | $\max(d + k + 1 + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
 | $x^n$, any $n$ | $\max(d + k + \mathrm{siz}(2n) + (n - 1)\mathrm{siz}(1.01U_x), 3 - \mathrm{siz}(U_x))$ |
-| $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ if $\ell_x \le 0$ |
+| $\sqrt{x}$ | $\min(d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor, 2(d + k) + 1)$, or $2(d + k) + 1$ if there is no $L_x$ |
 | $e^x$ | $d + k + 2 + \lfloor 0.44 h_x \rfloor$ if $h_x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 \lvert h_x \rvert \rceil)$ if $h_x < 0$ |
-| $\ln x$ | $d + k + 2 - \mathrm{siz}(\ell_x)$ |
-| $\sin x$, $\cos x$ | $x$: $d + k + 1$, and $\pi$: $d + k + 1 + \mathrm{siz}(j)$, reducing by $j \ne 0$ quarter turns |
+| $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
+| $\sin x$, $\cos x$ | $d + k + 1$ |
 
 Notes:
 
@@ -286,9 +290,6 @@ Notes:
   $d + k$ plus the sizes of the exact factors.
 - **Exponentials** use the upper end $h_x$ of the interval, since that is where
   $e^x$ is largest.
-- **Sine and cosine** take $j$ from the interval of $x / (\pi/2)$: the largest
-  $|j|$ the reduction might use. If $j$ can only be 0, there is no reduction
-  and no $\pi$.
 
 ## Pass 3: evaluate
 
@@ -300,11 +301,8 @@ children's values, and rounds it to its own places $d$:
   rounded.
 - **Other operations** are computed to $d + k + 1$ places, rounded or cut off,
   and then rounded to $d$. This covers division by the usual truncating
-  algorithm, and functions by
-  [series](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule).
-  The series need small arguments, so reduce first:
-  [by quarter turns](../2026-11-02%204%20Functions%20by%20series/README.md#argument-reduction) for sine and cosine, and
-  [with repeated squaring](../2026-11-02%204%20Functions%20by%20series/README.md#exponentials) for exponentials.
+  algorithm, and functions by series, as in
+  [Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md).
 
 Keeping more places than a node was given is always safe, so an implementation
 can skip the rounding of inner nodes if that is easier. Only the top node must
@@ -376,9 +374,7 @@ Take $d = 4$ and $k = 2$.
 **Bounds.** The cheap bound for the sine is $[-1, 1]$. It contains 0, and the
 sine is a divisor, so tighten it: evaluate $\sin(\pi - 0.00001)$ to 5 places.
 That gives $0.00001$, so the sine is in $[0.000004, 0.000016]$, which excludes
-0 at the first try. So $0.99L = 0.99 \cdot 0.000004$, of size $-5$. The
-argument's cheap interval is $[3.141574, 3.141586]$, about 2 quarter turns, so
-$j = 2$.
+0 at the first try. So $0.99L = 0.99 \cdot 0.000004$, of size $-5$.
 
 **Places.**
 
@@ -386,26 +382,17 @@ $j = 2$.
 |---|---|---|
 | $1/\sin(\ldots)$, with 4 places | $4 + 2 + 3 + 1 + 10 = 20$ | the sine |
 | $\sin(\ldots)$, with 20 places | $20 + 2 + 1 = 23$ | its argument |
-| | $23 + \mathrm{siz}(2) = 24$ | $\pi$, for the reduction |
 | $\pi - 0.00001$, with 23 places | $23$, since $0.00001$ is exact | $\pi$ |
 
-$\pi$ has two parents, asking for 24 and 23 places, so it gets 24. The extra
-10 places at the top come from $-2\mathrm{siz}(0.99L)$: the derivative of
+The extra 10 places at the top come from $-2\mathrm{siz}(0.99L)$: the derivative of
 $1/y$ is $-1/y^2$, about $10^{10}$ here, so the rules are charging for how
 sensitive the expression really is.
 
-**Evaluate.** The argument is $\tilde{\pi} - 0.00001$, with 24 places. It has
-one inexact term, so it isn't rounded to 23. The reduction by
-$j = 2$ quarter turns gives $r \approx -0.00001$, and since $j$ is 2 more than a
-multiple of 4, $\sin x = -\sin r \approx 0.0000099999999998333$. The quotient
-rounds to $100000.0000$. The true value is $100000.0000016667\ldots$
-
-Because $\pi$ is one shared node, both uses get the same $\tilde{\pi}$, and they
-cancel exactly in the reduction: $r$ comes out as exactly $-0.00001$. Had the
-argument been rounded to 23 places, $r$ would be off by about
-$3 \times 10^{-24}$, still well within what the sine asked for. The rules
-don't know about that cancellation, so they ask for more places than needed,
-but never fewer.
+**Evaluate.** The argument is $\tilde{\pi} - 0.00001$, with $\pi$ to 23 places.
+Its sine, to $20 + 2 + 1 = 23$ places, is $0.00000999999999983333334$, and
+rounded to 20 places it is $0.00000999999999983333$. The quotient, cut off at
+$4 + 2 + 1 = 7$ places, is $100000.0000016$, which rounds to $100000.0000$.
+The true value is $100000.0000016667\ldots$
 
 ### 1/(e^(π√43) − 884736744) to 4 places
 
@@ -481,11 +468,11 @@ only assume $c \le 0.6$. Keep a larger $k$ only at the top.
 
 ### Cancellation the rules can't see
 
-As in the second example, the rules treat every input as independent, so they
-can't see that two errors cancel. The result is still right, just with more
-places than needed. Sharing repeated constants and subexpressions, or
-rewriting symbolically first, such as $\sin(\pi - a) = \sin a$, can avoid the
-extra work.
+The rules treat every input as independent, so they can't see that two errors
+cancel, as in $(x + 1) - x$, where the error in $x$ drops out. The result is
+still right, just with more places than needed. Sharing repeated
+subexpressions, or rewriting symbolically first, such as
+$(x + 1) - x = 1$ or $\sin(\pi - a) = \sin a$, can avoid the extra work.
 
 ## Outline of an implementation
 
