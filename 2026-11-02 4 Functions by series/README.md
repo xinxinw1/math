@@ -162,7 +162,7 @@ with them, and an alternating series like $e^{-20}$ also cancels
 catastrophically. So reduce the argument first. For example, compute
 $e^x = (e^{x/2^m})^{2^m}$ with $|x/2^m| \le 1$, and use the [power rule](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#powers) to choose
 the places for $e^{x/2^m}$. For $\sin x$, reduce by quarter turns into
-$[-\pi/4, \pi/4]$, as in [Sine and cosine](../2026-11-02%203%20Input%20places%20for%20functions/README.md#sine-and-cosine). Its ratios are
+$[-\pi/4, \pi/4]$, as in [Argument reduction](../2026-11-02%203%20Input%20places%20for%20functions/README.md#argument-reduction). Its ratios are
 $|r_n| = x^2/((2n)(2n+1))$, which is at most $1/n$ whenever $|x| \le 2.4$, so
 the rule has room to spare.
 
@@ -185,7 +185,7 @@ after reducing $x$ so that $z$ is small.
   that $\ln x = j \ln 2 + \ln m$. Dividing by 2 is exact in decimal: each
   halving adds one place.
 - **ln 2.** Use $\ln 2$ to $d + k + 1 + \mathrm{siz}(j)$ places, like $\pi$ in
-  the [sine reduction](../2026-11-02%203%20Input%20places%20for%20functions/README.md#sine-and-cosine).
+  the [sine reduction](../2026-11-02%203%20Input%20places%20for%20functions/README.md#argument-reduction).
 - **z.** Compute $z = (m - 1)/(m + 1)$ to $d + k + 2$ places, rounded or
   truncated. Then $|z| \le 0.18$, and $z^2 \le 0.032$. Compute $z^2$ exactly.
 - **Terms.** Keep a running power, starting from $P_0 = z$, and for each

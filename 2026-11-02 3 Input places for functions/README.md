@@ -62,7 +62,7 @@ cover $\tilde{x}$.
 | $\sqrt{x}$ | $d + k - \lfloor (\mathrm{siz}(L_x) - 1)/2 \rfloor$ |
 | $e^x$ | $d + k + 2 + \lfloor 0.44 U_x \rfloor$ for $x \ge 0$, and $\max(1, d + k + 2 - \lceil 0.43 L_x \rceil)$ for $x < 0$ |
 | $\ln x$ | $d + k + 2 - \mathrm{siz}(L_x)$ |
-| $\sin x$, $\cos x$ | $d + k + 1$, and $\pi$ to $d + k + 1 + \mathrm{siz}(j)$ places when reducing by $j \ne 0$ quarter turns |
+| $\sin x$, $\cos x$ | $d + k + 1$ |
 
 ## Square roots
 
@@ -246,9 +246,24 @@ $$d_x = d + k + 1.$$
 
 No bounds are needed. If $x$ is exactly rounded, $d + k$ places are enough.
 
-**Argument reduction.** A calculator usually first reduces $x$ by a whole
-number $j$ of quarter turns, to $r = x - j\pi/2$ with $|r| \le \pi/4$, and then
-uses
+**Example.** For $\sin(\pi/4)$ good to $d = 6$ places, with $k = 2$, $\pi/4$
+needs $6 + 2 + 1 = 9$ places: $\tilde{x} = 0.785398163$.
+[Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md) works this through.
+
+**Why.** The derivatives of $\sin$ and $\cos$ are $\cos$ and $-\sin$, which are
+at most 1 in size, so Theorem 4 gives $A = 1$. Neither can be computed exactly,
+so $\eta = T/2$, and the exact count is $\lceil d + k + \log(2c) \rceil$. Since
+$\log(2c) \le \log 1.2 < 1$, the rule is enough. For an exactly rounded input,
+$c = \frac{1}{2}$ and $\log(2c) = 0$, so $d + k$ is enough.
+
+Near the peaks of $\sin$, where $\cos x$ is close to 0, a smaller $A$ would do,
+but the rule doesn't try to use that.
+
+### Argument reduction
+
+The series for $\sin$ and $\cos$ need a small argument, so a calculator
+usually first reduces $x$ by a whole number $j$ of quarter turns, to
+$r = x - j\pi/2$ with $|r| \le \pi/4$, and then uses
 
 | $j$ mod 4 | $\sin x$ | $\cos x$ |
 |---|---|---|
@@ -260,7 +275,7 @@ uses
 The reduction uses an approximation to $\pi$, whose error is multiplied by
 $|j|/2$. So with reduction:
 
-- **x** needs $d + k + 1$ places, as before.
+- **x** needs $d + k + 1$ places, as before, even if it is exactly rounded.
 - **π** needs $d + k + 1 + \mathrm{siz}(j)$ places. With $j = 0$ there is no
   reduction, and $\pi$ isn't needed.
 
@@ -271,31 +286,19 @@ $x / (\pi/2)$: being off by one makes $|r|$ at most $3\pi/4 \approx 2.36$,
 still within the $|x| \le 2.4$ that the
 [series rule](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule) needs.
 
-**Example.** For $\sin(\pi/4)$ good to $d = 6$ places, with $k = 2$, $\pi/4$
-needs $6 + 2 + 1 = 9$ places: $\tilde{x} = 0.785398163$.
-[Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md) works this through.
-
-For $\sin 100$ good to $d = 6$ places, with $k = 2$: $100 / (\pi/2) \approx 63.7$,
-so $j = 64$. Since 64 mod 4 is 0, $\sin 100 = \sin r$. $x = 100$ is exact.
-$\pi$ needs $6 + 2 + 1 + \mathrm{siz}(64) = 11$ places, so
-$\tilde{\pi} = 3.14159265359$, and
+**Example.** For $\sin 100$ good to $d = 6$ places, with $k = 2$:
+$100 / (\pi/2) \approx 63.7$, so $j = 64$. Since 64 mod 4 is 0,
+$\sin 100 = \sin r$. $x = 100$ is exact. $\pi$ needs
+$6 + 2 + 1 + \mathrm{siz}(64) = 11$ places, so $\tilde{\pi} = 3.14159265359$,
+and
 
 $$\tilde{r} = 100 - 32\tilde{\pi} = -0.53096491488.$$
 
-The sine series at $\tilde{r}$, computed as in [Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md), sums to
-$-0.50636564118$, which rounds to $-0.506366$. The true value is
-$\sin 100 = -0.5063656411\ldots$
+The sine series at $\tilde{r}$, computed as in
+[Functions by series](../2026-11-02%204%20Functions%20by%20series/README.md), sums to $-0.50636564118$, which rounds to
+$-0.506366$. The true value is $\sin 100 = -0.5063656411\ldots$
 
-**Why.** The derivatives of $\sin$ and $\cos$ are $\cos$ and $-\sin$, which are
-at most 1 in size, so Theorem 4 gives $A = 1$. Neither can be computed exactly,
-so $\eta = T/2$, and the exact count is $\lceil d + k + \log(2c) \rceil$. Since
-$\log(2c) \le \log 1.2 < 1$, the rule is enough. For an exactly rounded input,
-$c = \frac{1}{2}$ and $\log(2c) = 0$, so $d + k$ is enough.
-
-Near the peaks of $\sin$, where $\cos x$ is close to 0, a smaller $A$ would do,
-but the rule doesn't try to use that.
-
-With reduction, the error in $\tilde{r}$ is at most
+**Why.** The error in $\tilde{r}$ is at most
 $\varepsilon_x + \frac{|j|}{2}\varepsilon_\pi$. This is a sum of two inputs
 with $A_x = 1$ and $A_\pi = |j|/2$, so with $\eta = T/2$ split between them,
 the exact counts are
@@ -303,7 +306,7 @@ the exact counts are
 $$d_x = \lceil d + k + \log(4c) \rceil, \qquad d_\pi = \lceil d + k + \log(2c|j|) \rceil.$$
 
 Since $\log(4c) \le \log 2.4 < 1$, and
-$\log(2c|j|) \le \log 1.2 + \log|j| < 1 + \mathrm{siz}(j)$, the rule is enough.
+$\log(2c|j|) \le \log 1.2 + \log|j| < 1 + \mathrm{siz}(j)$, these are enough.
 
 For $\sin 100$, the error in $\tilde{r}$ is at most
 $32 \cdot \frac{1}{2} \cdot 10^{-11} = 1.6 \times 10^{-10}$, well within
