@@ -371,3 +371,5 @@ $$
 \mathrm{atan2}\left(\frac{y}{2}, \frac{2 + \sqrt{4 - 4x - y^2}}{2}\right) +
 \mathrm{atan2}\left(\frac{y}{2}, \frac{2 - \sqrt{4 - 4x - y^2}}{2}\right)
 $$
+
+Next: [Halving the arctangent split](../2015-03-14%202%20Halving%20the%20arctangent%20split/README.md).
