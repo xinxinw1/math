@@ -16,7 +16,7 @@ $\tilde{f}$ within $T$ of the true value $f$, and then round it to $d$ places.
 
 An error bound never guarantees that the output is $\mathrm{rnd}(f, d)$, the
 true value correctly rounded. In the example from the
-[2015 notes](../2015-03-17%20Precision%20and%20accuracy/README.md),
+[2015 notes](../2015-03-17%202%20Error%20bounds%20for%20arithmetic/README.md#correct-rounding-cant-be-guaranteed),
 $f = 0.4499999$ and $\tilde{f} = 0.45$ are within $10^{-6}$ of each other, but
 round to $0.4$ and $0.5$. However small the error, a value close enough to a
 rounding boundary can land on the wrong side of it. This is known as the

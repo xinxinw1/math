@@ -7,7 +7,8 @@ build on it, and work out how many places the inputs to a calculation need.
 *Xin-Xin*
 
 This is a reworking of the
-[2015 notes on precision and accuracy](../2015-03-17%20Precision%20and%20accuracy/README.md).
+2015 notes on precision and accuracy, which start with
+[Precision functions](../2015-03-17%201%20Precision%20functions/README.md).
 
 Throughout, $\log$ means $\log_{10}$.
 
