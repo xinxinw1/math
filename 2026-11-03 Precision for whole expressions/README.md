@@ -98,12 +98,12 @@ $[\ell, h]$ for a function of one argument.
 | $x^n$, $n$ odd | $[\ell^n, h^n]$ |
 | $x^n$, $n$ even | $[\min(\ell^n, h^n), \max(\ell^n, h^n)]$, or $[0, \max(\ell^n, h^n)]$ if $\ell \le 0 \le h$ |
 | $\sqrt{x}$ | $[\max(0, s_1 - 0.6 \cdot 10^{-5}), s_2 + 0.6 \cdot 10^{-5}]$, where $s_1$ and $s_2$ are $\sqrt{\ell}$ and $\sqrt{h}$ to 5 places, and $s_1 = 0$ if $\ell \le 0$ |
-| $e^x$ | $[10^{\lfloor a\ell \rfloor}, 10^{\lceil bh \rceil}]$ |
-| $\ln x$ | $[a(\mathrm{siz}(\ell) - 1), b \cdot \mathrm{siz}(h)]$, after tightening $x$ if $\ell \le 0$ |
+| $e^x$ | $[10^{\lfloor p \rfloor}, 10^{\lceil q \rceil}]$, where $[p, q]$ is the product of $[\ell, h]$ and $[0.43, 0.44]$ |
+| $\ln x$ | the product of $[\mathrm{siz}(\ell) - 1, \mathrm{siz}(h)]$ and $[2.30, 2.31]$, after tightening $x$ if $\ell \le 0$ |
 | $\sin x$, $\cos x$ | $[-1, 1]$ |
 
-The $a$ and $b$ in the exponential and logarithm rows are explained in their
-sections below.
+A product of intervals is worked out as in the $xy$ row: the smallest and
+largest of the four products of their ends.
 
 #### Exact numbers and constants
 
@@ -151,38 +151,25 @@ true $x$ can be as small as 0, so $s_1 = 0$.
 #### Exponentials
 
 $e^x$ is increasing, so the true value is in $[e^\ell, e^h]$. Instead of
-computing these, write $e^x = 10^{x \log e}$ and round the exponent to a whole
-number, outward. That gives a power of 10, which is all the rules need, since
-they mostly use sizes.
+computing these, write $e^x = 10^{x \log e}$. Since $\log e \approx 0.4343$ is
+in $[0.43, 0.44]$, the $xy$ row puts $x \log e$ in the product of
+$[\ell, h]$ and $[0.43, 0.44]$, which is $[p, q]$. Rounding $p$ down and $q$ up
+to whole numbers keeps $x \log e$ inside, so $e^x$ is in
+$[10^{\lfloor p \rfloor}, 10^{\lceil q \rceil}]$. A power of 10 is all the
+rules need, since they mostly use sizes.
 
-$\log e \approx 0.4343$ has to be rounded the safe way for the sign of what it
-multiplies:
-
-- **Lower end.** $10^{\lfloor a\ell \rfloor} \le e^\ell$ needs
-  $a\ell \le \ell \log e$. For $\ell \ge 0$ that means $a \le \log e$, so
-  $a = 0.43$. For $\ell < 0$ it means $a \ge \log e$, so $a = 0.44$.
-- **Upper end.** $10^{\lceil bh \rceil} \ge e^h$ needs $bh \ge h \log e$. So
-  $b = 0.44$ if $h \ge 0$ and $b = 0.43$ if $h < 0$.
-
-The floor and ceiling can each lose a factor of 10, and the rounding of
-$\log e$ loses a little more when $|x|$ is large.
+The floor and ceiling can each lose a factor of 10, and the width of
+$[0.43, 0.44]$ loses a little more when $|x|$ is large.
 
 #### Logarithms
 
 $\ln x$ is increasing, so the true value is in $[\ln \ell, \ln h]$, which needs
 $\ell > 0$. If $\ell \le 0$, tighten $x$ first. Instead of computing the
-logarithms, write $\ln x = \ln 10 \cdot \log x$ and use the sizes:
-$\log \ell \ge \mathrm{siz}(\ell) - 1$ and $\log h < \mathrm{siz}(h)$.
-
-$\ln 10 \approx 2.3026$ is rounded the safe way for the sign of the size it
-multiplies:
-
-- **Lower end.** $a(\mathrm{siz}(\ell) - 1) \le \ln \ell$ holds if
-  $a(\mathrm{siz}(\ell) - 1) \le \ln 10 \cdot (\mathrm{siz}(\ell) - 1)$. So
-  $a = 2.30$ if $\mathrm{siz}(\ell) \ge 1$, and $a = 2.31$ otherwise.
-- **Upper end.** $b \cdot \mathrm{siz}(h) \ge \ln h$ holds if
-  $b \cdot \mathrm{siz}(h) \ge \ln 10 \cdot \mathrm{siz}(h)$. So $b = 2.31$ if
-  $\mathrm{siz}(h) \ge 0$, and $b = 2.30$ otherwise.
+logarithms, write $\ln x = \ln 10 \cdot \log x$. Since
+$\log \ell \ge \mathrm{siz}(\ell) - 1$ and $\log h < \mathrm{siz}(h)$, $\log x$ is
+in $[\mathrm{siz}(\ell) - 1, \mathrm{siz}(h)]$. And $\ln 10 \approx 2.3026$ is in
+$[2.30, 2.31]$. So the $xy$ row puts $\ln x$ in the product of the two
+intervals.
 
 Using sizes in place of logarithms loses up to $\ln 10 \approx 2.3$ at each
 end.
@@ -462,7 +449,7 @@ Take $d = 4$ and $k = 2$.
 | $\pi$ | $[3.141584, 3.141596]$ |
 | $\sqrt{43}$, which is $6.55744$ to 5 places | $[6.557434, 6.557446]$ |
 | $x = \pi\sqrt{43}$ | $[20.600, 20.601]$ |
-| $E = e^x$ | $[10^{\lfloor 0.43 \cdot 20.600 \rfloor}, 10^{\lceil 0.44 \cdot 20.601 \rceil}] = [10^8, 10^{10}]$ |
+| $E = e^x$ | $x \log e$ is in $[20.600, 20.601] \cdot [0.43, 0.44] = [8.858, 9.06444]$, so $E$ is in $[10^8, 10^{10}]$ |
 | $y = E - 884736744$ | contains 0 |
 
 $y$ is a divisor, so tighten it. Evaluating $y$ to 5 places needs no bounds on
