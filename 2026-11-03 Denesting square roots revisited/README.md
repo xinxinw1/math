@@ -196,8 +196,8 @@ value is $2\cos 22.5°$.
 `Denesting.lean` formalizes the formula and the uniqueness result using
 Mathlib.
 
-> **Status:** not checked yet. Lean couldn't be installed in the environment
-> where this was written.
+> **Status:** checked with no errors or warnings on <https://live.lean-lang.org>
+> using its stable release (Lean v4.35.0 with Mathlib).
 
 | Theorem | Statement |
 |---|---|
