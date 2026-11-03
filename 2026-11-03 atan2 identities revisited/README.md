@@ -191,15 +191,44 @@ $$
 t^2 - cbt + (1 - ca) = 0,
 $$
 
+which by the quadratic formula are
+
+$$
+x = \frac{cb + \sqrt{c^2 b^2 + 4ca - 4}}{2}, \qquad
+y = \frac{cb - \sqrt{c^2 b^2 + 4ca - 4}}{2},
+$$
+
 then
 
 $$
 \mathrm{atan}(x) + \mathrm{atan}(y) = \mathrm{atan2}(b, a).
 $$
 
-**Proof.** By Vieta's formulas, $x + y = cb$ and $xy = 1 - ca$, so
-$(1 + ix)(1 + iy) = c(a + ib)$. The sum of arctangents is the angle of the left
-side, and multiplying by $c > 0$ doesn't change angles. $\square$
+The next paragraph shows which $c$ make the square root real. With $c = 1$
+these are the roots from the 2015 notes.
+
+**Vieta's formulas.** If $x$ and $y$ are the roots of $t^2 - pt + q = 0$,
+then the polynomial factors as $(t - x)(t - y) = t^2 - (x + y)t + xy$.
+Matching coefficients gives
+
+$$
+x + y = p, \qquad xy = q.
+$$
+
+That is, the sum of the roots is minus the coefficient of $t$ and their
+product is the constant term. You can also check it from the formulas above:
+adding them cancels the square roots and gives $cb$, and multiplying them
+gives $\frac{c^2 b^2 - (c^2 b^2 + 4ca - 4)}{4} = 1 - ca$.
+
+**Proof.** By Vieta's formulas with $p = cb$ and $q = 1 - ca$, $x + y = cb$ and
+$xy = 1 - ca$, so
+
+$$
+(1 + ix)(1 + iy) = (1 - xy) + i(x + y) = ca + icb = c(a + ib).
+$$
+
+The sum of arctangents is the angle of the left side, and multiplying by
+$c > 0$ doesn't change angles. $\square$
 
 **Which c give real roots.** The discriminant is $c^2 b^2 + 4ca - 4$. For
 $b \ne 0$ it's an upward parabola in $c$ with one positive root,
