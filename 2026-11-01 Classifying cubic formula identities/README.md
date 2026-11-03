@@ -329,7 +329,7 @@ failure is $x = 18$, where $n = -242 = -2 \cdot 11^2$.
 `CubicIdentities.lean` formalizes the main theorem and the squarefree theorem
 using Mathlib.
 
-> **Status:** checked with no errors or warnings on <https://live.lean-lang.org>
+> **Status:** checked with no errors or warnings on <https://live.lean-lang.org/#project=mathlib-stable>
 > using its stable release (Lean v4.35.0 with Mathlib).
 
 | Theorem | Statement |

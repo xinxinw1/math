@@ -160,7 +160,7 @@ The Lean proof below only covers $b \ge 0$.
 `ConjugateSums.lean` formalizes the main steps using Mathlib. `S a b` is
 defined as $\sqrt{a + \sqrt{b}} + \sqrt{a - \sqrt{b}}$.
 
-> **Status:** checked with no errors on <https://live.lean-lang.org> using its
+> **Status:** checked with no errors on <https://live.lean-lang.org/#project=mathlib-stable> using its
 > stable release (Lean v4.35.0 with Mathlib). That check gave three linter
 > warnings about `push_cast <;> ring`, which have since been changed to
 > `push_cast` followed by `ring`.

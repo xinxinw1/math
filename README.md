@@ -32,7 +32,7 @@ Opening a `.lean` file then shows proof goals and errors as you type.
 
 ### No install
 
-Paste a `.lean` file into the web editor at <https://live.lean-lang.org>.
+Paste a `.lean` file into the web editor at <https://live.lean-lang.org/#project=mathlib-stable>.
 
 ## Checking a proof
 
