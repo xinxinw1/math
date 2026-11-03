@@ -223,8 +223,7 @@ $$
 $$
 
 $$
-=
-\begin{cases}
+= \begin{cases}
 \mathrm{atan2}(2a, 1 - a^2 - b^2), & a \ne 0 \\
 0, & a = 0
 \end{cases}

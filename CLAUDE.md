@@ -69,6 +69,11 @@ something that rendered wrong in this repo.
   $$
   ```
 
+- **No line inside a `$$` block may consist only of `=` or `-` signs.**
+  Markdown reads it as a setext heading underline, so the `$$` above it turns
+  into a heading and the rest shows as raw LaTeX. Keep the `=` on the same line
+  as what follows it: `= \begin{cases}`.
+
 - **Don't use `\,` (thin space).** Markdown treats it as an escaped comma, so
   `3\sqrt{3}\,i` renders as "3√3,i". Reorder the terms instead, for example
   `3i\sqrt{3}` or `p\sqrt{3}`. Other backslash-punctuation commands such as `\;`
@@ -118,6 +123,12 @@ Find lines that start with a list marker inside `$$` blocks:
 
 ```bash
 awk '/^\$\$$/{m=!m;next} m && /^[-+*] /{print FILENAME": "NR": "$0}' path/to/README.md
+```
+
+Find lines inside `$$` blocks that Markdown can read as a heading underline:
+
+```bash
+awk '/^\$\$$/{m=!m;next} m && /^ *(=+|-+) *$/{print FILENAME": "NR": "$0}' path/to/README.md
 ```
 
 Find the commands that are known to break:
