@@ -203,28 +203,23 @@ The rules need a lower bound above 0 for:
 
 - **Divisors.** The quotient rule uses $\bar{L}_y$.
 - **Logarithm arguments.** The logarithm rule uses $L_x$.
-- **Square root arguments,** optionally. Without a lower bound, the square
-  root rule falls back to $2(D + k) + 1$ places.
+
+Square root arguments aren't tightened. If one's interval contains 0, the
+square root rule uses $2(D + k) + 1$ places, which is what it needs anyway
+when the argument is close to 0.
 
 If a node's cheap interval contains 0 but its parent needs such a lower bound,
 evaluate the node to $p = 5$ places, then 10, 20, 40, and so on, until the
 interval $[\tilde{x} - 0.6 \cdot 10^{-p}, \tilde{x} + 0.6 \cdot 10^{-p}]$
-excludes 0, or $p$ passes a cap, such as 80. For a square root argument, try
-only $p = 5$. Use that interval for the node from then on, and carry on with
-the cheap pass.
+excludes 0, or $p$ passes a cap, such as 80. Use that interval for the node
+from then on, and carry on with the cheap pass.
 
 The cap is needed because a node whose true value is 0, such as $\sin \pi$,
 never gets an interval that excludes 0, however many places are used.
 Reaching the cap means the value is 0 or within about $10^{-80}$ of it, and
-more places can't tell which. For a divisor or a logarithm argument, give up
-and report that it can't be shown to be nonzero. See
+more places can't tell which. Then give up and report that the divisor or
+logarithm argument can't be shown to be nonzero. See
 [Exact singularities](#exact-singularities).
-
-A square root argument doesn't need a lower bound, and one below about
-$10^{-2(D+k)}$ gains nothing over the square root rule without one. $D$ isn't
-known until pass 2, so evaluating such an argument to many places could be
-wasted work. If $p = 5$ doesn't exclude 0, use the rule without a lower bound.
-A value that small usually saves only a few places anyway.
 
 Evaluating a node to $p$ places is passes 2 and 3 on the part of the
 expression below it, with $d = p$. Those use the bounds already found for its
@@ -538,14 +533,9 @@ def precision_for(expr, d, k=2, retries=5):
 
     # Pass 1: cheap bounds, tightening where a lower bound is needed
     for node in graph.bottom_up():
-        for child in node.children_needing_lower_bound():
+        for child in node.children_needing_lower_bound():  # divisors, log args
             if contains_zero(intervals[child]):
-                cap = 5 if node.is_sqrt() else 80
-                tightened = tighten(child, intervals, best, k, cap)
-                if tightened is not None:
-                    intervals[child] = tightened
-                elif not node.is_sqrt():           # square roots fall back
-                    raise ValueError(f"can't show {child} is nonzero")
+                intervals[child] = tighten(child, intervals, best, k)
         intervals[node] = cheap_bounds(node, intervals)  # 5 figures, outward
         if intervals[node] == (0, 0):
             node.replace_with_exact_zero()
@@ -558,15 +548,15 @@ def precision_for(expr, d, k=2, retries=5):
     return rnd(value, d), False              # good to d places only
 
 
-def tighten(node, intervals, best, k, cap):
+def tighten(node, intervals, best, k):
     p = 5
-    while p <= cap:
+    while p <= 80:
         v = evaluate(node, p, intervals, best, k, k)
         w = Decimal(6).scaleb(-(p + 1))      # 0.6 * 10^-p
         if v - w > 0 or v + w < 0:
             return (v - w, v + w)
         p *= 2
-    return None                              # reached the cap
+    raise ValueError(f"can't show {node} is nonzero")
 
 
 def evaluate(top, d, intervals, best, k, k_top):
