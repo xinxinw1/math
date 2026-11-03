@@ -253,10 +253,9 @@ children's values, and rounds it to its own places $D$:
   and then rounded to $D$. This covers division by the usual truncating
   algorithm, and functions by
   [series](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule).
-  The series need small arguments, so reduce first: by quarter turns for sine
-  and cosine, and with $e^x = (e^{x/2^m})^{2^m}$ for exponentials. The
-  repeated squaring is a chain of products, which needs its own guard
-  digits.
+  The series need small arguments, so reduce first:
+  [by quarter turns](../2026-11-02%204%20Functions%20by%20series/README.md#argument-reduction) for sine and cosine, and
+  [with repeated squaring](../2026-11-02%204%20Functions%20by%20series/README.md#exponentials) for exponentials.
 
 Keeping more places than a node was given is always safe, so an implementation
 can skip the rounding of inner nodes if that is easier. Only the top node must

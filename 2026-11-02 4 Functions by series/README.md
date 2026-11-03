@@ -7,26 +7,29 @@ by term, without knowing in advance how many terms there will be.
 
 This builds on
 [Input places for functions](../2026-11-02%203%20Input%20places%20for%20functions/README.md),
-which says how many places the input needs. Throughout, $\log$ means $\log_{10}$, and
-$T = 10^{-(d+k)}$ is the error budget from
+which says how many places the input needs. Throughout, $\log$ means
+$\log_{10}$, and $T = 10^{-(d+k)}$ is the error budget from
 [Input places for arithmetic](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#the-error-budget).
+
+The [series rule](#the-series-rule) works for any series whose terms shrink
+fast enough. The sections after it apply it to exponentials, sines and
+cosines, and logarithms.
 
 ## Summary
 
-| Operation | Input places |
+| Quantity | Places |
 |---|---|
-| Series term $n$ | $p_n = d + k + 2\mathrm{siz}(n)$ places |
-| $\ln x$ by series | terms to $d + k + 1 + 2\mathrm{siz}(n)$ places, $z$ to $d + k + 2$, and $\ln 2$ to $d + k + 1 + \mathrm{siz}(j)$ |
+| Series term $n$ | $d + k + 2\mathrm{siz}(n)$ |
+| $\pi$, reducing $\sin x$ or $\cos x$ by $j \ne 0$ quarter turns | $d + k + 1 + \mathrm{siz}(j)$ |
+| $\ln x$: terms, $z$ and $\ln 2$ | $d + k + 1 + 2\mathrm{siz}(n)$, $d + k + 2$, and $d + k + 1 + \mathrm{siz}(j)$ |
 
 ## The series rule
 
-This covers evaluating $f(\tilde{x})$ by a series, such as the Taylor series
-for $e^x$ or $\sin x$, computing each term once, from the previous one,
-without going back to redo earlier terms. You don't need to know in advance
-how many terms there will be.
+This covers evaluating $f(\tilde{x})$ by a series, computing each term once,
+from the previous one, without going back to redo earlier terms.
 
-**Rule.** For a series $t_0 + t_1 + t_2 + \cdots$ whose terms satisfy
-$t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
+**Rule.** For a series $t_0 + t_1 + t_2 + \cdots$ with $t_0$ exact, whose
+terms satisfy $t_n = r_n t_{n-1}$ with $|r_n| \le 1/n$:
 
 - **Budget.** Spend $T/2$ on the input error, using the function's own rule
   for the input places, $T/4$ on the terms left off the end (the *tail*), and
@@ -50,7 +53,62 @@ places. That is $d + k + 2$ places for terms 1 to 9, $d + k + 4$ for terms 10
 to 99, and so on. Raising the precision never changes the terms already
 computed.
 
-**Example: e to the power π/4.** To get $e^{\pi/4}$ good to $d = 6$ places,
+**Why.** Let $e_n = \tilde{t}_n - t_n$ be the error in term $n$, where $t_n$ is
+the exact term at $\tilde{x}$. Each step multiplies the previous error by
+$r_n$ and adds a new rounding error of at most $u_n = 10^{-p_n}$, which covers
+truncation too. So an error made at term $m$ carries into the later terms with
+total weight at most
+
+$$1 + |r_{m+1}| + |r_{m+1} r_{m+2}| + \cdots \le 1 + \frac{1}{2} + \frac{1}{2 \cdot 3} + \cdots = e - 1 \approx 1.72,$$
+
+using $|r_n| \le 1/n$. So the total rounding error in the sum is at most
+$1.72 \sum u_n$.
+
+With $p_n = d + k + 2\mathrm{siz}(n)$, $u_n = T \cdot 10^{-2\mathrm{siz}(n)}$.
+Group the terms by size: the 9 terms of size 1 contribute $9 \cdot 10^{-2}$,
+the 90 terms of size 2 contribute $90 \cdot 10^{-4}$, and so on, so
+
+$$\sum u_n = T(0.09 + 0.009 + 0.0009 + \cdots) = 0.1T,$$
+
+and the total rounding error is at most $0.172T$, within $T/4$. A precision
+that grows by only 1 place per size, such as $d + k + 1 + \mathrm{siz}(n)$,
+wouldn't do: each size would contribute the same amount, and the total would
+grow without limit.
+
+For the tail, $|r_n| \le 1/n$ gives
+$|t_{N+j}| \le |t_N| / ((N+1)(N+2)\cdots(N+j))$. For $N \ge 1$, the tail is
+at most $|t_N|(1/2 + 1/6 + \cdots) = (e - 2)|t_N| < 0.72|t_N|$. Each rounding
+error only shrinks on its way to later terms, so the error in $\tilde{t}_N$ is
+at most $\sum u_n = 0.1T$, and $|t_N| < T/10 + 0.1T = 0.2T$. So the tail is
+under $0.15T$, within $T/4$. If the test stops at $N = 0$, $t_0$ is exact and
+the tail is at most $(e - 1)|t_0| < 0.18T$.
+
+**Large arguments.** The condition $|r_n| \le 1/n$ limits how large the
+argument can be. Beyond that, reduce the argument first. Each function below
+says how.
+
+## Exponentials
+
+The series is
+
+$$e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \cdots,$$
+
+with $t_0 = 1$ and $r_n = x/n$. So $|r_n| \le 1/n$ exactly when $|x| \le 1$.
+Then the series rule applies directly, with the input places from the
+[exponential rule](../2026-11-02%203%20Input%20places%20for%20functions/README.md#exponentials).
+
+For larger $|x|$, the terms grow until $n \approx |x|$, and the rounding
+errors grow with them. For negative $x$, as in $e^{-20}$, the terms also
+alternate in sign and cancel catastrophically. So pick $m$ with
+$|x/2^m| \le 1$, and compute
+
+$$e^x = \left(e^{x/2^m}\right)^{2^m}.$$
+
+Use the [power rule](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#powers) to choose the places for $e^{x/2^m}$, and
+the series rule to compute it. Squaring $m$ times is a chain of products, so
+carry guard digits through it, as for powers.
+
+**Example.** To get $e^{\pi/4}$ good to $d = 6$ places,
 with $k = 2$, the budget is $T = 10^{-8}$.
 
 **Input.** $\pi/4 < 1$, so the [exponential rule](../2026-11-02%203%20Input%20places%20for%20functions/README.md#exponentials) with $U_x = 1$ gives
@@ -89,10 +147,23 @@ The true value is $2.1932800507\ldots$, so the sum is off by about
 $5 \times 10^{-11}$, well within $T$. Truncating the divisions instead of
 rounding them gives $2.193280050176$, which rounds the same way.
 
-**Example: sin(π/4).** To get $\sin(\pi/4)$ good to $d = 6$ places, with
+## Sine and cosine
+
+The series are
+
+$$\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \cdots, \qquad \cos x = 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \cdots.$$
+
+For sine, $t_0 = x$ and $r_n = -x^2/((2n)(2n+1))$. For cosine, $t_0 = 1$ and
+$r_n = -x^2/((2n-1)(2n))$. Both ratios are largest compared with $1/n$ at
+$n = 1$, so $|r_n| \le 1/n$ holds for $|x| \le \sqrt{6} \approx 2.45$ for
+sine, and $|x| \le \sqrt{2} \approx 1.41$ for cosine. Use the
+[sine rule](../2026-11-02%203%20Input%20places%20for%20functions/README.md#sine-and-cosine) for the input places. For larger $|x|$,
+reduce the argument first, as below.
+
+**Example.** To get $\sin(\pi/4)$ good to $d = 6$ places, with
 $k = 2$, the budget is again $T = 10^{-8}$.
 
-**Input.** The [sine rule](../2026-11-02%203%20Input%20places%20for%20functions/README.md#sine-and-cosine) gives $d_x = 6 + 2 + 1 = 9$, so
+**Input.** The sine rule gives $d_x = 6 + 2 + 1 = 9$, so
 $\tilde{x} = \mathrm{rnd}(\pi/4, 9) = 0.785398163$.
 
 **Terms.** Start with $t_0 = \tilde{x}$, and compute
@@ -121,52 +192,61 @@ The true value is $\sqrt{2}/2 = 0.7071067811\ldots$, so the sum is off by
 about $3 \times 10^{-10}$, within $T$. Truncating the divisions gives the same
 sum.
 
-**Why.** Let $e_n = \tilde{t}_n - t_n$ be the error in term $n$, where $t_n$ is
-the exact term at $\tilde{x}$. Each step multiplies the previous error by
-$r_n$ and adds a new rounding error of at most $u_n = 10^{-p_n}$, which covers
-truncation too. So an error made at term $m$ carries into the later terms with
-total weight at most
+### Argument reduction
 
-$$1 + |r_{m+1}| + |r_{m+1} r_{m+2}| + \cdots \le 1 + \frac{1}{2} + \frac{1}{2 \cdot 3} + \cdots = e - 1 \approx 1.72,$$
+Reduce $x$ by a whole number $j$ of quarter turns, to $r = x - j\pi/2$, and
+then use
 
-using $|r_n| \le 1/n$. So the total rounding error in the sum is at most
-$1.72 \sum u_n$.
+| $j$ mod 4 | $\sin x$ | $\cos x$ |
+|---|---|---|
+| 0 | $\sin r$ | $\cos r$ |
+| 1 | $\cos r$ | $-\sin r$ |
+| 2 | $-\sin r$ | $-\cos r$ |
+| 3 | $-\cos r$ | $\sin r$ |
 
-With $p_n = d + k + 2\mathrm{siz}(n)$, $u_n = T \cdot 10^{-2\mathrm{siz}(n)}$.
-Group the terms by size: the 9 terms of size 1 contribute $9 \cdot 10^{-2}$,
-the 90 terms of size 2 contribute $90 \cdot 10^{-4}$, and so on, so
+With $j$ the nearest whole number to $x / (\pi/2)$, $|r| \le \pi/4 \approx 0.79$,
+well within both series' limits. $j$ only has to be roughly right: rounding an
+estimate of $x / (\pi/2)$ that is off by up to 0.4 still gives
+$|r| \le 0.9 \cdot \pi/2 < \sqrt{2}$.
 
-$$\sum u_n = T(0.09 + 0.009 + 0.0009 + \cdots) = 0.1T,$$
+The reduction uses an approximation to $\pi$, whose error is multiplied by
+$|j|/2$. So with reduction:
 
-and the total rounding error is at most $0.172T$, within $T/4$. A precision
-that grows by only 1 place per size, such as $d + k + 1 + \mathrm{siz}(n)$,
-wouldn't do: each size would contribute the same amount, and the total would
-grow without limit.
+- **x** needs $d + k + 1$ places, as in the sine rule, even if it is exactly
+  rounded.
+- **π** needs $d + k + 1 + \mathrm{siz}(j)$ places. With $j = 0$ there is no
+  reduction, and $\pi$ isn't needed.
 
-For the tail:
+Then compute $\tilde{r} = \tilde{x} - j\tilde{\pi}/2$ exactly. It has the
+accuracy the sine rule asks of the input, so evaluate $\sin \tilde{r}$ or
+$\cos \tilde{r}$ by its series.
 
-- **e to the x.** With $|x| \le 1$, $|t_{N+j}| \le |t_N| / ((N+1)(N+2)\cdots(N+j))$,
-  so the tail is at most $|t_N|(1/2 + 1/6 + \cdots) = (e - 2)|t_N| < 0.72|t_N|$.
-- **sin x.** The terms alternate in sign and shrink, so the tail is at most
-  the first term left off, which is at most
-  $|t_N| x^2 / ((2N+2)(2N+3)) \le 0.3|t_N|$ for $|x| \le 2.4$ and
-  $N \ge 1$. The test can't stop at $N = 0$ unless $|x| < T/10$, and then the
-  tail is tiny anyway.
+**Example.** For $\sin 100$ good to $d = 6$ places, with $k = 2$:
+$100 / (\pi/2) \approx 63.7$, so $j = 64$. Since 64 mod 4 is 0,
+$\sin 100 = \sin r$. $x = 100$ is exact. $\pi$ needs
+$6 + 2 + 1 + \mathrm{siz}(64) = 11$ places, so $\tilde{\pi} = 3.14159265359$,
+and
 
-Either way, the stopping test gives $|\tilde{t}_N| < T/10$, which leaves a
-tail well under $T/4$, even allowing for the error in $\tilde{t}_N$.
+$$\tilde{r} = 100 - 32\tilde{\pi} = -0.53096491488.$$
 
-**Large arguments.** The rule needs $|r_n| \le 1/n$. For $e^x$ that means
-$|x| \le 1$. For larger $|x|$, the terms grow until $n \approx |x|$, errors grow
-with them, and an alternating series like $e^{-20}$ also cancels
-catastrophically. So reduce the argument first. For example, compute
-$e^x = (e^{x/2^m})^{2^m}$ with $|x/2^m| \le 1$, and use the [power rule](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#powers) to choose
-the places for $e^{x/2^m}$. For $\sin x$, reduce by quarter turns into
-$[-\pi/4, \pi/4]$, as in [Argument reduction](../2026-11-02%203%20Input%20places%20for%20functions/README.md#argument-reduction). Its ratios are
-$|r_n| = x^2/((2n)(2n+1))$, which is at most $1/n$ whenever $|x| \le 2.4$, so
-the rule has room to spare.
+The sine series at $\tilde{r}$ sums to $-0.50636564118$, which rounds to
+$-0.506366$. The true value is $\sin 100 = -0.5063656411\ldots$
 
-## Logarithms by series
+**Why.** The error in $\tilde{r}$ is at most
+$\varepsilon_x + \frac{|j|}{2}\varepsilon_\pi$. This is a sum of two inputs
+with $A_x = 1$ and $A_\pi = |j|/2$, so with $\eta = T/2$ split between them,
+the exact counts are
+
+$$d_x = \lceil d + k + \log(4c) \rceil, \qquad d_\pi = \lceil d + k + \log(2c|j|) \rceil.$$
+
+Since $\log(4c) \le \log 2.4 < 1$, and
+$\log(2c|j|) \le \log 1.2 + \log|j| < 1 + \mathrm{siz}(j)$, these are enough.
+
+For $\sin 100$, the error in $\tilde{r}$ is at most
+$32 \cdot \frac{1}{2} \cdot 10^{-11} = 1.6 \times 10^{-10}$, well within
+$T/2$.
+
+## Logarithms
 
 The usual series $\ln(1 + u) = u - u^2/2 + u^3/3 - \cdots$ doesn't fit the
 series rule. The ratio between its terms is $-u(n-1)/n$, which tends to $u$
@@ -185,7 +265,7 @@ after reducing $x$ so that $z$ is small.
   that $\ln x = j \ln 2 + \ln m$. Dividing by 2 is exact in decimal: each
   halving adds one place.
 - **ln 2.** Use $\ln 2$ to $d + k + 1 + \mathrm{siz}(j)$ places, like $\pi$ in
-  the [sine reduction](../2026-11-02%203%20Input%20places%20for%20functions/README.md#argument-reduction).
+  the [sine reduction](#argument-reduction).
 - **z.** Compute $z = (m - 1)/(m + 1)$ to $d + k + 2$ places, rounded or
   truncated. Then $|z| \le 0.18$, and $z^2 \le 0.032$. Compute $z^2$ exactly.
 - **Terms.** Keep a running power, starting from $P_0 = z$, and for each

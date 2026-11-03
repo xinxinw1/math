@@ -125,10 +125,10 @@ These are the examples from
 | [π / e](../2026-11-02%202%20Input%20places%20for%20arithmetic/README.md#division-by-truncation) | 3 | $1.155727$ | $10^{-5}$ | $1.1555$ | $2.3 \times 10^{-4}$ | $1.156$ |
 | [√π](../2026-11-02%203%20Input%20places%20for%20functions/README.md#square-roots) | 4 | $1.7724539$ | $5.5 \times 10^{-7}$ | $1.77245$ | $3.9 \times 10^{-6}$ | $1.7725$ |
 | [e to the 3π](../2026-11-02%203%20Input%20places%20for%20functions/README.md#exponentials) | 3 | $12391.647808$ | $5.5 \times 10^{-6}$ | $12391.6475$ | $3.1 \times 10^{-4}$ | $12391.648$ |
-| [sin 100](../2026-11-02%203%20Input%20places%20for%20functions/README.md#argument-reduction) | 6 | $-0.50636564118$ | $10^{-8}$ | $-0.5063655$ | $1.4 \times 10^{-7}$ | $-0.506366$ |
-| [e to the π/4](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule) | 6 | $2.193280050786$ | $10^{-8}$ | $2.1932805$ | $4.5 \times 10^{-7}$ | $2.193280$ |
-| [sin(π/4)](../2026-11-02%204%20Functions%20by%20series/README.md#the-series-rule) | 6 | $0.7071067809$ | $10^{-8}$ | $0.7071065$ | $2.8 \times 10^{-7}$ | $0.707107$ |
-| [ln 3](../2026-11-02%204%20Functions%20by%20series/README.md#logarithms-by-series) | 6 | $1.09861228866$ | $10^{-8}$ | $1.0986125$ | $2.1 \times 10^{-7}$ | $1.098612$ |
+| [sin 100](../2026-11-02%204%20Functions%20by%20series/README.md#argument-reduction) | 6 | $-0.50636564118$ | $10^{-8}$ | $-0.5063655$ | $1.4 \times 10^{-7}$ | $-0.506366$ |
+| [e to the π/4](../2026-11-02%204%20Functions%20by%20series/README.md#exponentials) | 6 | $2.193280050786$ | $10^{-8}$ | $2.1932805$ | $4.5 \times 10^{-7}$ | $2.193280$ |
+| [sin(π/4)](../2026-11-02%204%20Functions%20by%20series/README.md#sine-and-cosine) | 6 | $0.7071067809$ | $10^{-8}$ | $0.7071065$ | $2.8 \times 10^{-7}$ | $0.707107$ |
+| [ln 3](../2026-11-02%204%20Functions%20by%20series/README.md#logarithms) | 6 | $1.09861228866$ | $10^{-8}$ | $1.0986125$ | $2.1 \times 10^{-7}$ | $1.098612$ |
 
 Every distance is more than $\eta$, so by Lemma 1 every result is correctly
 rounded.
