@@ -125,3 +125,9 @@ With $x = 5$ and $y = 24$, $x^2 - y = 1$, so $a = 3$ and $b = 2$:
 $$
 \sqrt{5 - \sqrt{24}} = \sqrt{3} - \sqrt{2}
 $$
+
+## Follow-up
+
+[Denesting square roots revisited](../2026-11-03%20Denesting%20square%20roots%20revisited/README.md)
+checks the formula directly, shows that it gives the only possible denesting,
+and adds more examples and a Lean proof.
