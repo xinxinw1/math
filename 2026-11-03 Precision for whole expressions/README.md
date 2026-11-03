@@ -209,8 +209,16 @@ The rules need a lower bound above 0 for:
 If a node's cheap interval contains 0 but its parent needs such a lower bound,
 evaluate the node to $p = 5$ places, then 10, 20, 40, and so on, until the
 interval $[\tilde{x} - 0.6 \cdot 10^{-p}, \tilde{x} + 0.6 \cdot 10^{-p}]$
-excludes 0. Use that interval for the node from then on, and carry on with the
-cheap pass.
+excludes 0, or $p$ passes a cap, such as 80. Use that interval for the node
+from then on, and carry on with the cheap pass.
+
+The cap is needed because a node whose true value is 0, such as $\sin \pi$,
+never gets an interval that excludes 0, however many places are used.
+Reaching the cap means the value is 0 or within about $10^{-80}$ of it, and
+more places can't tell which. For a divisor or a logarithm argument, give up
+and report that it can't be shown to be nonzero. For a square root argument,
+use the rule without a lower bound instead. See
+[Exact singularities](#exact-singularities).
 
 Evaluating a node to $p$ places is passes 2 and 3 on the part of the
 expression below it, with $d = p$. Those use the bounds already found for its
@@ -221,10 +229,6 @@ close to 0.
 Keep the most precise value found for every node, and reuse it later: having
 more places than needed is always safe. Doubling $p$ means the trials cost
 less than the last one again, and starting at 5 means most succeed at once.
-
-If $p$ reaches a cap, such as 80, give up and report that the divisor or
-logarithm argument can't be shown to be nonzero. See
-[Exact singularities](#exact-singularities).
 
 ### The bounds the rules use
 
@@ -482,10 +486,10 @@ place each. The check then needs a distance above $10^{-7}$, and passes.
 
 ### Exact singularities
 
-For $1/\sin(\pi)$, tightening never excludes 0 from the sine's interval,
-however many places are used. The cap on $p$ catches this. No numeric method can tell
-a true zero from a very small number. Symbolic simplification can catch some
-cases, such as $\sin(\pi) = 0$, before the passes start.
+For $1/\sin(\pi)$, tightening never excludes 0 from the sine's interval, and
+the [cap on p](#tightening-by-evaluation) stops it with an error. No numeric
+method can tell a true zero from a very small number. Symbolic simplification
+can catch some cases, such as $\sin(\pi) = 0$, before the passes start.
 
 ### Exact ties
 
@@ -530,7 +534,11 @@ def precision_for(expr, d, k=2, retries=5):
     for node in graph.bottom_up():
         for child in node.children_needing_lower_bound():
             if contains_zero(intervals[child]):
-                intervals[child] = tighten(child, intervals, best, k)
+                tightened = tighten(child, intervals, best, k)
+                if tightened is not None:
+                    intervals[child] = tightened
+                elif not node.is_sqrt():           # square roots fall back
+                    raise ValueError(f"can't show {child} is nonzero")
         intervals[node] = cheap_bounds(node, intervals)  # 5 figures, outward
         if intervals[node] == (0, 0):
             node.replace_with_exact_zero()
@@ -551,7 +559,7 @@ def tighten(node, intervals, best, k):
         if v - w > 0 or v + w < 0:
             return (v - w, v + w)
         p *= 2
-    raise ValueError(f"can't bound {node} away from 0")
+    return None                              # reached the cap
 
 
 def evaluate(top, d, intervals, best, k, k_top):
